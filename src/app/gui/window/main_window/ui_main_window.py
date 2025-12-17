@@ -34,7 +34,7 @@ class UI_MainWindow(object):
 
       
       parent.setWindowTitle("Almoxarifado Obras - Login")
-      parent.setWindowIcon(QIcon("assets/icon.png"))
+      parent.setWindowIcon(QIcon("assets/icon.jpg"))
 
         # =============================
         # WIDGET CENTRAL
@@ -47,19 +47,19 @@ class UI_MainWindow(object):
       self.main_layout.setContentsMargins(20, 20, 20, 20)
 
         # =============================
-        # BARRA SUPERIOR COM AS LOGOS
+        # NAV BAR
         # =============================
       self.top_bar = QHBoxLayout()
       self.top_bar.setAlignment(Qt.AlignLeft)
 
-        # LOGO 1 (Prefeitura)
+        # LOGO 1 ()
       self.logo1 = QLabel()
       pix1 = QPixmap("assets/logo_pmi.png").scaled(430, 180, Qt.KeepAspectRatio, Qt.SmoothTransformation)
       self.logo1.setPixmap(pix1)
       self.top_bar.addWidget(self.logo1)
       self.top_bar.addStretch()
 
-        # LOGO 2 (Secretaria)
+        # LOGO 2 ()
       self.logo2 = QLabel()
       pix2 = QPixmap("assets/logo_secretaria.png").scaled(440, 180, Qt.KeepAspectRatio, Qt.SmoothTransformation)
       self.logo2.setPixmap(pix2)
@@ -68,9 +68,8 @@ class UI_MainWindow(object):
       self.main_layout.addLayout(self.top_bar)
       self.main_layout.addSpacing(10)
 
-        # =============================
-        # TÍTULO
-        # =============================
+      # TITLE
+       
       self.title = QLabel("ALMOXARIFADO OBRAS")
       self.title.setAlignment(Qt.AlignCenter)
       self.title.setStyleSheet("""
@@ -81,9 +80,9 @@ class UI_MainWindow(object):
       self.main_layout.addWidget(self.title)
       self.main_layout.addSpacing(25)
 
-        # =============================
-        # CARD / QUADRO CENTRAL
-        # =============================
+      
+      # CARD 
+   
       self.card = QFrame()
       self.card.setObjectName("login_card")
       self.card.setFixedSize(900, 390)
@@ -98,9 +97,8 @@ class UI_MainWindow(object):
       self.card_layout = QHBoxLayout(self.card)
       self.card_layout.setContentsMargins(40, 40, 40, 40)
 
-        # =============================
-        # BG DO ÍCONE (FUNDO LILÁS)
-        # =============================
+      # BACKGROUND ICON
+
       self.icon_bg = QFrame()
       self.icon_bg.setFixedSize(220, 250)
       self.icon_bg.setStyleSheet("""
@@ -116,14 +114,14 @@ class UI_MainWindow(object):
 
       self.card_layout.addWidget(self.icon_bg)
 
-        # =============================
-        # CAMPOS DO FORMULÁRIO
-        # =============================
+      # FORM
+
       self.form_layout = QVBoxLayout()
       self.form_layout.setSpacing(15)
       self.card_layout.addLayout(self.form_layout)
 
-        # ===== USUÁRIO =====
+      # USERNAME
+
       self.user_label = QLabel("USUÁRIO")
       self.user_label.setStyleSheet("""
             background-color: #c3a6e8;
@@ -148,7 +146,8 @@ class UI_MainWindow(object):
         """)
       self.form_layout.addWidget(self.user_input)
 
-        # ===== SENHA =====
+      # PASSWORD
+
       self.pass_label = QLabel("SENHA")
       self.pass_label.setStyleSheet("""
             background-color: #c3a6e8;
@@ -176,7 +175,8 @@ class UI_MainWindow(object):
 
       self.form_layout.addSpacing(20)
 
-        # ===== BOTÃO ENTRAR =====
+      # SUBMIT BUTTON
+
       self.login_button = QPushButton("ENTRAR")
       self.login_button.setFixedSize(260, 50)
       self.login_button.setStyleSheet("""
@@ -197,7 +197,6 @@ class UI_MainWindow(object):
 
       self.form_layout.addWidget(self.login_button, alignment=Qt.AlignCenter)
 
-      # =============================
-      # ADICIONA O CARD NA TELA
-      # =============================
+      # ADD CARD TO SCREEN
+      
       self.main_layout.addWidget(self.card, alignment=Qt.AlignCenter)

@@ -1,0 +1,15 @@
+<RCC>
+  <qresource prefix="/">
+    <file>../../../assets/box-truck.png</file>
+    <file>../../../assets/cleaning_tools.png</file>
+    <file>../../../assets/database.png</file>
+    <file>../../../assets/help.png</file>
+    <file>../../../assets/hydraulic.png</file>
+    <file>../../../assets/icon.jpg</file>
+    <file>../../../assets/logo_pmi.png</file>
+    <file>../../../assets/logo_secretaria.png</file>
+    <file>../../../assets/tools.png</file>
+    <file>../../../assets/user_icon.png</file>
+    <file>../../../assets/wiring.png</file>
+  </qresource>
+</RCC>
