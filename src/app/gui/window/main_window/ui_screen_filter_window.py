@@ -119,7 +119,7 @@ class UI_ScreenFilterWindow(object):
             self.sidebar_item("assets/graphic.png", "Relatório")
         )
         sidebar_layout.addWidget(
-            self.sidebar_item("assets/printer.png", "Imprimir")
+            self.sidebar_item("assets/print.png", "Imprimir")
         )
         sidebar_layout.addWidget(
             self.sidebar_item("assets/export.png", "Exportar")
