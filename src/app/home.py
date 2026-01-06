@@ -24,15 +24,15 @@ import os
 # IMPORT QT CORE
 from qt_core import *
 
-# IMPORT MAIN WINDOW
+# IMPORT HOME WINDOW
 from gui.window.main_window.ui_home_window import UI_HomeWindow
 
-# MAIN WINDOW
+# HOME WINDOW
 class HomeWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        #SETUP MAIN WINDOW
+        # SETUP HOME WINDOW
         self.ui = UI_HomeWindow()
         self.ui.setup_ui(self)
 

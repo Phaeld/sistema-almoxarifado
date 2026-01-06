@@ -12,6 +12,7 @@ from qt_core import *
 # IMPORT RESOURCES
 from gui import resources_rc
 
+# ITENS
 class QAItem(QWidget):
     def __init__(self, question, answer):
         super().__init__()
@@ -20,7 +21,7 @@ class QAItem(QWidget):
         self.layout.setSpacing(0)
         self.layout.setContentsMargins(0, 0, 0, 0)
 
-        # BOTÃO DA PERGUNTA
+        # BUTTON QUESTION
         self.btn = QPushButton(question)
         self.btn.setCursor(Qt.PointingHandCursor)
         self.btn.setCheckable(True)
@@ -39,7 +40,7 @@ class QAItem(QWidget):
             }
         """)
 
-        # RESPOSTA (ESCONDIDA)
+        # ANSWER (HIDDEN)
         self.answer_label = QLabel(answer)
         self.answer_label.setWordWrap(True)
         self.answer_label.setVisible(False)
@@ -61,18 +62,14 @@ class UI_HelpWindow(object):
         if not parent.objectName():
             parent.setObjectName("HelpWindow")
 
-        # =============================
         # WINDOW CONFIG
-        # =============================
         parent.resize(1200, 720)
         parent.setMinimumSize(960, 540)
         parent.setWindowTitle("Almoxarifado Obras - Ajuda")
         parent.setWindowIcon(QIcon("assets/icon.jpg"))
         parent.setStyleSheet("background-color: #E8E2EE;")
 
-        # =============================
         # CENTRAL WIDGET
-        # =============================
         self.central_widget = QWidget(parent)
         parent.setCentralWidget(self.central_widget)
 
@@ -80,9 +77,7 @@ class UI_HelpWindow(object):
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
 
-        # =============================
         # TOP BAR
-        # =============================
         self.top_bar = QFrame()
         self.top_bar.setFixedHeight(50)
         self.top_bar.setStyleSheet("background-color: #390E68;")
@@ -104,9 +99,7 @@ class UI_HelpWindow(object):
 
         main_layout.addWidget(self.top_bar)
         
-        # =============================
         # SCROLL AREA
-        # =============================
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setFrameShape(QFrame.NoFrame)
@@ -120,9 +113,7 @@ class UI_HelpWindow(object):
 
         main_layout.addWidget(scroll)
 
-        # =============================
         # LEFT COLUMN
-        # =============================
         left_col = QVBoxLayout()
         left_col.setSpacing(25)
 
@@ -146,9 +137,7 @@ class UI_HelpWindow(object):
 
         left_col.addStretch()
 
-        # =============================
         # RIGHT COLUMN
-        # =============================
         right_col = QVBoxLayout()
         right_col.setSpacing(20)
         right_col.setAlignment(Qt.AlignTop)
@@ -212,7 +201,7 @@ class UI_HelpWindow(object):
 
         right_col.addWidget(qa_title)
 
-        # PERGUNTAS
+        # QUESTIONS
         right_col.addWidget(QAItem(
             "Como imprimir ou exportar relatório?",
             "Acesse o menu Relatórios, selecione o período desejado e clique em Exportar."
@@ -233,18 +222,14 @@ class UI_HelpWindow(object):
             "As permissões são exibidas no menu Meu Perfil."
         ))
 
-        # =============================
         # ADD COLUMNS
-        # =============================
         content_layout.addLayout(left_col, 2)
         content_layout.addLayout(right_col, 1)
 
         
 
-    # ======================================================
+ 
     # COMPONENTS
-    # ======================================================
-
     def top_button_style(self):
         return """
                 QPushButton {

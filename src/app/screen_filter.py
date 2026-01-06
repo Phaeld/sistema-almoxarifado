@@ -24,15 +24,15 @@ import os
 # IMPORT QT CORE
 from qt_core import *
 
-# IMPORT MAIN WINDOW
+# IMPORT SCREEN FILTER WINDOW
 from gui.window.main_window.ui_screen_filter_window import UI_ScreenFilterWindow
 
-# MAIN WINDOW
+# SCREEN FILTER WINDOW
 class ScreenFilterWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        #SETUP MAIN WINDOW
+        # SETUP SCREEN FILTER WINDOW
         self.ui = UI_ScreenFilterWindow()
         self.ui.setup_ui(self)
 

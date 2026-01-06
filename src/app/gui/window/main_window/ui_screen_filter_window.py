@@ -12,29 +12,25 @@
 # IMPORT QT CORE
 from qt_core import *
 
-# IMPORT RESOURCES (QRC)
+# IMPORT RESOURCES
 from gui import resources_rc
 
 
-# MAIN WINDOW
+# SCREEN FILTER WINDOW
 class UI_ScreenFilterWindow(object):
 
     def setup_ui(self, parent):
         if not parent.objectName():
             parent.setObjectName("ScreenFilterWindow")
 
-        # =============================
         # WINDOW SETTINGS
-        # =============================
         parent.resize(1200, 720)
         parent.setMinimumSize(960, 540)
         parent.setWindowTitle("Almoxarifado Obras - Filtros, Pedidos e Consultas")
         parent.setWindowIcon(QIcon(":/assets/icon.jpg"))
         parent.setStyleSheet("background-color: #E8E2EE;")
 
-        # =============================
         # CENTRAL WIDGET
-        # =============================
         self.central_widget = QWidget(parent)
         parent.setCentralWidget(self.central_widget)
 
@@ -42,9 +38,7 @@ class UI_ScreenFilterWindow(object):
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
 
-        # =============================
         # TOP BAR
-        # =============================
         self.top_bar = QFrame()
         self.top_bar.setFixedHeight(50)
         self.top_bar.setStyleSheet("background-color: #390E68;")
@@ -66,17 +60,13 @@ class UI_ScreenFilterWindow(object):
 
         main_layout.addWidget(self.top_bar)
 
-        # =============================
         # BODY (SIDEBAR + CONTENT)
-        # =============================
         body = QFrame()
         body_layout = QHBoxLayout(body)
         body_layout.setContentsMargins(0, 0, 0, 0)
         body_layout.setSpacing(0)
 
-        # =============================
         # SIDEBAR
-        # =============================
         self.sidebar = QFrame()
         self.sidebar.setFixedWidth(300)
         self.sidebar.setStyleSheet("background-color: #B6A8C9;")
@@ -85,7 +75,7 @@ class UI_ScreenFilterWindow(object):
         sidebar_layout.setContentsMargins(20, 20, 20, 20)
         sidebar_layout.setSpacing(10)
 
-        # ===== CATEGORIA =====
+        # CATEGORY
         sidebar_layout.addWidget(self.section_title("CATEGORIA"))
 
         sidebar_layout.addWidget(
@@ -106,7 +96,7 @@ class UI_ScreenFilterWindow(object):
 
         sidebar_layout.addWidget(self.hr_line())
 
-        # ===== AÇÕES =====
+        # ACTIONS
         sidebar_layout.addWidget(self.section_title("AÇÕES"))
 
         sidebar_layout.addWidget(
@@ -127,7 +117,7 @@ class UI_ScreenFilterWindow(object):
 
         sidebar_layout.addWidget(self.hr_line())
 
-        # ===== OUTROS =====
+        # OTHERS
         sidebar_layout.addWidget(self.section_title("OUTROS"))
 
         sidebar_layout.addWidget(
@@ -139,9 +129,7 @@ class UI_ScreenFilterWindow(object):
 
         sidebar_layout.addStretch()
 
-        # =============================
         # CONTENT AREA
-        # =============================
         self.content = QFrame()
         self.content.setStyleSheet("background-color: #EDE7F2;")
 
@@ -150,10 +138,7 @@ class UI_ScreenFilterWindow(object):
 
         main_layout.addWidget(body)
 
-    # ======================================================
     # STYLES & COMPONENTS
-    # ======================================================
-
     def top_button_style(self):
         return """
             QPushButton {
@@ -167,6 +152,7 @@ class UI_ScreenFilterWindow(object):
             }
         """
 
+    # COMPONENTS
     def section_title(self, text):
         label = QLabel(text)
         label.setStyleSheet("""

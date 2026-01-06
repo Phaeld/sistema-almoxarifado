@@ -24,15 +24,15 @@ import os
 # IMPORT QT CORE
 from qt_core import *
 
-# IMPORT MAIN WINDOW
+# IMPORT HELP WINDOW
 from gui.window.main_window.ui_help_window import UI_HelpWindow
 
-# MAIN WINDOW
+# HELP WINDOW
 class HelpWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        #SETUP MAIN WINDOW
+        # SETUP HELP WINDOW
         self.ui = UI_HelpWindow()
         self.ui.setup_ui(self)
 

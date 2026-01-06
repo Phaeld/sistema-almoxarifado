@@ -19,10 +19,12 @@
 
 # IMPORT QT CORE
 from qt_core import *
+
+# IMPORT LIBRARIES
 import os
 from gui import resources_rc
 
-
+# MENU CARD
 class MenuCard(QFrame):
     def __init__(self, icon_resource, text):
         super().__init__()
@@ -70,7 +72,7 @@ class MenuCard(QFrame):
         layout.addWidget(self.icon)
         layout.addWidget(self.label)
 
-# MAIN WINDOW
+# HOME WINDOW
 class UI_HomeWindow(object):
   def setup_ui(self, parent):
     if not parent.objectName():
@@ -142,8 +144,7 @@ class UI_HomeWindow(object):
 
     main_layout.addWidget(self.content)
 
-    # STYLES
-   
+  # STYLES
   def top_button_style(self):
       return """
             QPushButton {

@@ -25,9 +25,8 @@ class UI_MainWindow(object):
   def setup_ui(self, parent):
     if not parent.objectName():
       parent.setObjectName("MainWindow") 
-        # =============================
-        # INICIAL
-        # =============================
+
+      # INICIAL
       parent.resize(1200, 720)
       parent.setMinimumSize(960, 540)
       parent.setStyleSheet("background-color: #E8E2EE;")
@@ -36,30 +35,25 @@ class UI_MainWindow(object):
       parent.setWindowTitle("Almoxarifado Obras - Login")
       parent.setWindowIcon(QIcon("assets/icon.jpg"))
 
-        # =============================
-        # WIDGET CENTRAL
-        # =============================
-
+      # WIDGET CENTRAL
       self.central_widget = QWidget()
       parent.setCentralWidget(self.central_widget)
       self.main_layout = QVBoxLayout(self.central_widget)
       self.main_layout.setAlignment(Qt.AlignTop | Qt.AlignHCenter)
       self.main_layout.setContentsMargins(20, 20, 20, 20)
 
-        # =============================
-        # NAV BAR
-        # =============================
+      # NAV BAR
       self.top_bar = QHBoxLayout()
       self.top_bar.setAlignment(Qt.AlignLeft)
 
-        # LOGO 1 ()
+      # LOGO 1 (MUNICIPAL GOVERNMENT OF IPAUSSU)
       self.logo1 = QLabel()
       pix1 = QPixmap("assets/logo_pmi.png").scaled(430, 180, Qt.KeepAspectRatio, Qt.SmoothTransformation)
       self.logo1.setPixmap(pix1)
       self.top_bar.addWidget(self.logo1)
       self.top_bar.addStretch()
 
-        # LOGO 2 ()
+      # LOGO 2 (MUNICIPAL SECRETARIAT OF PUBLIC WORKS)
       self.logo2 = QLabel()
       pix2 = QPixmap("assets/logo_secretaria.png").scaled(440, 180, Qt.KeepAspectRatio, Qt.SmoothTransformation)
       self.logo2.setPixmap(pix2)
@@ -68,8 +62,7 @@ class UI_MainWindow(object):
       self.main_layout.addLayout(self.top_bar)
       self.main_layout.addSpacing(10)
 
-      # TITLE
-       
+      # TITLE    
       self.title = QLabel("ALMOXARIFADO OBRAS")
       self.title.setAlignment(Qt.AlignCenter)
       self.title.setStyleSheet("""
@@ -82,7 +75,6 @@ class UI_MainWindow(object):
 
       
       # CARD 
-   
       self.card = QFrame()
       self.card.setObjectName("login_card")
       self.card.setFixedSize(900, 390)
@@ -98,7 +90,6 @@ class UI_MainWindow(object):
       self.card_layout.setContentsMargins(40, 40, 40, 40)
 
       # BACKGROUND ICON
-
       self.icon_bg = QFrame()
       self.icon_bg.setFixedSize(220, 250)
       self.icon_bg.setStyleSheet("""
@@ -115,13 +106,11 @@ class UI_MainWindow(object):
       self.card_layout.addWidget(self.icon_bg)
 
       # FORM
-
       self.form_layout = QVBoxLayout()
       self.form_layout.setSpacing(15)
       self.card_layout.addLayout(self.form_layout)
 
       # USERNAME
-
       self.user_label = QLabel("USUÁRIO")
       self.user_label.setStyleSheet("""
             background-color: #c3a6e8;
@@ -147,7 +136,6 @@ class UI_MainWindow(object):
       self.form_layout.addWidget(self.user_input)
 
       # PASSWORD
-
       self.pass_label = QLabel("SENHA")
       self.pass_label.setStyleSheet("""
             background-color: #c3a6e8;
@@ -176,7 +164,6 @@ class UI_MainWindow(object):
       self.form_layout.addSpacing(20)
 
       # SUBMIT BUTTON
-
       self.login_button = QPushButton("ENTRAR")
       self.login_button.setFixedSize(260, 50)
       self.login_button.setStyleSheet("""
@@ -197,6 +184,5 @@ class UI_MainWindow(object):
 
       self.form_layout.addWidget(self.login_button, alignment=Qt.AlignCenter)
 
-      # ADD CARD TO SCREEN
-      
+      # ADD CARD TO SCREEN    
       self.main_layout.addWidget(self.card, alignment=Qt.AlignCenter)

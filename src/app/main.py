@@ -24,22 +24,33 @@ import os
 # IMPORT QT CORE
 from qt_core import *
 
-# IMPORT MAIN WINDOW
+# IMPORT MAIN WINDOW AND HOME
 from gui.window.main_window.ui_main_window import UI_MainWindow
+from home import HomeWindow
 
 # MAIN WINDOW
-class MainWindow(QMainWindow):
+class MainWindow(QMainWindow):    
     def __init__(self):
         super().__init__()
 
-        #SETUP MAIN WINDOW
+        # SETUP MAIN WINDOW
         self.ui = UI_MainWindow()
         self.ui.setup_ui(self)
 
-        # PRINT WINDOW
-        self.show()
+        # PAGE INTERACTIONS
+        self.ui.login_button.clicked.connect(self.go_to_home)
+        self.ui.user_input.returnPressed.connect(self.go_to_home)
+        self.ui.pass_input.returnPressed.connect(self.go_to_home)
+
+    # FUNCTION TO GO TO HOME PAGE
+    def go_to_home(self):
+        self.home = HomeWindow()
+        self.home.show()
+        self.close()
+
 
 if __name__ == "__main__":
-   app = QApplication(sys.argv)
-   window = MainWindow()
-   sys.exit(app.exec())
+    app = QApplication(sys.argv)
+    window = MainWindow()
+    window.show()
+    sys.exit(app.exec())
