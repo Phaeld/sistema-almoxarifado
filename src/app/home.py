@@ -29,15 +29,23 @@ from gui.window.main_window.ui_home_window import UI_HomeWindow
 
 # HOME WINDOW
 class HomeWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, on_logout=None):
         super().__init__()
+
+        self.on_logout = on_logout
 
         # SETUP HOME WINDOW
         self.ui = UI_HomeWindow()
         self.ui.setup_ui(self)
 
-        # PRINT WINDOW
+        self.ui.btn_sair.clicked.connect(self.logout)
+
         self.show()
+
+    def logout(self):
+        if self.on_logout:
+            self.on_logout()
+        self.close()
 
 if __name__ == "__main__":
    app = QApplication(sys.argv)

@@ -39,14 +39,14 @@ class MainWindow(QMainWindow):
 
         # PAGE INTERACTIONS
         self.ui.login_button.clicked.connect(self.go_to_home)
-        self.ui.user_input.returnPressed.connect(self.go_to_home)
-        self.ui.pass_input.returnPressed.connect(self.go_to_home)
 
     # FUNCTION TO GO TO HOME PAGE
     def go_to_home(self):
-        self.home = HomeWindow()
-        self.home.show()
-        self.close()
+        self.home = HomeWindow(on_logout=self.show_login)
+        self.hide()
+    
+    def show_login(self):
+        self.show()
 
 
 if __name__ == "__main__":
