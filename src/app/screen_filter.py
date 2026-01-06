@@ -29,17 +29,29 @@ from gui.window.main_window.ui_screen_filter_window import UI_ScreenFilterWindow
 
 # SCREEN FILTER WINDOW
 class ScreenFilterWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, category_tag):
         super().__init__()
 
         # SETUP SCREEN FILTER WINDOW
         self.ui = UI_ScreenFilterWindow()
         self.ui.setup_ui(self)
 
+        self.category = category_tag
+        print("Categoria selecionada:", self.category)
+
+        # botão voltar
+        self.ui.btn_home.clicked.connect(self.go_home)
+
         # PRINT WINDOW
         self.show()
 
-if __name__ == "__main__":
-   app = QApplication(sys.argv)
-   window = ScreenFilterWindow()
-   sys.exit(app.exec())
+    def go_home(self):
+        from home import HomeWindow  # import local evita circular
+        self.home = HomeWindow()
+        self.home.show()
+        self.close()
+
+# if __name__ == "__main__":
+#    app = QApplication(sys.argv)
+#    window = ScreenFilterWindow()
+#    sys.exit(app.exec())

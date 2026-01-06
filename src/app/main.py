@@ -43,6 +43,7 @@ class MainWindow(QMainWindow):
     # FUNCTION TO GO TO HOME PAGE
     def go_to_home(self):
         self.home = HomeWindow(on_logout=self.show_login)
+        self.home.show()
         self.hide()
     
     def show_login(self):

@@ -24,8 +24,9 @@ import os
 # IMPORT QT CORE
 from qt_core import *
 
-# IMPORT HOME WINDOW
+# IMPORT HOME WINDOW AND SCREEN FILTER
 from gui.window.main_window.ui_home_window import UI_HomeWindow
+from screen_filter import ScreenFilterWindow
 
 # HOME WINDOW
 class HomeWindow(QMainWindow):
@@ -34,20 +35,32 @@ class HomeWindow(QMainWindow):
 
         self.on_logout = on_logout
 
-        # SETUP HOME WINDOW
         self.ui = UI_HomeWindow()
         self.ui.setup_ui(self)
 
+        self._connect_top_buttons()
+        self._connect_cards()
+
+
+    def _connect_top_buttons(self):
         self.ui.btn_sair.clicked.connect(self.logout)
+        self.ui.btn_perfil.clicked.connect(
+            lambda: self.open_screen_filter("PER")
+        )
 
-        self.show()
+    # CONECTA TODOS OS CARDS
+    def _connect_cards(self):
+        for card in self.ui.menu_cards:
+            card.clicked.connect(self.open_screen_filter)
 
+    # ABRE SCREEN FILTER
+    def open_screen_filter(self, tag):
+        self.screen_filter = ScreenFilterWindow(tag)
+        self.screen_filter.show()
+        self.close()
+
+    # LOGOUT
     def logout(self):
         if self.on_logout:
             self.on_logout()
         self.close()
-
-if __name__ == "__main__":
-   app = QApplication(sys.argv)
-   window = HomeWindow()
-   sys.exit(app.exec())

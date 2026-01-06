@@ -26,10 +26,16 @@ from gui import resources_rc
 
 # MENU CARD
 class MenuCard(QFrame):
-    def __init__(self, icon_resource, text):
+
+    clicked = Signal(str)  # sinal com TAG
+
+    def __init__(self, icon_resource, text, tag):
         super().__init__()
 
+        self.tag = tag
+
         self.setFixedSize(260, 220)
+        self.setCursor(Qt.PointingHandCursor)
 
         self.setStyleSheet("""
             QFrame {
@@ -71,6 +77,9 @@ class MenuCard(QFrame):
 
         layout.addWidget(self.icon)
         layout.addWidget(self.label)
+
+    def mousePressEvent(self, event):
+        self.clicked.emit(self.tag)
 
 # HOME WINDOW
 class UI_HomeWindow(object):
@@ -122,25 +131,29 @@ class UI_HomeWindow(object):
     grid.setSpacing(40)
     grid.setContentsMargins(60, 40, 60, 40)
 
+    self.menu_cards = []
+
     cards = [
-            ("assets/cleaning_tools.png", "Limpeza, Higiene &\nAlimentos"),
-            ("assets/wiring.png", "Elétrica"),
-            ("assets/hydraulic.png", "Hidráulica"),
-            ("assets/tools.png", "Ferramentas Gerais"),
-            ("assets/box-truck.png", "Automóveis"),
-            ("assets/database.png", "Base de dados dos\nColaboradores"),
-            ("assets/help.png", "Ajuda"),
-        ]
+        ("assets/cleaning_tools.png", "Limpeza, Higiene &\nAlimentos", "LIM"),
+        ("assets/wiring.png", "Elétrica", "ELE"),
+        ("assets/hydraulic.png", "Hidráulica", "HID"),
+        ("assets/tools.png", "Ferramentas Gerais", "FER"),
+        ("assets/box-truck.png", "Automóveis", "AUT"),
+        ("assets/database.png", "Base de dados dos\nColaboradores", "COL"),
+        ("assets/help.png", "Ajuda", "AJU"),
+]
 
     row = col = 0
-    for icon, text in cards:
-        card = MenuCard(icon, text)
+    for icon, text, tag in cards:
+        card = MenuCard(icon, text, tag)   # ✅ passa a tag no construtor
+        self.menu_cards.append(card)
+
         grid.addWidget(card, row, col)
 
         col += 1
         if col == 4:
-                col = 0
-                row += 1
+            col = 0
+            row += 1
 
     main_layout.addWidget(self.content)
 
