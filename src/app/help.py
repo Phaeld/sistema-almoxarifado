@@ -36,10 +36,11 @@ class HelpWindow(QMainWindow):
         self.ui = UI_HelpWindow()
         self.ui.setup_ui(self)
 
-        # PRINT WINDOW
-        self.show()
+        # botão voltar
+        self.ui.btn_home.clicked.connect(self.go_home)
 
-if __name__ == "__main__":
-   app = QApplication(sys.argv)
-   window = HelpWindow()
-   sys.exit(app.exec())
+    def go_home(self):
+        from home import HomeWindow  # import local evita circular
+        self.home = HomeWindow()
+        self.home.show()
+        self.close()

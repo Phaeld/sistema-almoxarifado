@@ -27,6 +27,7 @@ from qt_core import *
 # IMPORT HOME WINDOW AND SCREEN FILTER
 from gui.window.main_window.ui_home_window import UI_HomeWindow
 from screen_filter import ScreenFilterWindow
+from help import HelpWindow
 
 # HOME WINDOW
 class HomeWindow(QMainWindow):
@@ -48,15 +49,25 @@ class HomeWindow(QMainWindow):
             lambda: self.open_screen_filter("PER")
         )
 
-    # CONECTA TODOS OS CARDS
     def _connect_cards(self):
         for card in self.ui.menu_cards:
-            card.clicked.connect(self.open_screen_filter)
+            card.clicked.connect(self.handle_card_click)
 
-    # ABRE SCREEN FILTER
+
+    def handle_card_click(self, tag):
+        if tag == "AJU":
+            self.open_help()
+        else:
+            self.open_screen_filter(tag)
+
     def open_screen_filter(self, tag):
         self.screen_filter = ScreenFilterWindow(tag)
         self.screen_filter.show()
+        self.close()
+
+    def open_help(self):
+        self.help = HelpWindow()
+        self.help.show()
         self.close()
 
     # LOGOUT
