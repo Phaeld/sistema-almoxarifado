@@ -93,6 +93,9 @@ class UI_ScreenFilterWindow(object):
         sidebar_layout.addWidget(
             self.sidebar_item("assets/truck.png", "Automóveis")
         )
+        sidebar_layout.addWidget(
+            self.sidebar_item("assets/gas.png", "Abastecimento Véiculos Obras")
+        )
 
         sidebar_layout.addWidget(self.hr_line())
 

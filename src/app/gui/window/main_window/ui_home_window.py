@@ -139,6 +139,7 @@ class UI_HomeWindow(object):
         ("assets/hydraulic.png", "Hidráulica", "HID"),
         ("assets/tools.png", "Ferramentas Gerais", "FER"),
         ("assets/box-truck.png", "Automóveis", "AUT"),
+        ("assets/gas_station.png", "Abastecimento Veículos \ndo Obras ", "ABA"),
         ("assets/database.png", "Base de dados dos\nColaboradores", "COL"),
         ("assets/help.png", "Ajuda", "AJU"),
 ]
