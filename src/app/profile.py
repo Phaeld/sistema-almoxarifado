@@ -24,58 +24,39 @@ import os
 # IMPORT QT CORE
 from qt_core import *
 
-# IMPORT HOME WINDOW AND SCREEN FILTER
-from gui.window.main_window.ui_home_window import UI_HomeWindow
-from screen_filter import ScreenFilterWindow
-from help import HelpWindow
+# IMPORT MAIN WINDOW AND HOME
+from gui.window.main_window.ui_profile_window import UI_ProfileWindow
 
-# HOME WINDOW
-class HomeWindow(QMainWindow):
+# MAIN WINDOW
+class ProfileWindow(QMainWindow):    
     def __init__(self, on_logout=None):
         super().__init__()
 
         self.on_logout = on_logout
 
-        self.ui = UI_HomeWindow()
+        # SETUP MAIN WINDOW
+        self.ui = UI_ProfileWindow()
         self.ui.setup_ui(self)
 
-        self._connect_top_buttons()
-        self._connect_cards()
-
-
-    def _connect_top_buttons(self):
+        # PAGE INTERACTIONS
+        self.ui.btn_home.clicked.connect(self.go_to_home)
         self.ui.btn_sair.clicked.connect(self.logout)
-        self.ui.btn_profile.clicked.connect(self.open_profile)
 
-    def _connect_cards(self):
-        for card in self.ui.menu_cards:
-            card.clicked.connect(self.handle_card_click)
-
-
-    def handle_card_click(self, tag):
-        if tag == "AJU":
-            self.open_help()
-        else:
-            self.open_screen_filter(tag)
-
-    def open_screen_filter(self, tag):
-        self.screen_filter = ScreenFilterWindow(tag)
-        self.screen_filter.show()
-        self.close()
-
-    def open_help(self):
-        self.help = HelpWindow()
-        self.help.show()
-        self.close()
-    
-    def open_profile(self):
-        from profile import ProfileWindow
-        self.profile = ProfileWindow()
-        self.profile.show()
-        self.close()
+    # FUNCTION TO GO TO HOME PAGE
+    def go_to_home(self):
+        from home import HomeWindow
+        self.home = HomeWindow()
+        self.home.show()
+        self.hide()
 
     # LOGOUT
     def logout(self):
         if self.on_logout:
             self.on_logout()
         self.close()
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    window = ProfileWindow()
+    window.show()
+    sys.exit(app.exec())

@@ -38,9 +38,16 @@ class HelpWindow(QMainWindow):
 
         # botão voltar
         self.ui.btn_home.clicked.connect(self.go_home)
+        self.ui.btn_profile.clicked.connect(self.open_profile)
 
     def go_home(self):
         from home import HomeWindow  # import local evita circular
         self.home = HomeWindow()
         self.home.show()
+        self.close()
+
+    def open_profile(self):
+        from profile import ProfileWindow
+        self.profile = ProfileWindow()
+        self.profile.show()
         self.close()

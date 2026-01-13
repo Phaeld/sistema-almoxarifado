@@ -115,13 +115,13 @@ class UI_HomeWindow(object):
     self.btn_sair.setIcon(QIcon("assets/exit.png"))
     self.btn_sair.setStyleSheet(self.top_button_style())
 
-    self.btn_perfil = QPushButton("  Meu perfil")
-    self.btn_perfil.setIcon(QIcon("assets/user_profile.png"))
-    self.btn_perfil.setStyleSheet(self.top_button_style())
+    self.btn_profile = QPushButton("  Meu perfil")
+    self.btn_profile.setIcon(QIcon("assets/user_profile.png"))
+    self.btn_profile.setStyleSheet(self.top_button_style())
 
     top_layout.addWidget(self.btn_sair)
     top_layout.addStretch()
-    top_layout.addWidget(self.btn_perfil)
+    top_layout.addWidget(self.btn_profile)
 
     main_layout.addWidget(self.top_bar)
 
