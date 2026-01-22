@@ -28,6 +28,10 @@ from qt_core import *
 from gui.window.main_window.ui_main_window import UI_MainWindow
 from home import HomeWindow
 
+# IMPORT AUTH SERVICE
+
+from auth.auth_service import AuthService
+
 # MAIN WINDOW
 class MainWindow(QMainWindow):    
     def __init__(self):
@@ -38,8 +42,23 @@ class MainWindow(QMainWindow):
         self.ui.setup_ui(self)
 
         # PAGE INTERACTIONS
-        self.ui.login_button.clicked.connect(self.go_to_home)
+        self.ui.login_button.clicked.connect(self.try_login)
+        self.ui.pass_input.returnPressed.connect(self.try_login)
 
+    def try_login(self):
+        username = self.ui.user_input.text().strip()
+        password = self.ui.pass_input.text().strip()
+
+        if not username or not password:
+            return
+        
+        user = AuthService.authenticate(username, password)
+
+        if user:
+            self.go_to_home()
+        else:
+            print("Login inválido")
+        
     # FUNCTION TO GO TO HOME PAGE
     def go_to_home(self):
         self.home = HomeWindow(on_logout=self.show_login)
@@ -48,6 +67,7 @@ class MainWindow(QMainWindow):
     
     def show_login(self):
         self.show()
+
 
 
 if __name__ == "__main__":
