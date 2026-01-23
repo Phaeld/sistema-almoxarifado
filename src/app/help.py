@@ -27,10 +27,20 @@ from qt_core import *
 # IMPORT HELP WINDOW
 from gui.window.main_window.ui_help_window import UI_HelpWindow
 
+# IMPORT SESSION
+from auth.session import Session
+
 # HELP WINDOW
 class HelpWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+
+         # 🔐 Verifica sessão ANTES de tudo
+        if not Session.is_authenticated():
+            self.close()
+            return
+        
+        self.user = Session.get()
 
         # SETUP HELP WINDOW
         self.ui = UI_HelpWindow()
@@ -39,6 +49,10 @@ class HelpWindow(QMainWindow):
         # botão voltar
         self.ui.btn_home.clicked.connect(self.go_home)
         self.ui.btn_profile.clicked.connect(self.open_profile)
+
+        
+        print(self.user["username"])
+        print(self.user["tag"])
 
     def go_home(self):
         from home import HomeWindow  # import local evita circular

@@ -27,10 +27,20 @@ from qt_core import *
 # IMPORT SCREEN FILTER WINDOW
 from gui.window.main_window.ui_screen_filter_window import UI_ScreenFilterWindow
 
+# IMPORT SESSION
+from auth.session import Session
+
 # SCREEN FILTER WINDOW
 class ScreenFilterWindow(QMainWindow):
     def __init__(self, category_tag):
         super().__init__()
+
+         # 🔐 Verifica sessão ANTES de tudo
+        if not Session.is_authenticated():
+            self.close()
+            return
+        
+        self.user = Session.get()
 
         # SETUP SCREEN FILTER WINDOW
         self.ui = UI_ScreenFilterWindow()
@@ -42,6 +52,10 @@ class ScreenFilterWindow(QMainWindow):
         # botão voltar
         self.ui.btn_home.clicked.connect(self.go_home)
         self.ui.btn_profile.clicked.connect(self.open_profile)
+
+
+        print(self.user["username"])
+        print(self.user["tag"])        
 
 
         # PRINT WINDOW

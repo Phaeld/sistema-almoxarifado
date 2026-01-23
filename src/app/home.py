@@ -29,6 +29,10 @@ from gui.window.main_window.ui_home_window import UI_HomeWindow
 from screen_filter import ScreenFilterWindow
 from help import HelpWindow
 
+# IMPORT SESSION
+from auth.session import Session
+
+
 # HOME WINDOW
 class HomeWindow(QMainWindow):
     def __init__(self, on_logout=None):
@@ -36,11 +40,24 @@ class HomeWindow(QMainWindow):
 
         self.on_logout = on_logout
 
+        # 🔐 Verifica sessão ANTES de tudo
+        if not Session.is_authenticated():
+            self.close()
+            return
+
+        self.user = Session.get()
+
         self.ui = UI_HomeWindow()
         self.ui.setup_ui(self)
 
         self._connect_top_buttons()
         self._connect_cards()
+
+        print(self.user["username"])
+        print(self.user["tag"])
+
+
+
 
 
     def _connect_top_buttons(self):
@@ -76,6 +93,9 @@ class HomeWindow(QMainWindow):
 
     # LOGOUT
     def logout(self):
+        Session.end()
+
         if self.on_logout:
             self.on_logout()
+
         self.close()

@@ -27,11 +27,21 @@ from qt_core import *
 # IMPORT MAIN WINDOW AND HOME
 from gui.window.main_window.ui_profile_window import UI_ProfileWindow
 
+# IMPORT SESSION
+from auth.session import Session
+
 # MAIN WINDOW
 class ProfileWindow(QMainWindow):    
     def __init__(self, on_logout=None):
         super().__init__()
 
+         # 🔐 Verifica sessão ANTES de tudo
+        if not Session.is_authenticated():
+            self.close()
+            return
+        
+        self.user = Session.get()
+        
         self.on_logout = on_logout
 
         # SETUP MAIN WINDOW
@@ -41,6 +51,14 @@ class ProfileWindow(QMainWindow):
         # PAGE INTERACTIONS
         self.ui.btn_home.clicked.connect(self.go_to_home)
         self.ui.btn_sair.clicked.connect(self.logout)
+
+
+        print(self.user["username"])
+        print(self.user["name"])
+        print(self.user["position"])
+        print(self.user["level"])
+        print(self.user["image_profile"])
+        print(self.user["tag"])
 
     # FUNCTION TO GO TO HOME PAGE
     def go_to_home(self):

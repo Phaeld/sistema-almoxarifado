@@ -10,7 +10,6 @@ BASE_DIR = os.path.dirname(
 )
 
 DB_PATH = os.path.join(BASE_DIR, "database", "users.db")
-
 class AuthService:
 
     @staticmethod
@@ -19,12 +18,22 @@ class AuthService:
         cursor = conn.cursor()
 
         cursor.execute("""
-            SELECT username
+            SELECT username, name, position, level, image_profile, tag
             FROM TABLE_USERS
             WHERE username = ? AND password = ?
         """, (username, password))
 
-        user = cursor.fetchone()
+        row = cursor.fetchone()
         conn.close()
 
-        return user  # None se não existir
+        if row:
+            return {
+                "username": row[0],
+                "name": row[1],
+                "position": row[2],
+                "level": row[3],
+                "image_profile": row[4],
+                "tag": row[5]
+            }
+
+        return None
