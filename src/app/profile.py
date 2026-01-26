@@ -1,80 +1,97 @@
-"""
-====================================================================
-    INTERNAL WAREHOUSE MANAGEMENT SYSTEM
-    Author: Raphael da Silva
-    Creation Date: 2025
---------------------------------------------------------------------
-    Description:
-    This program was developed to manage the internal warehouse
-    operations of the company, allowing control of inventory,
-    product registrations, incoming and outgoing materials, and
-    report generation.
+# profile.py
 
-    The system will be implemented in Python using a graphical
-    user interface (GUI) and database integration. The goal is to
-    provide a practical, intuitive, and efficient solution for the
-    management of internally used materials.
-====================================================================
-"""
-
-# IMPORT LIBRARIES
-import sys
+from qt_core import *
+from gui.window.main_window.ui_profile_window import UI_ProfileWindow
+from auth.session import Session
 import os
 
-# IMPORT QT CORE
-from qt_core import *
 
-# IMPORT MAIN WINDOW AND HOME
-from gui.window.main_window.ui_profile_window import UI_ProfileWindow
-
-# IMPORT SESSION
-from auth.session import Session
-
-# MAIN WINDOW
-class ProfileWindow(QMainWindow):    
+class ProfileWindow(QMainWindow):
     def __init__(self, on_logout=None):
         super().__init__()
 
-         # 🔐 Verifica sessão ANTES de tudo
+        self.on_logout = on_logout
+
+        # 🔐 Verifica sessão
         if not Session.is_authenticated():
             self.close()
             return
-        
-        self.user = Session.get()
-        
-        self.on_logout = on_logout
 
-        # SETUP MAIN WINDOW
+        # Usuário da sessão
+        self.user = Session.get()
+
+        # UI
         self.ui = UI_ProfileWindow()
         self.ui.setup_ui(self)
 
-        # PAGE INTERACTIONS
-        self.ui.btn_home.clicked.connect(self.go_to_home)
+        # Carrega dados
+        self.load_user_data()
+
+        # Conexões
+        self.ui.btn_home.clicked.connect(self.go_home)
         self.ui.btn_sair.clicked.connect(self.logout)
+        self.ui.btn_change_photo.clicked.connect(self.change_photo)
+        self.ui.btn_remove_photo.clicked.connect(self.remove_photo)
 
+    # =============================
+    # USER DATA
+    # =============================
+    def load_user_data(self):
+        self.ui.lbl_username.setText(str(self.user.get("username", "")))
+        self.ui.lbl_name.setText(str(self.user.get("name", "")))
+        self.ui.lbl_position.setText(str(self.user.get("position", "")))
 
-        print(self.user["username"])
-        print(self.user["name"])
-        print(self.user["position"])
-        print(self.user["level"])
-        print(self.user["image_profile"])
-        print(self.user["tag"])
+        LEVEL_MAP = {
+            0: "BAIXO",
+            1: "ALTO"
+        }
 
-    # FUNCTION TO GO TO HOME PAGE
-    def go_to_home(self):
+        level_value = self.user.get("level")
+        self.ui.lbl_level.setText(LEVEL_MAP.get(level_value, ""))
+
+        # Foto
+        self.load_profile_photo()
+
+    def load_profile_photo(self):
+        photo_path = self.user.get("photo")
+
+        if photo_path and os.path.exists(photo_path):
+            pixmap = QPixmap(photo_path).scaled(
+                260, 260,
+                Qt.KeepAspectRatioByExpanding,
+                Qt.SmoothTransformation
+            )
+        else:
+            pixmap = QPixmap("assets/user_profile.png").scaled(
+                260, 260,
+                Qt.KeepAspectRatioByExpanding,
+                Qt.SmoothTransformation
+            )
+
+        self.ui.photo.setPixmap(pixmap)
+
+    # =============================
+    # NAVIGATION
+    # =============================
+    def go_home(self):
         from home import HomeWindow
-        self.home = HomeWindow()
+        self.home = HomeWindow(on_logout=self.on_logout)
         self.home.show()
-        self.hide()
-
-    # LOGOUT
-    def logout(self):
-        if self.on_logout:
-            self.on_logout()
         self.close()
 
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    window = ProfileWindow()
-    window.show()
-    sys.exit(app.exec())
+    def logout(self):
+        Session.end()
+
+        if self.on_logout:
+            self.on_logout()
+
+        self.close()
+
+    # =============================
+    # ACTIONS
+    # =============================
+    def change_photo(self):
+        print("Mudar foto (futuro)")
+
+    def remove_photo(self):
+        print("Remover foto (futuro)")
