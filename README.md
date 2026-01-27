@@ -1,168 +1,150 @@
-# 📦 Sistema de Gestão de Almoxarifado Interno
+# 📦 Sistema de Almoxarifado Interno
 
-Sistema desktop desenvolvido para gerenciamento de almoxarifado interno da Secretaria municipal de Obras, permitindo o controle de materiais, funcionários, permissões, retiradas, relatórios e documentação do sistema de forma centralizada, intuitiva e segura.
+Sistema desktop desenvolvido em **Python** para gerenciamento de almoxarifado interno, com controle de usuários, sessões, perfis e, futuramente, estoque, entradas, saídas e relatórios.
 
----
-
-## 📌 Visão Geral
-
-O **Sistema de Gestão de Almoxarifado Interno** foi projetado para atender empresas que necessitam controlar materiais de uso interno, garantindo rastreabilidade, organização e facilidade de operação.
-
-A aplicação é desenvolvida em **Python**, com interface gráfica moderna utilizando **Qt (PySide6)**, seguindo boas práticas de organização de código, escalabilidade e experiência do usuário.
+O projeto utiliza **PySide6 (Qt)** para a interface gráfica e segue uma arquitetura organizada por módulos, facilitando manutenção e evolução.
 
 ---
 
-## 🎯 Objetivos do Projeto
+## 🚀 Funcionalidades Implementadas
 
-- Centralizar o controle de materiais e ferramentas
-- Reduzir erros manuais e perdas de estoque
-- Garantir rastreabilidade de retiradas e devoluções
-- Facilitar auditorias e geração de relatórios
-- Oferecer uma interface clara, moderna e responsiva
+### 🔐 Autenticação
+- Login de usuários via `auth_service.py`
+- Validação de credenciais
+- Bloqueio de acesso sem autenticação
+
+### 🧠 Sessão de Usuário
+- Gerenciamento centralizado de sessão (`Session`)
+- Dados do usuário disponíveis em todas as telas
+- Sessão mantida enquanto o usuário estiver logado
+- Encerramento da sessão apenas ao clicar em **Sair**
+
+### 👤 Perfil do Usuário
+- Tela de perfil com:
+  - Usuário
+  - Nome
+  - Cargo
+  - Nível de acesso (convertido de valor numérico para texto)
+  - Foto de perfil vinculada ao banco de dados
+- Foto padrão quando o usuário não possui imagem cadastrada
+- Estrutura pronta para:
+  - Alterar foto
+  - Remover foto
+
+### 🧭 Navegação
+- Botão **Inicial** para retornar à Home
+- Botão **Sair** encerra a sessão e retorna ao login
+- Proteção de rotas: telas não abrem sem sessão ativa
 
 ---
 
 ## 🛠️ Tecnologias Utilizadas
 
-### 🔹 Linguagem
-- **Python 3.12+**
-
-### 🔹 Interface Gráfica (GUI)
-- **Qt / PySide6**
-- Layouts responsivos com `QVBoxLayout`, `QHBoxLayout`
-- Componentes personalizados (cards, Q&A expansível)
-- `QScrollArea` para navegação em telas extensas
-- Estilização via **Qt Stylesheets (QSS)**
-
-### 🔹 Arquitetura
-- Organização modular por camadas:
-  - `app/`
-  - `gui/`
-  - `window/`
-- Separação entre lógica, interface e recursos
-- Estrutura preparada para crescimento do sistema
-
-### 🔹 Recursos Visuais
-- Ícones e imagens em PNG
-- Gerenciamento de assets via `resources_rc`
-- Identidade visual consistente (cores, tipografia)
+- **Python 3.11+**
+- **PySide6 (Qt for Python)**
+- **Arquitetura modular**
+- **Orientação a Objetos**
+- **Dicionário de sessão em memória**
+- **Integração com banco de dados (em andamento)**
 
 ---
 
-## 📄 Funcionalidades Desenvolvidas Até o Momento
+## 📂 Estrutura do Projeto
 
-### ✅ Estrutura Base do Sistema
-- Inicialização da aplicação
-- Janela principal configurada
-- Barra superior de navegação (Home / Perfil)
-- Telas de login(main.py), inicial(home.py), filtro tabelas(screen_filter.py) e a ajuda(help.py)
+```text
+src/
+├── app/
+│   ├── home.py
+│   ├── profile.py
+│   ├── main.py
+|   ├── screen_filter.py
+|   └── help.py
+│
+├── auth/
+│   ├── auth_service.py
+│   └── session.py
+│
+├── gui/
+│   └── window/
+│       └── main_window/
+│           └── ui_profile_window.py
+|           └── ui_main_window.py
+|           └── ui_home_window.py
+|           └── ui_screen_filter_window.py
+|           └── ui_help_window.py
+│
+├── assets/
+│   ├── icon.jpg
+│   ├── home.png
+│   ├── exit.png
+│   └── user_profile.png
+│
+└── main.py
+```
 
-### ✅ Tela de Ajuda (Help)
-- Layout inspirado em interface profissional
-- Seções explicativas do sistema
-- Manual de uso integrado
-- Botão para download de manual em PDF (estrutura pronta)
-- Sistema de **Q&A (Perguntas e Respostas)** com:
-  - Cards expansíveis
-  - Interação via clique
-  - Organização visual clara
-- Scroll vertical para conteúdos extensos
+## 🧩 Sessão de Usuário (Resumo Técnico)
 
-### ✅ Componentes Reutilizáveis
-- Títulos de seção padronizados
-- Parágrafos com destaque
-- Componentes interativos customizados (Accordion/Q&A)
+A sessão é gerenciada pelo arquivo:
+```
+auth/session.py
+```
+<br>
 
----
+### Ela armazena:
 
-## 🧱 Estrutura Atual do Projeto
+ID do usuário
 
-sistema-almoxarifado/<br>
-│<br>
-├── assets/ # Imagens, ícones e recursos visuais<br>
-├── src/<br>
-│ └── app/<br>
-│ ├── gui/<br>
-│ │ └── window/<br>
-│ │ └── main_window/<br>
-│ │ └── ui_main_window.py<br>
-│ │ └── ui_home_window.py<br>
-│ │ └── ui_help_window.py<br>
-│ │ └── ui_screen_filter_window.py<br>
-│ ├── home.py<br>
-│ ├── main.py<br>
-│ └── qt_core.py<br>
-│<br>
-├── .venv/ # Ambiente virtual Python<br>
-├── README.md<br>
-├── LICENSE<br>
-└── .gitignore<br>
+Username
 
+Nome
 
+Cargo
 
----
+Nível de acesso
 
-## 🔜 Tecnologias e Funcionalidades Planejadas
+Caminho da foto de perfil
 
-### 🗄️ Banco de Dados
-- **SQLite**
-  - Armazenamento local de:
-    - Produtos
-    - Funcionários
-    - Movimentações de estoque
-    - Logs do sistema
-  - Estrutura preparada para futura migração (ex: PostgreSQL)
+### A sessão:
 
-### 📊 Relatórios
-- Geração de relatórios por período
-- Exportação de dados
-- Filtros por material, usuário e tipo de movimentação
+É criada após login bem-sucedido
 
-### 🖨️ Impressão e PDF
-- API interna para:
-  - Impressão direta
-  - Exportação de relatórios em **PDF**
-- Possível integração com:
-  - `ReportLab`
-  - `QtPrintSupport`
-  - `WeasyPrint` ou similares
+Pode ser acessada por qualquer tela
 
-### 📝 Sistema de Logs
-- Registro automático de:
-  - Acessos
-  - Alterações
-  - Retiradas e devoluções
-- Logs organizados por data e usuário
-- Base para auditoria e rastreabilidade
+É encerrada apenas via logout
 
-### 🔐 Controle de Permissões
-- Níveis de acesso por usuário
-- Restrições por função (admin, operador, visualização)
-- Integração com a tela "Meu Perfil"
+## 📸 Foto de Perfil
 
----
+O caminho da foto é carregado a partir do banco de dados
+Caso o arquivo exista, ele é exibido
+Caso contrário, uma imagem padrão é utilizada
+Imagem exibida em formato circular
 
-## 🚀 Status do Projeto
+## 🔒 Segurança
 
-📍 **Em desenvolvimento ativo**  
-📅 Início: 2025  
-👤 Autor: **Raphael da Silva**
+Telas protegidas por verificação de sessão
 
-O projeto encontra-se em fase de construção da interface e estrutura base, com foco em usabilidade, organização e preparação para integração com banco de dados e serviços.
+Usuário não autenticado não acessa Home ou Perfil
 
----
+Logout limpa completamente os dados da sessão
 
-## 📌 Próximos Passos Imediatos
+## 🔮 Próximos Passos
 
-- Implementação do SQLite
-- Criação dos modelos de dados
-- Sistema de cadastro (CRUD)
-- Integração dos relatórios
-- Implementação do sistema de logs
-- Exportação e impressão em PDF
+Cadastro e gerenciamento de produtos
 
----
+Controle de entrada e saída de materiais
 
-## 📜 Licença
+Relatórios em PDF
 
-Este projeto está licenciado sob os termos definidos no arquivo [LICENSE](LICENSE).
+Controle de permissões por nível de usuário
+
+Persistência completa via banco de dados
+
+Upload de foto de perfil diretamente pela interface
+
+## 👨‍💻 Autor
+
+Raphael da Silva
+
+Sistema desenvolvido para gerenciamento interno de almoxarifado.
+
+Projeto em constante evolução 🚀

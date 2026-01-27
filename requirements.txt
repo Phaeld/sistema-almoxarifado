@@ -1,2 +1,11 @@
-PySide6
-.venv/
+# Interface gráfica
+PySide6>=6.6
+
+# Banco de dados
+sqlite3
+
+# Segurança / hash de senha
+bcrypt>=4.0
+
+# Utilidades
+python-dotenv>=1.0
