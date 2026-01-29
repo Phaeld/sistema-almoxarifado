@@ -9,27 +9,26 @@
 ====================================================================
 """
 
-# IMPORT QT CORE
 from qt_core import *
-
-# IMPORT RESOURCES
-from gui import resources_rc
+from gui import resources_rc   # garante que os ícones do .qrc sejam carregados
 
 
 class UI_ScreenFilterWindow(object):
 
-    def setup_ui(self, parent):
+    def setup_ui(self, parent: QMainWindow):
         if not parent.objectName():
             parent.setObjectName("ScreenFilterWindow")
 
-        # WINDOW SETTINGS
+        # =============================
+        #  WINDOW
+        # =============================
         parent.resize(1200, 720)
         parent.setMinimumSize(960, 540)
         parent.setWindowTitle("Almoxarifado Obras - Filtros, Pedidos e Consultas")
-        parent.setWindowIcon(QIcon(":/assets/icon.jpg"))
+        parent.setWindowIcon(QIcon("assets/icon.jpg"))
         parent.setStyleSheet("background-color: #E8E2EE;")
 
-        # CENTRAL WIDGET
+        # CENTRAL
         self.central_widget = QWidget(parent)
         parent.setCentralWidget(self.central_widget)
 
@@ -38,7 +37,7 @@ class UI_ScreenFilterWindow(object):
         main_layout.setSpacing(0)
 
         # =============================
-        # TOP BAR
+        #  TOP BAR
         # =============================
         self.top_bar = QFrame()
         self.top_bar.setFixedHeight(50)
@@ -49,11 +48,11 @@ class UI_ScreenFilterWindow(object):
 
         self.btn_home = QPushButton("  Inicial")
         self.btn_home.setIcon(QIcon("assets/home.png"))
-        self.btn_home.setStyleSheet(self.top_button_style())
+        self.btn_home.setStyleSheet(self._top_button_style())
 
         self.btn_profile = QPushButton("  Meu perfil")
         self.btn_profile.setIcon(QIcon("assets/user_profile.png"))
-        self.btn_profile.setStyleSheet(self.top_button_style())
+        self.btn_profile.setStyleSheet(self._top_button_style())
 
         top_layout.addWidget(self.btn_home)
         top_layout.addStretch()
@@ -62,7 +61,7 @@ class UI_ScreenFilterWindow(object):
         main_layout.addWidget(self.top_bar)
 
         # =============================
-        # BODY (SIDEBAR + CONTENT)
+        #  BODY (SIDEBAR + CONTENT)
         # =============================
         body = QFrame()
         body_layout = QHBoxLayout(body)
@@ -79,32 +78,32 @@ class UI_ScreenFilterWindow(object):
         sidebar_layout.setSpacing(10)
 
         # CATEGORIA
-        sidebar_layout.addWidget(self.section_title("CATEGORIA"))
+        sidebar_layout.addWidget(self._section_title("CATEGORIA"))
 
-        self.btn_cat_limpeza = self.sidebar_item("assets/clear.png", "Limpeza, Higiene e Alimentos")
-        self.btn_cat_eletrica = self.sidebar_item("assets/electrical.png", "Elétrica")
-        self.btn_cat_hidraulica = self.sidebar_item("assets/hydraulic_water.png", "Hidráulica")
-        self.btn_cat_ferramentas = self.sidebar_item("assets/settings_tools.png", "Ferramentas Gerais")
-        self.btn_cat_automoveis = self.sidebar_item("assets/truck.png", "Automóveis")
-        self.btn_cat_abastecimento = self.sidebar_item("assets/gas.png", "Abastecimento Véiculos Obras")
+        self.btn_cat_limpeza = self._sidebar_button("assets/clear.png",
+                                                    "Limpeza, Higiene e Alimentos")
+        self.btn_cat_eletrica = self._sidebar_button("assets/electrical.png", "Elétrica")
+        self.btn_cat_hidraulica = self._sidebar_button("assets/hydraulic_water.png", "Hidráulica")
+        self.btn_cat_ferramentas = self._sidebar_button("assets/settings_tools.png",
+                                                        "Ferramentas Gerais")
+        self.btn_cat_automoveis = self._sidebar_button("assets/truck.png", "Automóveis")
 
         sidebar_layout.addWidget(self.btn_cat_limpeza)
         sidebar_layout.addWidget(self.btn_cat_eletrica)
         sidebar_layout.addWidget(self.btn_cat_hidraulica)
         sidebar_layout.addWidget(self.btn_cat_ferramentas)
         sidebar_layout.addWidget(self.btn_cat_automoveis)
-        sidebar_layout.addWidget(self.btn_cat_abastecimento)
 
-        sidebar_layout.addWidget(self.hr_line())
+        sidebar_layout.addWidget(self._hr_line())
 
         # AÇÕES
-        sidebar_layout.addWidget(self.section_title("AÇÕES"))
+        sidebar_layout.addWidget(self._section_title("AÇÕES"))
 
-        self.btn_sidebar_consultar = self.sidebar_item("assets/magnifier.png", "Consultar")
-        self.btn_sidebar_solicitar = self.sidebar_item("assets/request.png", "Solicitar")
-        self.btn_sidebar_relatorio = self.sidebar_item("assets/graphic.png", "Relatório")
-        self.btn_sidebar_imprimir = self.sidebar_item("assets/print.png", "Imprimir")
-        self.btn_sidebar_exportar = self.sidebar_item("assets/export.png", "Exportar")
+        self.btn_sidebar_consultar = self._sidebar_button("assets/magnifier.png", "Consultar")
+        self.btn_sidebar_solicitar = self._sidebar_button("assets/request.png", "Solicitar")
+        self.btn_sidebar_relatorio = self._sidebar_button("assets/graphic.png", "Relatório")
+        self.btn_sidebar_imprimir = self._sidebar_button("assets/print.png", "Imprimir")
+        self.btn_sidebar_exportar = self._sidebar_button("assets/export.png", "Exportar")
 
         sidebar_layout.addWidget(self.btn_sidebar_consultar)
         sidebar_layout.addWidget(self.btn_sidebar_solicitar)
@@ -112,32 +111,34 @@ class UI_ScreenFilterWindow(object):
         sidebar_layout.addWidget(self.btn_sidebar_imprimir)
         sidebar_layout.addWidget(self.btn_sidebar_exportar)
 
-        sidebar_layout.addWidget(self.hr_line())
+        sidebar_layout.addWidget(self._hr_line())
 
         # OUTROS
-        sidebar_layout.addWidget(self.section_title("OUTROS"))
+        sidebar_layout.addWidget(self._section_title("OUTROS"))
 
-        self.btn_sidebar_colaboradores = self.sidebar_item(
-            "assets/database_icon.png",
-            "Cadastro dos Funcionários"
+        self.btn_sidebar_cad_func = self._sidebar_button(
+            "assets/database_icon.png", "Cadastros dos Funcionários"
         )
-        self.btn_sidebar_ajuda = self.sidebar_item(
-            "assets/help_software.png",
-            "Ajuda"
+        self.btn_sidebar_ajuda = self._sidebar_button(
+            "assets/help_software.png", "Ajuda"
         )
 
-        sidebar_layout.addWidget(self.btn_sidebar_colaboradores)
+        sidebar_layout.addWidget(self.btn_sidebar_cad_func)
         sidebar_layout.addWidget(self.btn_sidebar_ajuda)
 
         sidebar_layout.addStretch()
 
-        # ---------- CONTENT AREA ----------
+        # ---------- CONTENT ----------
         self.content = QFrame()
         self.content.setStyleSheet("background-color: #EDE7F2;")
 
-        self.content_layout = QVBoxLayout(self.content)
-        self.content_layout.setContentsMargins(20, 20, 20, 20)
-        self.content_layout.setSpacing(20)
+        content_layout = QVBoxLayout(self.content)
+        content_layout.setContentsMargins(30, 25, 30, 25)
+        content_layout.setSpacing(20)
+
+        # STACK DE PÁGINAS
+        self.pages_stack = QStackedWidget()
+        content_layout.addWidget(self.pages_stack)
 
         body_layout.addWidget(self.sidebar)
         body_layout.addWidget(self.content)
@@ -145,38 +146,79 @@ class UI_ScreenFilterWindow(object):
         main_layout.addWidget(body)
 
         # =============================
-        # FILTER CARD (MATERIAIS)
+        #  PÁGINAS
         # =============================
-        self.filter_card = QFrame()
-        self.filter_card.setStyleSheet("""
+        self.page_materials = self._build_page_materials()
+        self.page_consultar = self._build_page_consultar()
+        self.page_solicitar = self._build_page_solicitar()
+        self.page_cad_func = self._build_page_cad_func()
+
+        self.pages_stack.addWidget(self.page_materials)
+        self.pages_stack.addWidget(self.page_consultar)
+        self.pages_stack.addWidget(self.page_solicitar)
+        self.pages_stack.addWidget(self.page_cad_func)
+
+        # Página inicial padrão: materiais
+        self.pages_stack.setCurrentWidget(self.page_materials)
+
+    # ============================================================
+    #  PÁGINA 1 – FILTRO DE MATERIAIS
+    # ============================================================
+    def _build_page_materials(self) -> QWidget:
+        page = QWidget()
+        layout = QVBoxLayout(page)
+        layout.setSpacing(15)
+
+        # CARD DE FILTRO
+        card = QFrame()
+        card.setStyleSheet("""
             QFrame {
                 background-color: #DDD4E6;
                 border-radius: 10px;
             }
         """)
+        card_layout = QVBoxLayout(card)
+        card_layout.setContentsMargins(25, 20, 25, 20)
+        card_layout.setSpacing(12)
 
-        filter_layout = QVBoxLayout(self.filter_card)
-        filter_layout.setContentsMargins(20, 20, 20, 20)
-        filter_layout.setSpacing(15)
-
-        # Title
         title = QLabel("FILTRO - Materiais")
         title.setStyleSheet("""
-            font-size: 20px;
-            font-weight: bold;
-            color: #3E0F63;
+            QLabel {
+                font-size: 20px;
+                font-weight: bold;
+                color: #3E0F63;
+            }
         """)
-        filter_layout.addWidget(title)
+        card_layout.addWidget(title)
 
-        # Fields
-        fields_layout = QGridLayout()
-        fields_layout.setHorizontalSpacing(20)
-        fields_layout.setVerticalSpacing(10)
+        grid = QGridLayout()
+        grid.setHorizontalSpacing(30)
+        grid.setVerticalSpacing(10)
 
         label_style = """
-            font-size: 14px;
-            font-weight: bold;
-            color: #3A1A5E;
+            QLabel {
+                font-size: 13px;
+                font-weight: bold;
+                color: #3A1A5E;
+            }
+        """
+        line_style = """
+            QLineEdit {
+                background-color: #E8E2EE;
+                border-radius: 6px;
+                padding: 6px 10px;
+                border: 1px solid #C7B7DF;
+                color: #3A1A5E;
+            }
+        """
+        combo_style = """
+            QComboBox {
+                background-color: #E8E2EE;
+                border-radius: 6px;
+                padding: 4px 10px;
+                border: 1px solid #C7B7DF;
+                color: #3A1A5E;
+            }
         """
 
         # Descrição
@@ -184,123 +226,551 @@ class UI_ScreenFilterWindow(object):
         lbl_desc.setStyleSheet(label_style)
         self.input_description = QLineEdit()
         self.input_description.setPlaceholderText("Descrição")
-        self.input_description.setStyleSheet(self.input_style())
+        self.input_description.setStyleSheet(line_style)
 
-        # Número item
+        # Número Item
         lbl_num = QLabel("Número Item")
         lbl_num.setStyleSheet(label_style)
         self.input_item_number = QLineEdit()
         self.input_item_number.setPlaceholderText("Número Item")
-        self.input_item_number.setStyleSheet(self.input_style())
+        self.input_item_number.setStyleSheet(line_style)
 
         # Categoria
         lbl_cat = QLabel("Categoria")
         lbl_cat.setStyleSheet(label_style)
         self.combo_category = QComboBox()
-        self.combo_category.setStyleSheet(self.combo_style())
+        self.combo_category.setStyleSheet(combo_style)
         self.combo_category.addItem("Selecione")
-        self.combo_category.addItems([
-            "ELETRICA",
-            "HIDRAULICA",
-            "LIMPEZA_HIGIENE_ALIMENTOS",
-            "FERRAMENTAS_GERAIS",
-            "AUTOMOVEIS",
-        ])
+        # TODO: preencher categorias via banco ou código
+        # self.combo_category.addItems(["ELÉTRICA", "HIDRÁULICA", ...])
 
         # Produto
         lbl_prod = QLabel("Produto")
         lbl_prod.setStyleSheet(label_style)
         self.combo_product = QComboBox()
-        self.combo_product.setStyleSheet(self.combo_style())
+        self.combo_product.setStyleSheet(combo_style)
         self.combo_product.addItem("Selecione")
-        # self.combo_product.addItems([
-        #     "Disjuntor",
-        #     "Relé",
-        #     "Tomada",
-        #     "Lâmpada",
-        #     "EPI",
-        # ])
+        # TODO: preencher produtos via banco
+        # self.combo_product.addItems(["Disjuntor", "Relé", ...])
 
-        fields_layout.addWidget(lbl_desc, 0, 0)
-        fields_layout.addWidget(self.input_description, 1, 0)
+        # Botão Filtrar
+        self.btn_filter_materials = QPushButton("FILTRAR")
+        self.btn_filter_materials.setFixedHeight(40)
+        self.btn_filter_materials.setStyleSheet(self._primary_button())
 
-        fields_layout.addWidget(lbl_num, 0, 1)
-        fields_layout.addWidget(self.input_item_number, 1, 1)
+        grid.addWidget(lbl_desc, 0, 0)
+        grid.addWidget(self.input_description, 1, 0)
 
-        fields_layout.addWidget(lbl_cat, 0, 2)
-        fields_layout.addWidget(self.combo_category, 1, 2)
+        grid.addWidget(lbl_num, 0, 1)
+        grid.addWidget(self.input_item_number, 1, 1)
 
-        fields_layout.addWidget(lbl_prod, 2, 0)
-        fields_layout.addWidget(self.combo_product, 3, 0)
+        grid.addWidget(lbl_cat, 0, 2)
+        grid.addWidget(self.combo_category, 1, 2)
 
-        # Filter button
-        self.btn_filter = QPushButton("FILTRAR")
-        self.btn_filter.setFixedHeight(40)
-        self.btn_filter.setCursor(Qt.PointingHandCursor)
-        self.btn_filter.setStyleSheet("""
-            QPushButton {
-                background-color: #3E0F63;
-                color: white;
-                font-size: 14px;
-                font-weight: bold;
-                border-radius: 8px;
-                padding: 8px 30px;
-            }
-            QPushButton:hover {
-                background-color: #53207E;
-            }
-        """)
+        grid.addWidget(lbl_prod, 2, 0)
+        grid.addWidget(self.combo_product, 3, 0)
 
-        fields_layout.addWidget(self.btn_filter, 3, 2, alignment=Qt.AlignRight)
+        grid.addWidget(self.btn_filter_materials, 3, 2, alignment=Qt.AlignRight)
 
-        filter_layout.addLayout(fields_layout)
-        self.content_layout.addWidget(self.filter_card)
+        card_layout.addLayout(grid)
+        layout.addWidget(card)
 
-        # =============================
-        # TABLE (MATERIAIS)
-        # =============================
+        # TABELA DE MATERIAIS
         self.table_materials = QTableWidget()
         self.table_materials.setColumnCount(6)
         self.table_materials.setHorizontalHeaderLabels([
-            "Nm item",
-            "Descrição",
-            "Produto",
-            "Categoria",
-            "Quantidade",
-            "Un. medida"
+            "Nm item", "Descrição", "Produto",
+            "Categoria", "Quantidade", "Un. medida"
         ])
+        self._style_table(self.table_materials)
 
-        header = self.table_materials.horizontalHeader()
-        header.setStretchLastSection(True)
-        header.setSectionResizeMode(QHeaderView.Stretch)
+        layout.addWidget(self.table_materials)
+        return page
 
-        self.table_materials.setAlternatingRowColors(True)
+    # ============================================================
+    #  PÁGINA 2 – CONSULTAR AÇÕES
+    # ============================================================
+    def _build_page_consultar(self) -> QWidget:
+        page = QWidget()
+        layout = QVBoxLayout(page)
+        layout.setSpacing(15)
 
-        self.table_materials.setStyleSheet("""
-            QTableWidget {
-                background-color: #F6EFFB;
-                alternate-background-color: #E4D4F3;
+        card = QFrame()
+        card.setStyleSheet("""
+            QFrame {
+                background-color: #DDD4E6;
+                border-radius: 10px;
+            }
+        """)
+        card_layout = QVBoxLayout(card)
+        card_layout.setContentsMargins(25, 20, 25, 20)
+        card_layout.setSpacing(12)
+
+        title = QLabel("FILTRO - Consultar")
+        title.setStyleSheet("""
+            QLabel {
+                font-size: 20px;
+                font-weight: bold;
                 color: #3E0F63;
+            }
+        """)
+        card_layout.addWidget(title)
+
+        label_style = """
+            QLabel {
+                font-size: 13px;
+                font-weight: bold;
+                color: #3A1A5E;
+            }
+        """
+        line_style = """
+            QLineEdit {
+                background-color: #E8E2EE;
                 border-radius: 6px;
+                padding: 6px 10px;
+                border: 1px solid #C7B7DF;
+                color: #3A1A5E;
+            }
+        """
+        combo_style = """
+            QComboBox {
+                background-color: #E8E2EE;
+                border-radius: 6px;
+                padding: 4px 10px;
+                border: 1px solid #C7B7DF;
+                color: #3A1A5E;
+            }
+        """
+
+        grid = QGridLayout()
+        grid.setHorizontalSpacing(30)
+        grid.setVerticalSpacing(10)
+
+        # Assunto
+        lbl_ass = QLabel("Assunto")
+        lbl_ass.setStyleSheet(label_style)
+        self.cons_input_subject = QLineEdit()
+        self.cons_input_subject.setStyleSheet(line_style)
+
+        # Número Ação
+        lbl_num = QLabel("Número Ação")
+        lbl_num.setStyleSheet(label_style)
+        self.cons_input_action = QLineEdit()
+        self.cons_input_action.setStyleSheet(line_style)
+
+        # Tipo
+        lbl_tipo = QLabel("Tipo")
+        lbl_tipo.setStyleSheet(label_style)
+        self.cons_combo_type = QComboBox()
+        self.cons_combo_type.setStyleSheet(combo_style)
+        self.cons_combo_type.addItem("Selecione")
+        # TODO: preencher tipos de ação
+
+        # Produto
+        lbl_prod = QLabel("Produto")
+        lbl_prod.setStyleSheet(label_style)
+        self.cons_combo_product = QComboBox()
+        self.cons_combo_product.setStyleSheet(combo_style)
+        self.cons_combo_product.addItem("Selecione")
+        # TODO: preencher
+
+        # Observação
+        lbl_obs = QLabel("Observação")
+        lbl_obs.setStyleSheet(label_style)
+        self.cons_input_obs = QLineEdit()
+        self.cons_input_obs.setStyleSheet(line_style)
+
+        # Data
+        lbl_data = QLabel("Data")
+        lbl_data.setStyleSheet(label_style)
+        self.cons_input_date = QLineEdit()
+        self.cons_input_date.setPlaceholderText("dd/mm/aaaa")
+        self.cons_input_date.setStyleSheet(line_style)
+
+        # Botão
+        self.btn_filter_consult = QPushButton("FILTRAR")
+        self.btn_filter_consult.setFixedHeight(40)
+        self.btn_filter_consult.setStyleSheet(self._primary_button())
+
+        grid.addWidget(lbl_ass, 0, 0)
+        grid.addWidget(self.cons_input_subject, 1, 0)
+
+        grid.addWidget(lbl_num, 0, 1)
+        grid.addWidget(self.cons_input_action, 1, 1)
+
+        grid.addWidget(lbl_tipo, 0, 2)
+        grid.addWidget(self.cons_combo_type, 1, 2)
+
+        grid.addWidget(lbl_prod, 2, 0)
+        grid.addWidget(self.cons_combo_product, 3, 0)
+
+        grid.addWidget(lbl_obs, 2, 1)
+        grid.addWidget(self.cons_input_obs, 3, 1)
+
+        grid.addWidget(lbl_data, 2, 2)
+        grid.addWidget(self.cons_input_date, 3, 2)
+
+        grid.addWidget(self.btn_filter_consult, 4, 2, alignment=Qt.AlignRight)
+
+        card_layout.addLayout(grid)
+        layout.addWidget(card)
+
+        # TABELA CONSULTA
+        self.table_consult = QTableWidget()
+        self.table_consult.setColumnCount(6)
+        self.table_consult.setHorizontalHeaderLabels([
+            "Nm_ação", "Assunto", "Obs",
+            "Categoria", "Permitido por", "Data"
+        ])
+        self._style_table(self.table_consult)
+
+        layout.addWidget(self.table_consult)
+        return page
+
+    # ============================================================
+    #  PÁGINA 3 – SOLICITAR MATERIAIS
+    # ============================================================
+    def _build_page_solicitar(self) -> QWidget:
+        page = QWidget()
+        layout = QVBoxLayout(page)
+        layout.setSpacing(15)
+
+        card = QFrame()
+        card.setStyleSheet("""
+            QFrame {
+                background-color: #DDD4E6;
+                border-radius: 10px;
+            }
+        """)
+        card_layout = QVBoxLayout(card)
+        card_layout.setContentsMargins(25, 20, 25, 20)
+        card_layout.setSpacing(12)
+
+        title = QLabel("TABELA - Solicitar")
+        title.setStyleSheet("""
+            QLabel {
+                font-size: 20px;
+                font-weight: bold;
+                color: #3E0F63;
+            }
+        """)
+        card_layout.addWidget(title)
+
+        label_style = """
+            QLabel {
+                font-size: 13px;
+                font-weight: bold;
+                color: #3A1A5E;
+            }
+        """
+        line_style = """
+            QLineEdit {
+                background-color: #E8E2EE;
+                border-radius: 6px;
+                padding: 6px 10px;
+                border: 1px solid #C7B7DF;
+                color: #3A1A5E;
+            }
+        """
+        combo_style = """
+            QComboBox {
+                background-color: #E8E2EE;
+                border-radius: 6px;
+                padding: 4px 10px;
+                border: 1px solid #C7B7DF;
+                color: #3A1A5E;
+            }
+        """
+
+        grid = QGridLayout()
+        grid.setHorizontalSpacing(30)
+        grid.setVerticalSpacing(10)
+
+        # Categoria
+        lbl_cat = QLabel("Categoria")
+        lbl_cat.setStyleSheet(label_style)
+        self.req_combo_category = QComboBox()
+        self.req_combo_category.setStyleSheet(combo_style)
+        self.req_combo_category.addItem("Selecione")
+
+        # Tipo Solicitação
+        lbl_tipo = QLabel("Tipo Solicitação")
+        lbl_tipo.setStyleSheet(label_style)
+        self.req_combo_type = QComboBox()
+        self.req_combo_type.setStyleSheet(combo_style)
+        self.req_combo_type.addItem("Selecione")
+
+        # Descrição
+        lbl_desc = QLabel("Descrição")
+        lbl_desc.setStyleSheet(label_style)
+        self.req_input_description = QLineEdit()
+        self.req_input_description.setStyleSheet(line_style)
+
+        grid.addWidget(lbl_cat, 0, 0)
+        grid.addWidget(self.req_combo_category, 1, 0)
+
+        grid.addWidget(lbl_tipo, 0, 2)
+        grid.addWidget(self.req_combo_type, 1, 2)
+
+        grid.addWidget(lbl_desc, 2, 0, 1, 3)
+        grid.addWidget(self.req_input_description, 3, 0, 1, 3)
+
+        card_layout.addLayout(grid)
+
+        # TABELA DE ITENS
+        lbl_itens = QLabel("Itens")
+        lbl_itens.setStyleSheet(label_style)
+        card_layout.addWidget(lbl_itens)
+
+        self.table_request_items = QTableWidget()
+        self.table_request_items.setColumnCount(4)
+        self.table_request_items.setHorizontalHeaderLabels([
+            "Add", "Número Item", "Descrição Item", "Quantidade"
+        ])
+        self._style_table(self.table_request_items)
+
+        card_layout.addWidget(self.table_request_items)
+
+        # Campos inferiores
+        bottom_grid = QGridLayout()
+        bottom_grid.setHorizontalSpacing(30)
+        bottom_grid.setVerticalSpacing(10)
+
+        lbl_solic = QLabel("Solicitado por")
+        lbl_solic.setStyleSheet(label_style)
+        self.req_input_requested_by = QLineEdit()
+        self.req_input_requested_by.setStyleSheet(line_style)
+
+        lbl_obs = QLabel("Observações adicionais (opcional)")
+        lbl_obs.setStyleSheet(label_style)
+        self.req_input_obs = QTextEdit()
+        self.req_input_obs.setStyleSheet("""
+            QTextEdit {
+                background-color: #E8E2EE;
+                border-radius: 6px;
+                border: 1px solid #C7B7DF;
+                color: #3A1A5E;
+                padding: 6px 10px;
+            }
+        """)
+
+        lbl_aut = QLabel("Autorizado por")
+        lbl_aut.setStyleSheet(label_style)
+        self.req_combo_authorized = QComboBox()
+        self.req_combo_authorized.setStyleSheet(combo_style)
+        self.req_combo_authorized.addItem("Selecione")
+
+        bottom_grid.addWidget(lbl_solic, 0, 0)
+        bottom_grid.addWidget(self.req_input_requested_by, 1, 0)
+
+        bottom_grid.addWidget(lbl_obs, 0, 1)
+        bottom_grid.addWidget(self.req_input_obs, 1, 1, 3, 1)
+
+        bottom_grid.addWidget(lbl_aut, 2, 0)
+        bottom_grid.addWidget(self.req_combo_authorized, 3, 0)
+
+        card_layout.addLayout(bottom_grid)
+
+        # Botões
+        btn_row = QHBoxLayout()
+        btn_row.addStretch()
+
+        self.btn_req_cancel = QPushButton("CANCELAR")
+        self.btn_req_cancel.setStyleSheet(self._secondary_button())
+
+        self.btn_req_clear = QPushButton("LIMPAR")
+        self.btn_req_clear.setStyleSheet(self._light_button())
+
+        self.btn_req_confirm = QPushButton("CONFIRMAR")
+        self.btn_req_confirm.setStyleSheet(self._primary_button())
+
+        btn_row.addWidget(self.btn_req_cancel)
+        btn_row.addWidget(self.btn_req_clear)
+        btn_row.addWidget(self.btn_req_confirm)
+
+        card_layout.addLayout(btn_row)
+
+        layout.addWidget(card)
+        return page
+
+    # ============================================================
+    #  PÁGINA 4 – CADASTRO DE FUNCIONÁRIOS
+    # ============================================================
+    def _build_page_cad_func(self) -> QWidget:
+        page = QWidget()
+        layout = QVBoxLayout(page)
+        layout.setSpacing(15)
+
+        card = QFrame()
+        card.setStyleSheet("""
+            QFrame {
+                background-color: #DDD4E6;
+                border-radius: 10px;
+            }
+        """)
+        card_layout = QVBoxLayout(card)
+        card_layout.setContentsMargins(25, 20, 25, 20)
+        card_layout.setSpacing(12)
+
+        title = QLabel("TABELA – Cadastro dos Funcionários")
+        title.setStyleSheet("""
+            QLabel {
+                font-size: 20px;
+                font-weight: bold;
+                color: #3E0F63;
+            }
+        """)
+        card_layout.addWidget(title)
+
+        label_style = """
+            QLabel {
+                font-size: 13px;
+                font-weight: bold;
+                color: #3A1A5E;
+            }
+        """
+        line_style = """
+            QLineEdit {
+                background-color: #E8E2EE;
+                border-radius: 6px;
+                padding: 6px 10px;
+                border: 1px solid #C7B7DF;
+                color: #3A1A5E;
+            }
+        """
+        combo_style = """
+            QComboBox {
+                background-color: #E8E2EE;
+                border-radius: 6px;
+                padding: 4px 10px;
+                border: 1px solid #C7B7DF;
+                color: #3A1A5E;
+            }
+        """
+
+        grid = QGridLayout()
+        grid.setHorizontalSpacing(30)
+        grid.setVerticalSpacing(12)
+
+        # Nome usuário
+        lbl_user = QLabel("Nome Usuário")
+        lbl_user.setStyleSheet(label_style)
+        self.emp_input_username = QLineEdit()
+        self.emp_input_username.setStyleSheet(line_style)
+
+        # Nome completo
+        lbl_name = QLabel("Nome Completo")
+        lbl_name.setStyleSheet(label_style)
+        self.emp_input_fullname = QLineEdit()
+        self.emp_input_fullname.setStyleSheet(line_style)
+
+        # Nível
+        lbl_nivel = QLabel("Nível")
+        lbl_nivel.setStyleSheet(label_style)
+        self.emp_combo_level = QComboBox()
+        self.emp_combo_level.setStyleSheet(combo_style)
+        self.emp_combo_level.addItem("Selecione")
+
+        # Cargo
+        lbl_cargo = QLabel("Cargo")
+        lbl_cargo.setStyleSheet(label_style)
+        self.emp_combo_position = QComboBox()
+        self.emp_combo_position.setStyleSheet(combo_style)
+        self.emp_combo_position.addItem("Selecione")
+
+        # Sessão
+        lbl_sessao = QLabel("Sessão")
+        lbl_sessao.setStyleSheet(label_style)
+        self.emp_input_session = QLineEdit()
+        self.emp_input_session.setStyleSheet(line_style)
+
+        # Senha
+        lbl_senha = QLabel("Senha")
+        lbl_senha.setStyleSheet(label_style)
+        self.emp_input_password = QLineEdit()
+        self.emp_input_password.setEchoMode(QLineEdit.Password)
+        self.emp_input_password.setStyleSheet(line_style)
+
+        # Confirmar senha
+        lbl_conf = QLabel("Confirma Senha")
+        lbl_conf.setStyleSheet(label_style)
+        self.emp_input_confirm = QLineEdit()
+        self.emp_input_confirm.setEchoMode(QLineEdit.Password)
+        self.emp_input_confirm.setStyleSheet(line_style)
+
+        grid.addWidget(lbl_user, 0, 0)
+        grid.addWidget(self.emp_input_username, 1, 0)
+
+        grid.addWidget(lbl_name, 0, 2)
+        grid.addWidget(self.emp_input_fullname, 1, 2)
+
+        grid.addWidget(lbl_nivel, 2, 0)
+        grid.addWidget(self.emp_combo_level, 3, 0)
+
+        grid.addWidget(lbl_cargo, 2, 1)
+        grid.addWidget(self.emp_combo_position, 3, 1)
+
+        grid.addWidget(lbl_sessao, 2, 2)
+        grid.addWidget(self.emp_input_session, 3, 2)
+
+        grid.addWidget(lbl_senha, 4, 0)
+        grid.addWidget(self.emp_input_password, 5, 0, 1, 2)
+
+        grid.addWidget(lbl_conf, 4, 2)
+        grid.addWidget(self.emp_input_confirm, 5, 2)
+
+        card_layout.addLayout(grid)
+
+        # Botões
+        btn_row = QHBoxLayout()
+        btn_row.addStretch()
+
+        self.btn_emp_cancel = QPushButton("CANCELAR")
+        self.btn_emp_cancel.setStyleSheet(self._secondary_button())
+
+        self.btn_emp_clear = QPushButton("LIMPAR")
+        self.btn_emp_clear.setStyleSheet(self._light_button())
+
+        self.btn_emp_register = QPushButton("CADASTRAR")
+        self.btn_emp_register.setStyleSheet(self._primary_button())
+
+        btn_row.addWidget(self.btn_emp_cancel)
+        btn_row.addWidget(self.btn_emp_clear)
+        btn_row.addWidget(self.btn_emp_register)
+
+        card_layout.addLayout(btn_row)
+
+        layout.addWidget(card)
+        return page
+
+    # ============================================================
+    #  ESTILOS / COMPONENTES AUXILIARES
+    # ============================================================
+    def _style_table(self, table: QTableWidget):
+        table.horizontalHeader().setStretchLastSection(True)
+        table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        table.verticalHeader().setVisible(False)
+        table.setAlternatingRowColors(True)
+        table.setStyleSheet("""
+            QTableWidget {
+                background-color: #F8F3FF;
+                gridline-color: #CBB2E6;
+                color: #3A1A5E;
             }
             QTableWidget::item {
-                color: #3E0F63;
+                padding: 4px;
             }
             QHeaderView::section {
                 background-color: #3E0F63;
                 color: white;
                 font-weight: bold;
-                padding: 6px;
+                font-size: 14px;
                 border: none;
+                padding: 6px;
             }
         """)
 
-        self.content_layout.addWidget(self.table_materials)
-
-    # =============================
-    # STYLES & COMPONENTS
-    # =============================
-    def top_button_style(self):
+    def _top_button_style(self) -> str:
         return """
             QPushButton {
                 color: white;
@@ -313,53 +783,74 @@ class UI_ScreenFilterWindow(object):
             }
         """
 
-    def input_style(self):
+    def _primary_button(self) -> str:
         return """
-            QLineEdit {
-                background-color: #E8E2EE;
-                border-radius: 6px;
-                padding: 6px 8px;
-                border: 1px solid #C1B2D9;
-                color: #3E0F63;
+            QPushButton {
+                background-color: #3E0F63;
+                color: white;
+                font-size: 14px;
+                font-weight: bold;
+                border-radius: 18px;
+                padding: 8px 26px;
+            }
+            QPushButton:hover {
+                background-color: #53207E;
             }
         """
 
-    def combo_style(self):
+    def _secondary_button(self) -> str:
         return """
-            QComboBox {
-                background-color: #E8E2EE;
-                border-radius: 6px;
-                padding: 4px 8px;
-                border: 1px solid #C1B2D9;
-                color: #3E0F63;
+            QPushButton {
+                background-color: #B5B1C2;
+                color: #3A1A5E;
+                font-size: 14px;
+                font-weight: bold;
+                border-radius: 18px;
+                padding: 8px 26px;
             }
-            QComboBox::drop-down {
-                border: none;
+            QPushButton:hover {
+                background-color: #9E99AF;
             }
         """
 
-    def section_title(self, text):
+    def _light_button(self) -> str:
+        return """
+            QPushButton {
+                background-color: #EADDF8;
+                color: #3A1A5E;
+                font-size: 14px;
+                font-weight: bold;
+                border-radius: 18px;
+                padding: 8px 26px;
+            }
+            QPushButton:hover {
+                background-color: #DDC8F0;
+            }
+        """
+
+    def _section_title(self, text: str) -> QLabel:
         label = QLabel(text)
         label.setStyleSheet("""
-            font-size: 17px;
-            font-weight: bold;
-            color: #3A1A5E;
+            QLabel {
+                font-size: 17px;
+                font-weight: bold;
+                color: #3A1A5E;
+            }
         """)
         return label
 
-    def hr_line(self):
+    def _hr_line(self) -> QFrame:
         line = QFrame()
         line.setFrameShape(QFrame.HLine)
         line.setFixedHeight(1)
         line.setStyleSheet("background-color: #3A1A5E; border: none;")
         return line
 
-    def sidebar_item(self, icon_path, text):
+    def _sidebar_button(self, icon_path: str, text: str) -> QPushButton:
         btn = QPushButton(text)
         btn.setIcon(QIcon(icon_path))
         btn.setIconSize(QSize(24, 24))
         btn.setCursor(Qt.PointingHandCursor)
-
         btn.setStyleSheet("""
             QPushButton {
                 text-align: left;

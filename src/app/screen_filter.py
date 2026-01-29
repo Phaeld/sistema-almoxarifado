@@ -1,8 +1,19 @@
 """
-SCREEN FILTER WINDOW CONTROLLER
+====================================================================
+    INTERNAL WAREHOUSE MANAGEMENT SYSTEM
+    Author: Raphael da Silva
+    Creation Date: 2025
+--------------------------------------------------------------------
+    Description:
+    Screen to filter materials, requests, actions and employees.
+====================================================================
 """
 
+import sys
+import os
+
 from qt_core import *
+
 from gui.window.main_window.ui_screen_filter_window import UI_ScreenFilterWindow
 from auth.session import Session
 from material_service import MaterialService
@@ -12,114 +23,158 @@ class ScreenFilterWindow(QMainWindow):
     def __init__(self, category_tag: str):
         super().__init__()
 
-        # ---------- Sessão ----------
+        # -----------------------------
+        #  Sessão
+        # -----------------------------
         if not Session.is_authenticated():
             self.close()
             return
 
         self.user = Session.get()
-        self.category_tag = category_tag  # "ELE", "HID", "LIM", ...
 
-        # ---------- UI ----------
+        # Tag vinda da Home (LIM, ELE, HID, FER, AUT, ...)
+        self.category_tag = category_tag
+
+        # -----------------------------
+        #  UI
+        # -----------------------------
         self.ui = UI_ScreenFilterWindow()
         self.ui.setup_ui(self)
 
-        # Referência da tabela principal
-        self.table = self.ui.table_materials
+        # Página inicial sempre a de materiais
+        self.ui.pages_stack.setCurrentWidget(self.ui.page_materials)
 
-        # Botão FILTRAR
-        self.ui.btn_filter.clicked.connect(self.apply_filters)
-
-        # Top bar
+        # -----------------------------
+        #  Conexões TOP BAR
+        # -----------------------------
         self.ui.btn_home.clicked.connect(self.go_home)
         self.ui.btn_profile.clicked.connect(self.open_profile)
 
-        # Sidebar categorias -> mudam o prefixo e recarregam a tabela
-        self.ui.btn_cat_limpeza.clicked.connect(lambda: self.change_category("LIM"))
-        self.ui.btn_cat_eletrica.clicked.connect(lambda: self.change_category("ELE"))
-        self.ui.btn_cat_hidraulica.clicked.connect(lambda: self.change_category("HID"))
-        self.ui.btn_cat_ferramentas.clicked.connect(lambda: self.change_category("FER"))
-        self.ui.btn_cat_automoveis.clicked.connect(lambda: self.change_category("AUT"))
-        self.ui.btn_cat_abastecimento.clicked.connect(lambda: self.change_category("ABA"))
+        # -----------------------------
+        #  Conexões SIDEBAR – CATEGORIA
+        #  (troca a tag e recarrega materiais)
+        # -----------------------------
+        self.ui.btn_cat_limpeza.clicked.connect(
+            lambda: self.change_category("LIM")
+        )
+        self.ui.btn_cat_eletrica.clicked.connect(
+            lambda: self.change_category("ELE")
+        )
+        self.ui.btn_cat_hidraulica.clicked.connect(
+            lambda: self.change_category("HID")
+        )
+        self.ui.btn_cat_ferramentas.clicked.connect(
+            lambda: self.change_category("FER")
+        )
+        self.ui.btn_cat_automoveis.clicked.connect(
+            lambda: self.change_category("AUT")
+        )
 
-        # (No futuro) botões de ações: consultar/solicitar/etc.
-        # self.ui.btn_sidebar_consultar.clicked.connect(...)
-        # self.ui.btn_sidebar_solicitar.clicked.connect(...)
+        # -----------------------------
+        #  Conexões SIDEBAR – AÇÕES
+        # -----------------------------
+        # Consultar
+        self.ui.btn_sidebar_consultar.clicked.connect(
+            lambda: self.ui.pages_stack.setCurrentWidget(self.ui.page_consultar)
+        )
 
-        # Carrega lista inicial com base na categoria que veio da Home
+        # Solicitar
+        self.ui.btn_sidebar_solicitar.clicked.connect(
+            lambda: self.ui.pages_stack.setCurrentWidget(self.ui.page_solicitar)
+        )
+
+        # Cadastro de Funcionários
+        self.ui.btn_sidebar_cad_func.clicked.connect(
+            lambda: self.ui.pages_stack.setCurrentWidget(self.ui.page_cad_func)
+        )
+
+        # (Relatório / Imprimir / Exportar e Ajuda você liga depois, quando tiver as telas)
+
+        # -----------------------------
+        #  BOTÃO FILTRAR MATERIAIS
+        # -----------------------------
+        self.ui.btn_filter_materials.clicked.connect(self.apply_filters)
+
+        # -----------------------------
+        #  PRIMEIRA CARGA DA TABELA
+        # -----------------------------
         self.load_materials()
 
         self.show()
 
-    # -------------------------------------------------
-    #  MAPA TAG -> PREFIXO (id_item)
-    # -------------------------------------------------
-    def get_category_prefix(self) -> str:
-        prefix_map = {
-            "ELE": "E",   # Elétrica
-            "HID": "H",   # Hidráulica
-            "LIM": "L",   # Limpeza
-            "FER": "F",   # Ferramentas
-            "AUT": "A",   # Automóveis
-            "ABA": "G",   # Abastecimento (ex.: G001...)
-        }
-        return prefix_map.get(self.category_tag, "")
-
-    # -------------------------------------------------
-    #  TROCA CATEGORIA PELO SIDEBAR
-    # -------------------------------------------------
-    def change_category(self, new_tag: str):
-        self.category_tag = new_tag
-        # zera filtros de texto para não confundir
-        self.ui.input_description.clear()
-        self.ui.input_item_number.clear()
-        self.ui.combo_product.setCurrentIndex(0)
-        self.ui.combo_category.setCurrentIndex(0)
+    # ============================================================
+    #  CARREGAR / FILTRAR MATERIAIS
+    # ============================================================
+    def change_category(self, tag: str):
+        """
+        Chamado quando o usuário clica numa categoria do sidebar.
+        Troca a tag e recarrega os materiais.
+        """
+        self.category_tag = tag
+        self.ui.pages_stack.setCurrentWidget(self.ui.page_materials)
         self.load_materials()
 
-    # -------------------------------------------------
-    #  CARREGAR MATERIAIS
-    # -------------------------------------------------
-    def load_materials(self, description: str = "", id_item: str = "", product: str = ""):
-        prefix = self.get_category_prefix()
+    def load_materials(self):
+        """
+        Carrega os materiais apenas pela categoria (sem filtro de texto).
+        """
+        rows = MaterialService.get_materials(
+            category_tag=self.category_tag,
+            description=None,
+            item_number=None,
+            product=None,
+            category=None,
+        )
+        self.populate_material_table(rows)
+
+    def apply_filters(self):
+        """
+        Botão FILTRAR da página de materiais.
+        Usa os campos do filtro + a tag da categoria.
+        """
+        description = self.ui.input_description.text().strip()
+        item_number = self.ui.input_item_number.text().strip()
+
+        product = self.ui.combo_product.currentText()
+        if product == "Selecione":
+            product = ""
+
+        category = self.ui.combo_category.currentText()
+        if category == "Selecione":
+            category = ""
 
         rows = MaterialService.get_materials(
-            category_prefix=prefix,
-            description=description,
-            id_item=id_item,
-            product=product,
+            category_tag=self.category_tag,
+            description=description or None,
+            item_number=item_number or None,
+            product=product or None,
+            category=category or None,
         )
+        self.populate_material_table(rows)
 
-        self.populate_table(rows)
+    def populate_material_table(self, rows):
+        """
+        Preenche a tabela de materiais com as linhas vindas do banco.
+        Espera-se que cada linha seja:
+        (id_item, desceprection, product, category, quantity, unit_measurement)
+        """
+        table = self.ui.table_materials
+        table.setRowCount(0)
 
-    def populate_table(self, rows):
-        self.table.setRowCount(len(rows))
+        if not rows:
+            return
 
-        for r, row in enumerate(rows):
-            for c, value in enumerate(row):
+        table.setRowCount(len(rows))
+
+        for row_index, row in enumerate(rows):
+            for col_index, value in enumerate(row):
                 item = QTableWidgetItem(str(value))
-                self.table.setItem(r, c, item)
+                item.setFlags(item.flags() ^ Qt.ItemIsEditable)  # só leitura
+                table.setItem(row_index, col_index, item)
 
-    # -------------------------------------------------
-    #  FILTRO (botão FILTRAR)
-    # -------------------------------------------------
-    def apply_filters(self):
-        desc = self.ui.input_description.text().strip()
-        num = self.ui.input_item_number.text().strip()
-
-        prod = self.ui.combo_product.currentText().strip()
-        if prod.lower() == "selecione":
-            prod = ""
-
-        # (opcional) você pode usar também a categoria selecionada
-        # category_text = self.ui.combo_category.currentText().strip()
-        # se quiser um filtro extra, é só adaptar o MaterialService
-
-        self.load_materials(description=desc, id_item=num, product=prod)
-
-    # -------------------------------------------------
+    # ============================================================
     #  NAVEGAÇÃO
-    # -------------------------------------------------
+    # ============================================================
     def go_home(self):
         from home import HomeWindow
         self.home = HomeWindow()
