@@ -1,5 +1,3 @@
-# screen_filter.py
-
 """
 SCREEN FILTER WINDOW CONTROLLER
 """
@@ -14,7 +12,7 @@ class ScreenFilterWindow(QMainWindow):
     def __init__(self, category_tag: str):
         super().__init__()
 
-        # --- Sessão ---
+        # ---------- Sessão ----------
         if not Session.is_authenticated():
             self.close()
             return
@@ -22,58 +20,66 @@ class ScreenFilterWindow(QMainWindow):
         self.user = Session.get()
         self.category_tag = category_tag  # "ELE", "HID", "LIM", ...
 
-        # --- UI ---
+        # ---------- UI ----------
         self.ui = UI_ScreenFilterWindow()
         self.ui.setup_ui(self)
 
-        # guarda referência da tabela principal de materiais
-        # (tanto faz se no UI ela se chama 'table' ou 'table_materials')
-        self.table = getattr(self.ui, "table", None)
-        if self.table is None:
-            self.table = getattr(self.ui, "table_materials", None)
+        # Referência da tabela principal
+        self.table = self.ui.table_materials
 
-        # idem para o botão FILTRAR
-        self.btn_filter = getattr(self.ui, "btn_filter", None)
-        if self.btn_filter is None:
-            self.btn_filter = getattr(self.ui, "btn_filter_materials", None)
+        # Botão FILTRAR
+        self.ui.btn_filter.clicked.connect(self.apply_filters)
 
-        if self.btn_filter is not None:
-            self.btn_filter.clicked.connect(self.apply_filters)
-
-        # botões do topo
+        # Top bar
         self.ui.btn_home.clicked.connect(self.go_home)
         self.ui.btn_profile.clicked.connect(self.open_profile)
 
-        # se existir botão "Consultar" na sidebar, mostra página de consulta
-        btn_sidebar_consultar = getattr(self.ui, "btn_sidebar_consultar", None)
-        pages_stack = getattr(self.ui, "pages_stack", None)
-        page_consultar = getattr(self.ui, "page_consultar", None)
-        if btn_sidebar_consultar and pages_stack and page_consultar:
-            btn_sidebar_consultar.clicked.connect(
-                lambda: pages_stack.setCurrentWidget(page_consultar)
-            )
+        # Sidebar categorias -> mudam o prefixo e recarregam a tabela
+        self.ui.btn_cat_limpeza.clicked.connect(lambda: self.change_category("LIM"))
+        self.ui.btn_cat_eletrica.clicked.connect(lambda: self.change_category("ELE"))
+        self.ui.btn_cat_hidraulica.clicked.connect(lambda: self.change_category("HID"))
+        self.ui.btn_cat_ferramentas.clicked.connect(lambda: self.change_category("FER"))
+        self.ui.btn_cat_automoveis.clicked.connect(lambda: self.change_category("AUT"))
+        self.ui.btn_cat_abastecimento.clicked.connect(lambda: self.change_category("ABA"))
 
-        # carrega tabela inicial
+        # (No futuro) botões de ações: consultar/solicitar/etc.
+        # self.ui.btn_sidebar_consultar.clicked.connect(...)
+        # self.ui.btn_sidebar_solicitar.clicked.connect(...)
+
+        # Carrega lista inicial com base na categoria que veio da Home
         self.load_materials()
 
         self.show()
 
-    # -----------------------------
-    #  MAPA TAG -> PREFIXO do id_item
-    # -----------------------------
+    # -------------------------------------------------
+    #  MAPA TAG -> PREFIXO (id_item)
+    # -------------------------------------------------
     def get_category_prefix(self) -> str:
         prefix_map = {
-            "ELE": "E",   # Elétrica -> E001, E002...
-            "HID": "H",   # Hidráulica -> H001...
-            "LIM": "L",   # Limpeza...
-            "FER": "F",   # Ferramentas...
-            "AUT": "A",   # Automóveis...
+            "ELE": "E",   # Elétrica
+            "HID": "H",   # Hidráulica
+            "LIM": "L",   # Limpeza
+            "FER": "F",   # Ferramentas
+            "AUT": "A",   # Automóveis
+            "ABA": "G",   # Abastecimento (ex.: G001...)
         }
         return prefix_map.get(self.category_tag, "")
 
-    # -----------------------------
+    # -------------------------------------------------
+    #  TROCA CATEGORIA PELO SIDEBAR
+    # -------------------------------------------------
+    def change_category(self, new_tag: str):
+        self.category_tag = new_tag
+        # zera filtros de texto para não confundir
+        self.ui.input_description.clear()
+        self.ui.input_item_number.clear()
+        self.ui.combo_product.setCurrentIndex(0)
+        self.ui.combo_category.setCurrentIndex(0)
+        self.load_materials()
+
+    # -------------------------------------------------
     #  CARREGAR MATERIAIS
-    # -----------------------------
+    # -------------------------------------------------
     def load_materials(self, description: str = "", id_item: str = "", product: str = ""):
         prefix = self.get_category_prefix()
 
@@ -87,11 +93,6 @@ class ScreenFilterWindow(QMainWindow):
         self.populate_table(rows)
 
     def populate_table(self, rows):
-        """Preenche a tabela de materiais."""
-        if self.table is None:
-            # segurança: se ainda assim não tiver tabela, não faz nada
-            return
-
         self.table.setRowCount(len(rows))
 
         for r, row in enumerate(rows):
@@ -99,29 +100,26 @@ class ScreenFilterWindow(QMainWindow):
                 item = QTableWidgetItem(str(value))
                 self.table.setItem(r, c, item)
 
-    # -----------------------------
+    # -------------------------------------------------
     #  FILTRO (botão FILTRAR)
-    # -----------------------------
+    # -------------------------------------------------
     def apply_filters(self):
-        # tenta pegar os campos do layout; se não existir, usa string vazia
-        desc_input = getattr(self.ui, "input_description", None)
-        num_input = getattr(self.ui, "input_item_number", None)
-        prod_combo = getattr(self.ui, "combo_product", None)
+        desc = self.ui.input_description.text().strip()
+        num = self.ui.input_item_number.text().strip()
 
-        desc = desc_input.text().strip() if desc_input else ""
-        num = num_input.text().strip() if num_input else ""
-        prod = ""
+        prod = self.ui.combo_product.currentText().strip()
+        if prod.lower() == "selecione":
+            prod = ""
 
-        if prod_combo:
-            prod = prod_combo.currentText().strip()
-            if prod.lower() == "selecione":
-                prod = ""
+        # (opcional) você pode usar também a categoria selecionada
+        # category_text = self.ui.combo_category.currentText().strip()
+        # se quiser um filtro extra, é só adaptar o MaterialService
 
         self.load_materials(description=desc, id_item=num, product=prod)
 
-    # -----------------------------
+    # -------------------------------------------------
     #  NAVEGAÇÃO
-    # -----------------------------
+    # -------------------------------------------------
     def go_home(self):
         from home import HomeWindow
         self.home = HomeWindow()
