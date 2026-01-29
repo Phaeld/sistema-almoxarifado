@@ -1,100 +1,129 @@
-"""
-====================================================================
-    INTERNAL WAREHOUSE MANAGEMENT SYSTEM
-    Author: Raphael da Silva
-    Creation Date: 2025
---------------------------------------------------------------------
-    Description:
-    This program was developed to manage the internal warehouse
-    operations of the company, allowing control of inventory,
-    product registrations, incoming and outgoing materials, and
-    report generation.
+# screen_filter.py
 
-    The system will be implemented in Python using a graphical
-    user interface (GUI) and database integration. The goal is to
-    provide a practical, intuitive, and efficient solution for the
-    management of internally used materials.
-====================================================================
+"""
+SCREEN FILTER WINDOW CONTROLLER
 """
 
-# IMPORT LIBRARIES
-import sys
-import os
-
-# IMPORT QT CORE
 from qt_core import *
-
-# IMPORT SCREEN FILTER WINDOW (UI)
 from gui.window.main_window.ui_screen_filter_window import UI_ScreenFilterWindow
-
-# IMPORT SESSION
 from auth.session import Session
+from material_service import MaterialService
 
 
-# SCREEN FILTER WINDOW (CONTROLLER)
 class ScreenFilterWindow(QMainWindow):
-    def __init__(self, category_tag):
+    def __init__(self, category_tag: str):
         super().__init__()
 
-        # 🔐 Verifica sessão ANTES de tudo
+        # --- Sessão ---
         if not Session.is_authenticated():
             self.close()
             return
 
         self.user = Session.get()
-        self.category = category_tag   # ex.: "ELE", "HID", "CONSULT", etc
-        print("Categoria selecionada:", self.category)
+        self.category_tag = category_tag  # "ELE", "HID", "LIM", ...
 
-        # ---------- SETUP UI ----------
+        # --- UI ---
         self.ui = UI_ScreenFilterWindow()
         self.ui.setup_ui(self)
 
-        # ---------- TOP BAR ----------
+        # guarda referência da tabela principal de materiais
+        # (tanto faz se no UI ela se chama 'table' ou 'table_materials')
+        self.table = getattr(self.ui, "table", None)
+        if self.table is None:
+            self.table = getattr(self.ui, "table_materials", None)
+
+        # idem para o botão FILTRAR
+        self.btn_filter = getattr(self.ui, "btn_filter", None)
+        if self.btn_filter is None:
+            self.btn_filter = getattr(self.ui, "btn_filter_materials", None)
+
+        if self.btn_filter is not None:
+            self.btn_filter.clicked.connect(self.apply_filters)
+
+        # botões do topo
         self.ui.btn_home.clicked.connect(self.go_home)
         self.ui.btn_profile.clicked.connect(self.open_profile)
 
-        # ---------- SIDEBAR: troca de páginas ----------
-        # Página padrão: materiais (categorias)
-        initial_page = self.ui.page_materials
+        # se existir botão "Consultar" na sidebar, mostra página de consulta
+        btn_sidebar_consultar = getattr(self.ui, "btn_sidebar_consultar", None)
+        pages_stack = getattr(self.ui, "pages_stack", None)
+        page_consultar = getattr(self.ui, "page_consultar", None)
+        if btn_sidebar_consultar and pages_stack and page_consultar:
+            btn_sidebar_consultar.clicked.connect(
+                lambda: pages_stack.setCurrentWidget(page_consultar)
+            )
 
-        # Se quiser no futuro abrir direto em outra página via tag:
-        if self.category == "CONSULT":
-            initial_page = self.ui.page_consultar
-        elif self.category == "SOLIC":
-            initial_page = self.ui.page_solicitar
-        elif self.category == "STAFF":
-            initial_page = self.ui.page_staff
+        # carrega tabela inicial
+        self.load_materials()
 
-        self.ui.pages_stack.setCurrentWidget(initial_page)
-
-        # Botões do sidebar
-        self.ui.btn_sidebar_consultar.clicked.connect(
-            lambda: self.ui.pages_stack.setCurrentWidget(self.ui.page_consultar)
-        )
-        self.ui.btn_sidebar_solicitar.clicked.connect(
-            lambda: self.ui.pages_stack.setCurrentWidget(self.ui.page_solicitar)
-        )
-        self.ui.btn_sidebar_staff.clicked.connect(
-            lambda: self.ui.pages_stack.setCurrentWidget(self.ui.page_staff)
-        )
-        # Se quiser, pode deixar o de materiais também (categoria padrão)
-        # por exemplo quando clicar em alguma categoria:
-        # self.ui.btn_sidebar_alguma_coisa.clicked.connect(
-        #     lambda: self.ui.pages_stack.setCurrentWidget(self.ui.page_materials)
-        # )
-
-        # Debug da sessão (só pra conferir)
-        print(self.user["username"])
-        print(self.user.get("tag"))
-
-        # MOSTRA JANELA
         self.show()
 
-    # =============================
-    # NAVEGAÇÃO
-    # =============================
+    # -----------------------------
+    #  MAPA TAG -> PREFIXO do id_item
+    # -----------------------------
+    def get_category_prefix(self) -> str:
+        prefix_map = {
+            "ELE": "E",   # Elétrica -> E001, E002...
+            "HID": "H",   # Hidráulica -> H001...
+            "LIM": "L",   # Limpeza...
+            "FER": "F",   # Ferramentas...
+            "AUT": "A",   # Automóveis...
+        }
+        return prefix_map.get(self.category_tag, "")
+
+    # -----------------------------
+    #  CARREGAR MATERIAIS
+    # -----------------------------
+    def load_materials(self, description: str = "", id_item: str = "", product: str = ""):
+        prefix = self.get_category_prefix()
+
+        rows = MaterialService.get_materials(
+            category_prefix=prefix,
+            description=description,
+            id_item=id_item,
+            product=product,
+        )
+
+        self.populate_table(rows)
+
+    def populate_table(self, rows):
+        """Preenche a tabela de materiais."""
+        if self.table is None:
+            # segurança: se ainda assim não tiver tabela, não faz nada
+            return
+
+        self.table.setRowCount(len(rows))
+
+        for r, row in enumerate(rows):
+            for c, value in enumerate(row):
+                item = QTableWidgetItem(str(value))
+                self.table.setItem(r, c, item)
+
+    # -----------------------------
+    #  FILTRO (botão FILTRAR)
+    # -----------------------------
+    def apply_filters(self):
+        # tenta pegar os campos do layout; se não existir, usa string vazia
+        desc_input = getattr(self.ui, "input_description", None)
+        num_input = getattr(self.ui, "input_item_number", None)
+        prod_combo = getattr(self.ui, "combo_product", None)
+
+        desc = desc_input.text().strip() if desc_input else ""
+        num = num_input.text().strip() if num_input else ""
+        prod = ""
+
+        if prod_combo:
+            prod = prod_combo.currentText().strip()
+            if prod.lower() == "selecione":
+                prod = ""
+
+        self.load_materials(description=desc, id_item=num, product=prod)
+
+    # -----------------------------
+    #  NAVEGAÇÃO
+    # -----------------------------
     def go_home(self):
-        from home import HomeWindow  # import local evita circular
+        from home import HomeWindow
         self.home = HomeWindow()
         self.home.show()
         self.close()
@@ -104,10 +133,3 @@ class ScreenFilterWindow(QMainWindow):
         self.profile = ProfileWindow()
         self.profile.show()
         self.close()
-
-
-# Teste isolado (normalmente não usa porque quem abre é o Home)
-# if __name__ == "__main__":
-#     app = QApplication(sys.argv)
-#     win = ScreenFilterWindow("ELE")
-#     sys.exit(app.exec())
