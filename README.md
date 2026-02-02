@@ -1,150 +1,91 @@
-# 📦 Sistema de Almoxarifado Interno
+# Sistema de Almoxarifado Interno
 
-Sistema desktop desenvolvido em **Python** para gerenciamento de almoxarifado interno, com controle de usuários, sessões, perfis e, futuramente, estoque, entradas, saídas e relatórios.
+Aplicação desktop em Python para gestão de almoxarifado interno, com foco em controle de materiais, solicitações, consultas e usuários. Interface construída com PySide6 (Qt) e persistência via SQLite.
 
-O projeto utiliza **PySide6 (Qt)** para a interface gráfica e segue uma arquitetura organizada por módulos, facilitando manutenção e evolução.
+## Visão Geral
 
----
+O sistema organiza o fluxo do almoxarifado em módulos: autenticação, sessão, consulta de ações, filtros de materiais e perfil do usuário. A base é modular, com serviços dedicados para acesso a dados e telas independentes.
 
-## 🚀 Funcionalidades Implementadas
+## Funcionalidades Implementadas
 
-### 🔐 Autenticação
-- Login de usuários via `auth_service.py`
-- Validação de credenciais
-- Bloqueio de acesso sem autenticação
+- Autenticação de usuários (login)
+- Sessão em memória com dados do usuário
+- Tela inicial com navegação por categorias
+- Consulta de ações (ACS/ACE) com filtros
+- Visualização de ação em tela de solicitação (modo leitura)
+- Confirmação/cancelamento da ação
+- Atualização de estoque ao confirmar (subtração do material)
+- Tela de perfil do usuário
+- Tela de ajuda
 
-### 🧠 Sessão de Usuário
-- Gerenciamento centralizado de sessão (`Session`)
-- Dados do usuário disponíveis em todas as telas
-- Sessão mantida enquanto o usuário estiver logado
-- Encerramento da sessão apenas ao clicar em **Sair**
+## Estrutura do Projeto
 
-### 👤 Perfil do Usuário
-- Tela de perfil com:
-  - Usuário
-  - Nome
-  - Cargo
-  - Nível de acesso (convertido de valor numérico para texto)
-  - Foto de perfil vinculada ao banco de dados
-- Foto padrão quando o usuário não possui imagem cadastrada
-- Estrutura pronta para:
-  - Alterar foto
-  - Remover foto
-
-### 🧭 Navegação
-- Botão **Inicial** para retornar à Home
-- Botão **Sair** encerra a sessão e retorna ao login
-- Proteção de rotas: telas não abrem sem sessão ativa
-
----
-
-## 🛠️ Tecnologias Utilizadas
-
-- **Python 3.11+**
-- **PySide6 (Qt for Python)**
-- **Arquitetura modular**
-- **Orientação a Objetos**
-- **Dicionário de sessão em memória**
-- **Integração com banco de dados (em andamento)**
-
----
-
-## 📂 Estrutura do Projeto
-
-```text
+```
 src/
-├── app/
-│   ├── home.py
-│   ├── profile.py
-│   ├── main.py
-|   ├── screen_filter.py
-|   └── help.py
-│
-├── auth/
-│   ├── auth_service.py
-│   └── session.py
-│
-├── gui/
-│   └── window/
-│       └── main_window/
-│           └── ui_profile_window.py
-|           └── ui_main_window.py
-|           └── ui_home_window.py
-|           └── ui_screen_filter_window.py
-|           └── ui_help_window.py
-│
-├── assets/
-│   ├── icon.jpg
-│   ├── home.png
-│   ├── exit.png
-│   └── user_profile.png
-│
-└── main.py
+  app/
+    main.py
+    home.py
+    screen_filter.py
+    profile.py
+    help.py
+    action_service.py
+    material_service.py
+    auth/
+      auth_service.py
+      session.py
+    gui/
+      resources.qrc
+      resources_rc.py
+      window/
+        main_window/
+          ui_main_window.py
+          ui_home_window.py
+          ui_screen_filter_window.py
+          ui_profile_window.py
+          ui_help_window.py
+assets/
+database/
+  users.db
+  material.db
+  actions.db
 ```
 
-## 🧩 Sessão de Usuário (Resumo Técnico)
+## Banco de Dados (SQLite)
 
-A sessão é gerenciada pelo arquivo:
-```
-auth/session.py
-```
-<br>
+- `users.db`: usuários e credenciais
+- `material.db`: itens e quantidades de estoque
+- `actions.db`: ações de entrada/saída (ACS/ACE)
 
-### Ela armazena:
+## Como Executar
 
-ID do usuário
+1. Crie e ative um ambiente virtual
+2. Instale dependências:
+   ```
+   pip install -r requirements.txt
+   ```
+3. Execute:
+   ```
+   python src/app/main.py
+   ```
 
-Username
+## Fluxo de Consulta e Atualização
 
-Nome
+1. Acesse **Consultar**
+2. Filtre ações por `id_action` (ACS/ACE)
+3. Dê duplo clique na ação para abrir em modo leitura
+4. Em **Confirmado**, o estoque é atualizado (subtração)
+5. Em **Cancelado**, apenas registra o cancelamento local
 
-Cargo
+## Próximas Funcionalidades
 
-Nível de acesso
+- Persistência de status (confirmado/cancelado) no `actions.db`
+- Vinculação de múltiplos itens por ação
+- Relatórios e exportação
+- Cadastro completo de colaboradores pela interface
+- Entrada de materiais (ACE) com incremento de estoque
+- Controle de permissões por nível de usuário
 
-Caminho da foto de perfil
+## Autor
 
-### A sessão:
-
-É criada após login bem-sucedido
-
-Pode ser acessada por qualquer tela
-
-É encerrada apenas via logout
-
-## 📸 Foto de Perfil
-
-O caminho da foto é carregado a partir do banco de dados
-Caso o arquivo exista, ele é exibido
-Caso contrário, uma imagem padrão é utilizada
-Imagem exibida em formato circular
-
-## 🔒 Segurança
-
-Telas protegidas por verificação de sessão
-
-Usuário não autenticado não acessa Home ou Perfil
-
-Logout limpa completamente os dados da sessão
-
-## 🔮 Próximos Passos
-
-Cadastro e gerenciamento de produtos
-
-Controle de entrada e saída de materiais
-
-Relatórios em PDF
-
-Controle de permissões por nível de usuário
-
-Persistência completa via banco de dados
-
-Upload de foto de perfil diretamente pela interface
-
-## 👨‍💻 Autor
-
-Raphael da Silva
-
-Sistema desenvolvido para gerenciamento interno de almoxarifado.
-
-Projeto em constante evolução 🚀
+Raphael da Silva  
+Sistema de Almoxarifado Interno

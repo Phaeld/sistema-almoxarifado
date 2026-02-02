@@ -32,7 +32,7 @@ class AuthService:
                 "name": row[1],
                 "position": row[2],
                 "level": row[3],
-                "image_profile": row[4],
+                "photo": row[4],
                 "tag": row[5]
             }
 

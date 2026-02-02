@@ -72,8 +72,18 @@ class HomeWindow(QMainWindow):
     def handle_card_click(self, tag):
         if tag == "AJU":
             self.open_help()
-        else:
+            return
+
+        supported_tags = {"LIM", "ELE", "HID", "FER", "AUT"}
+        if tag in supported_tags:
             self.open_screen_filter(tag)
+            return
+
+        QMessageBox.information(
+            self,
+            "Em desenvolvimento",
+            "Esta funcionalidade estará disponível em breve."
+        )
 
     def open_screen_filter(self, tag):
         self.screen_filter = ScreenFilterWindow(tag)

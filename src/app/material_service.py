@@ -137,3 +137,39 @@ class MaterialService:
         cur.close()
         conn.close()
         return values
+
+    @staticmethod
+    def update_material_quantity(id_item: str, delta: float):
+        """
+        Atualiza a quantidade de um item somando o delta (pode ser negativo).
+        Retorna (ok: bool, message: str, new_quantity: float | None).
+        """
+        conn = MaterialService.get_connection()
+        cur = conn.cursor()
+
+        cur.execute(
+            "SELECT quantity FROM TABLE_MATERIAL WHERE id_item = ?",
+            (id_item,),
+        )
+        row = cur.fetchone()
+        if not row:
+            cur.close()
+            conn.close()
+            return False, "Item não encontrado no estoque.", None
+
+        current_qty = float(row[0])
+        new_qty = current_qty + float(delta)
+
+        if new_qty < 0:
+            cur.close()
+            conn.close()
+            return False, "Quantidade insuficiente no estoque.", current_qty
+
+        cur.execute(
+            "UPDATE TABLE_MATERIAL SET quantity = ? WHERE id_item = ?",
+            (new_qty, id_item),
+        )
+        conn.commit()
+        cur.close()
+        conn.close()
+        return True, "Estoque atualizado com sucesso.", new_qty

@@ -446,15 +446,15 @@ class UI_ScreenFilterWindow(object):
         card_layout.setContentsMargins(25, 20, 25, 20)
         card_layout.setSpacing(12)
 
-        title = QLabel("TABELA - Solicitar")
-        title.setStyleSheet("""
+        self.req_title = QLabel("TABELA - Solicitar")
+        self.req_title.setStyleSheet("""
             QLabel {
                 font-size: 20px;
                 font-weight: bold;
                 color: #3E0F63;
             }
         """)
-        card_layout.addWidget(title)
+        card_layout.addWidget(self.req_title)
 
         label_style = """
             QLabel {
