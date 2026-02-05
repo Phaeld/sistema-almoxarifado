@@ -3,6 +3,7 @@
 from qt_core import *
 from gui.window.main_window.ui_profile_window import UI_ProfileWindow
 from auth.session import Session
+from auth.auth_service import AuthService
 import os
 
 
@@ -53,20 +54,24 @@ class ProfileWindow(QMainWindow):
         self.load_profile_photo()
 
     def load_profile_photo(self):
-        photo_path = self.user.get("photo")
+        photo_data = self.user.get("photo")
 
-        if photo_path and os.path.exists(photo_path):
-            pixmap = QPixmap(photo_path).scaled(
-                260, 260,
-                Qt.KeepAspectRatioByExpanding,
-                Qt.SmoothTransformation
-            )
-        else:
-            pixmap = QPixmap("assets/user_profile.png").scaled(
-                260, 260,
-                Qt.KeepAspectRatioByExpanding,
-                Qt.SmoothTransformation
-            )
+        pixmap = QPixmap()
+        if isinstance(photo_data, (bytes, bytearray, memoryview)):
+            if isinstance(photo_data, memoryview):
+                photo_data = photo_data.tobytes()
+            pixmap.loadFromData(photo_data)
+        elif isinstance(photo_data, str) and photo_data and os.path.exists(photo_data):
+            pixmap = QPixmap(photo_data)
+
+        if pixmap.isNull():
+            pixmap = QPixmap("assets/user_profile.png")
+
+        pixmap = pixmap.scaled(
+            260, 260,
+            Qt.KeepAspectRatioByExpanding,
+            Qt.SmoothTransformation
+        )
 
         self.ui.photo.setPixmap(pixmap)
 
@@ -91,7 +96,41 @@ class ProfileWindow(QMainWindow):
     # ACTIONS
     # =============================
     def change_photo(self):
-        print("Mudar foto (futuro)")
+        username = self.user.get("username")
+        if not username:
+            QMessageBox.warning(self, "Erro", "Usuário inválido.")
+            return
+
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Selecionar foto",
+            "",
+            "Imagens (*.png *.jpg *.jpeg *.bmp)"
+        )
+        if not file_path:
+            return
+
+        try:
+            with open(file_path, "rb") as f:
+                image_bytes = f.read()
+        except OSError:
+            QMessageBox.warning(self, "Erro", "Não foi possível ler a imagem.")
+            return
+
+        AuthService.update_user_image(username, image_bytes)
+        self.user["photo"] = image_bytes
+        self.load_profile_photo()
+
+        QMessageBox.information(self, "Foto atualizada", "Foto de perfil salva com sucesso.")
 
     def remove_photo(self):
-        print("Remover foto (futuro)")
+        username = self.user.get("username")
+        if not username:
+            QMessageBox.warning(self, "Erro", "Usuário inválido.")
+            return
+
+        AuthService.update_user_image(username, None)
+        self.user["photo"] = None
+        self.load_profile_photo()
+
+        QMessageBox.information(self, "Foto removida", "Foto de perfil removida.")

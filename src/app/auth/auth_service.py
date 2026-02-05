@@ -37,3 +37,14 @@ class AuthService:
             }
 
         return None
+
+    @staticmethod
+    def update_user_image(username, image_bytes):
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute(
+            "UPDATE TABLE_USERS SET image_profile = ? WHERE username = ?",
+            (image_bytes, username),
+        )
+        conn.commit()
+        conn.close()

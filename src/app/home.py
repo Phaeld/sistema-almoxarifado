@@ -27,6 +27,7 @@ from qt_core import *
 # IMPORT HOME WINDOW AND SCREEN FILTER
 from gui.window.main_window.ui_home_window import UI_HomeWindow
 from screen_filter import ScreenFilterWindow
+from control_gas import ControlGasWindow
 from help import HelpWindow
 
 # IMPORT SESSION
@@ -74,6 +75,10 @@ class HomeWindow(QMainWindow):
             self.open_help()
             return
 
+        if tag == "ABA":
+            self.open_control_gas()
+            return
+
         supported_tags = {"LIM", "ELE", "HID", "FER", "AUT"}
         if tag in supported_tags:
             self.open_screen_filter(tag)
@@ -95,6 +100,11 @@ class HomeWindow(QMainWindow):
         self.help.show()
         self.close()
     
+    def open_control_gas(self):
+        self.control_gas = ControlGasWindow()
+        self.control_gas.show()
+        self.close()
+
     def open_profile(self):
         from profile import ProfileWindow
         self.profile = ProfileWindow()
