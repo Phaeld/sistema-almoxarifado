@@ -1,10 +1,10 @@
 # Sistema de Almoxarifado Interno
 
-Aplicação desktop em Python para gestão de almoxarifado interno, com foco em controle de materiais, solicitações, consultas e usuários. Interface construída com PySide6 (Qt) e persistência via SQLite.
+Aplicação desktop em Python para gestão de almoxarifado interno, com módulos de materiais, ações, abastecimento e cadastros. Interface em PySide6 (Qt) e persistência via SQLite.
 
 ## Visão Geral
 
-O sistema organiza o fluxo do almoxarifado em módulos: autenticação, sessão, consulta de ações, filtros de materiais e perfil do usuário. A base é modular, com serviços dedicados para acesso a dados e telas independentes.
+O sistema organiza o fluxo do almoxarifado em módulos separados, com serviços de acesso a dados e telas independentes para cada funcionalidade.
 
 ## Funcionalidades Implementadas
 
@@ -13,10 +13,15 @@ O sistema organiza o fluxo do almoxarifado em módulos: autenticação, sessão,
 - Tela inicial com navegação por categorias
 - Consulta de ações (ACS/ACE) com filtros
 - Visualização de ação em tela de solicitação (modo leitura)
-- Confirmação/cancelamento da ação
-- Atualização de estoque ao confirmar (subtração do material)
-- Tela de perfil do usuário
+- Confirmação/cancelamento de ação com persistência de status
+- Atualização de estoque (entrada ACE / saída ACS)
+- Tela de perfil do usuário com foto salva no banco
 - Tela de ajuda
+- Módulo de abastecimento:
+  - Tela de controle com filtro e listagem
+  - Cadastro/edição/exclusão de abastecimento
+  - Cadastro/edição/exclusão de veículos
+  - Detalhe simples do abastecimento (duplo clique na tabela)
 
 ## Estrutura do Projeto
 
@@ -30,6 +35,9 @@ src/
     help.py
     action_service.py
     material_service.py
+    control_gas.py
+    control_gas_service.py
+    vehicle_service.py
     auth/
       auth_service.py
       session.py
@@ -43,18 +51,26 @@ src/
           ui_screen_filter_window.py
           ui_profile_window.py
           ui_help_window.py
+          ui_control_gas_window.py
+          ui_control_gas_form_window.py
+          ui_control_gas_vehicle_window.py
+          ui_control_gas_detail_window.py
 assets/
 database/
   users.db
   material.db
   actions.db
+  control.db
+  vehicles.db
 ```
 
 ## Banco de Dados (SQLite)
 
 - `users.db`: usuários e credenciais
 - `material.db`: itens e quantidades de estoque
-- `actions.db`: ações de entrada/saída (ACS/ACE)
+- `actions.db`: ações de entrada/saída (ACS/ACE) com status
+- `control.db`: abastecimentos (TABLE_CONTROL_GAS)
+- `vehicles.db`: cadastro de veículos (TABLE_VEHICLES)
 
 ## Como Executar
 
@@ -68,22 +84,31 @@ database/
    python src/app/main.py
    ```
 
-## Fluxo de Consulta e Atualização
+## Fluxo de Ações e Estoque
 
 1. Acesse **Consultar**
 2. Filtre ações por `id_action` (ACS/ACE)
 3. Dê duplo clique na ação para abrir em modo leitura
-4. Em **Confirmado**, o estoque é atualizado (subtração)
-5. Em **Cancelado**, apenas registra o cancelamento local
+4. Em **Confirmado**, o estoque é atualizado (ACE soma, ACS subtrai)
+5. Em **Cancelado**, registra status e não altera o estoque
+
+## Fluxo de Abastecimento
+
+1. Acesse **Abastecimento Veículos do Obras**
+2. Use os filtros para listar registros
+3. Duplo clique na linha para ver detalhes
+4. Botões do painel:
+   - Adicionar: cadastro de abastecimento
+   - Editar/Excluir: atua sobre o item selecionado
+   - Veículos: cadastro/edição/exclusão de veículos
 
 ## Próximas Funcionalidades
 
-- Persistência de status (confirmado/cancelado) no `actions.db`
-- Vinculação de múltiplos itens por ação
-- Relatórios e exportação
-- Cadastro completo de colaboradores pela interface
-- Entrada de materiais (ACE) com incremento de estoque
+- Cálculo automático de diferença de odômetro e média de consumo
+- Relatórios e exportação (PDF/CSV)
+- Validações e máscaras de data/placa
 - Controle de permissões por nível de usuário
+- Integração completa de colaboradores
 
 ## Autor
 

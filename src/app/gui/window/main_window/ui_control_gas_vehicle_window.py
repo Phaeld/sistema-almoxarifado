@@ -14,7 +14,7 @@ from gui import resources_rc
 
 
 class UI_ControlGasVehicleWindow(object):
-    def setup_ui(self, parent: QMainWindow):
+    def setup_ui(self, parent: QMainWindow, action_mode: str = "register"):
         if not parent.objectName():
             parent.setObjectName("ControlGasVehicleWindow")
 
@@ -70,15 +70,15 @@ class UI_ControlGasVehicleWindow(object):
         card_layout.setContentsMargins(35, 25, 35, 30)
         card_layout.setSpacing(20)
 
-        title = QLabel("TABELA - Cadastro de Veículos")
-        title.setStyleSheet("""
+        self.title = QLabel("TABELA - Cadastro de Veículos")
+        self.title.setStyleSheet("""
             QLabel {
                 font-size: 20px;
                 font-weight: bold;
                 color: #3E0F63;
             }
         """)
-        card_layout.addWidget(title)
+        card_layout.addWidget(self.title)
 
         label_style = """
             QLabel {
@@ -195,6 +195,21 @@ class UI_ControlGasVehicleWindow(object):
         wrapper_layout.addWidget(card)
 
         main_layout.addWidget(wrapper)
+
+        # Set action mode (register/edit/delete)
+        self.set_action_mode(action_mode)
+
+    def set_action_mode(self, mode: str):
+        mode = (mode or "register").lower()
+        if mode == "delete":
+            self.title.setText("TABELA - Excluir Veículos")
+            self.btn_register.setText("DELETAR")
+        elif mode == "edit":
+            self.title.setText("TABELA - Editar Veículos")
+            self.btn_register.setText("EDITAR")
+        else:
+            self.title.setText("TABELA - Cadastro de Veículos")
+            self.btn_register.setText("CADASTRAR")
 
     def _top_button_style(self) -> str:
         return """

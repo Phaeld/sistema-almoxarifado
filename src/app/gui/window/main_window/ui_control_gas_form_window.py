@@ -14,7 +14,7 @@ from gui import resources_rc
 
 
 class UI_ControlGasFormWindow(object):
-    def setup_ui(self, parent: QMainWindow):
+    def setup_ui(self, parent: QMainWindow, action_mode: str = "register"):
         if not parent.objectName():
             parent.setObjectName("ControlGasFormWindow")
 
@@ -70,15 +70,15 @@ class UI_ControlGasFormWindow(object):
         card_layout.setContentsMargins(35, 25, 35, 30)
         card_layout.setSpacing(16)
 
-        title = QLabel("TABELA - Controle de Abastecimento")
-        title.setStyleSheet("""
+        self.title = QLabel("TABELA - Controle de Abastecimento")
+        self.title.setStyleSheet("""
             QLabel {
                 font-size: 20px;
                 font-weight: bold;
                 color: #3E0F63;
             }
         """)
-        card_layout.addWidget(title)
+        card_layout.addWidget(self.title)
 
         label_style = """
             QLabel {
@@ -144,6 +144,12 @@ class UI_ControlGasFormWindow(object):
         self.combo_fuel.setStyleSheet(combo_style)
         self.combo_fuel.addItem("Selecione")
 
+        # Data
+        lbl_date = QLabel("Data")
+        lbl_date.setStyleSheet(label_style)
+        self.input_date = QLineEdit()
+        self.input_date.setStyleSheet(line_style)
+
         # Número do odômetro
         lbl_odo = QLabel("Número do Odômetro")
         lbl_odo.setStyleSheet(label_style)
@@ -174,10 +180,12 @@ class UI_ControlGasFormWindow(object):
         grid.addWidget(lbl_fuel, 2, 2)
         grid.addWidget(self.combo_fuel, 3, 2)
 
-        grid.addWidget(lbl_odo, 4, 0)
-        grid.addWidget(self.input_odo, 5, 0)
-        grid.addWidget(lbl_qty, 4, 1)
-        grid.addWidget(self.input_qty, 5, 1, 1, 2)
+        grid.addWidget(lbl_date, 4, 0)
+        grid.addWidget(self.input_date, 5, 0)
+        grid.addWidget(lbl_odo, 4, 1)
+        grid.addWidget(self.input_odo, 5, 1)
+        grid.addWidget(lbl_qty, 4, 2)
+        grid.addWidget(self.input_qty, 5, 2)
 
         grid.addWidget(lbl_value, 6, 0)
         grid.addWidget(self.input_value, 7, 0, 1, 2)
@@ -212,6 +220,21 @@ class UI_ControlGasFormWindow(object):
         wrapper_layout.addWidget(card)
 
         main_layout.addWidget(wrapper)
+
+        # Set action mode (register/edit/delete)
+        self.set_action_mode(action_mode)
+
+    def set_action_mode(self, mode: str):
+        mode = (mode or "register").lower()
+        if mode == "delete":
+            self.title.setText("TABELA - Excluir Abastecimento")
+            self.btn_register.setText("DELETAR")
+        elif mode == "edit":
+            self.title.setText("TABELA - Editar Abastecimento")
+            self.btn_register.setText("EDITAR")
+        else:
+            self.title.setText("TABELA - Controle de Abastecimento")
+            self.btn_register.setText("CADASTRAR")
 
     def _top_button_style(self) -> str:
         return """
