@@ -66,6 +66,29 @@ class VehicleService:
         return row
 
     @staticmethod
+    def get_vehicle_by_plate(plate_number: str):
+        conn = VehicleService.get_connection()
+        cur = conn.cursor()
+        cur.execute(
+            """
+            SELECT
+                id_vehicle,
+                name_vehicle,
+                plate_number,
+                fuel_type,
+                odometer_type,
+                image_vehicle
+            FROM TABLE_VEHICLES
+            WHERE plate_number = ?
+            """,
+            (plate_number,),
+        )
+        row = cur.fetchone()
+        cur.close()
+        conn.close()
+        return row
+
+    @staticmethod
     def create_vehicle(name, plate, fuel_type, odometer_type, image_path=None):
         conn = VehicleService.get_connection()
         cur = conn.cursor()

@@ -8,6 +8,7 @@
 
 import os
 import sqlite3
+from datetime import datetime
 
 CURRENT_DIR = os.path.dirname(__file__)
 SRC_DIR = os.path.dirname(CURRENT_DIR)
@@ -106,6 +107,48 @@ class ControlGasService:
         cur.close()
         conn.close()
         return row
+
+    @staticmethod
+    def get_last_control_by_plate(plate_number: str, exclude_id: int | None = None):
+        conn = ControlGasService.get_connection()
+        cur = conn.cursor()
+        params = [plate_number]
+        query = """
+            SELECT
+                id_control,
+                name_vehicle,
+                plate_numbler,
+                date,
+                driver,
+                odometer_type,
+                odometer,
+                odometer_difference,
+                liters_filled,
+                "average consumption",
+                fuel_type,
+                value
+            FROM TABLE_CONTROL_GAS
+            WHERE plate_numbler = ?
+        """
+        if exclude_id:
+            query += " AND id_control != ?"
+            params.append(exclude_id)
+        cur.execute(query, params)
+        rows = cur.fetchall()
+        cur.close()
+        conn.close()
+
+        if not rows:
+            return None
+
+        def parse_date(value: str):
+            try:
+                return datetime.strptime(value, "%d/%m/%Y")
+            except (TypeError, ValueError):
+                return datetime.min
+
+        rows.sort(key=lambda r: parse_date(r[3]), reverse=True)
+        return rows[0]
 
     @staticmethod
     def create_control(

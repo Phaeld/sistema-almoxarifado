@@ -76,6 +76,14 @@ class HomeWindow(QMainWindow):
             return
 
         if tag == "ABA":
+            position = (self.user.get("position") or "").upper()
+            if position not in {"ABAST", "ADMIN"}:
+                QMessageBox.warning(
+                    self,
+                    "Acesso negado",
+                    "Você não tem permissão para acessar Abastecimento."
+                )
+                return
             self.open_control_gas()
             return
 

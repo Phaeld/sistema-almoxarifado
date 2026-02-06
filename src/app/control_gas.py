@@ -9,6 +9,7 @@
 ====================================================================
 """
 
+import os
 from qt_core import *
 
 from gui.window.main_window.ui_control_gas_window import UI_ControlGasWindow
@@ -221,22 +222,33 @@ class ControlGasDetailWindow(QMainWindow):
             value,
         ) = data
 
-        content = (
-            f"ID: {id_control}\n"
-            f"Veículo: {name_vehicle}\n"
-            f"Placa: {plate_numbler}\n"
-            f"Data: {date_str}\n"
-            f"Motorista: {driver}\n"
-            f"Tipo Odômetro: {odometer_type}\n"
-            f"Odômetro: {odometer}\n"
-            f"Diferença: {odometer_diff}\n"
-            f"Litros abastecidos: {liters_filled}\n"
-            f"Média Consumo: {avg_consumption}\n"
-            f"Tipo Combustível: {fuel_type}\n"
-            f"Valor: {value}"
-        )
-        self.ui.lbl_content.setText(content)
+        self.ui.val_id.setText(str(id_control))
+        self.ui.val_vehicle.setText(str(name_vehicle))
+        self.ui.val_plate.setText(str(plate_numbler))
+        self.ui.val_date.setText(str(date_str))
+        self.ui.val_driver.setText(str(driver))
+        self.ui.val_odo_type.setText(str(odometer_type))
+        self.ui.val_odo.setText(str(odometer))
+        self.ui.val_diff.setText(str(odometer_diff))
+        self.ui.val_liters.setText(str(liters_filled))
+        self.ui.val_avg.setText(str(avg_consumption))
+        self.ui.val_fuel.setText(str(fuel_type))
+        self.ui.val_value.setText(str(value))
         self.ui.btn_close.clicked.connect(self.close)
+
+        # Foto do veículo
+        vehicle = VehicleService.get_vehicle_by_plate(plate_numbler)
+        if vehicle:
+            image_path = vehicle[5]
+            if image_path and os.path.exists(image_path):
+                pixmap = QPixmap(image_path).scaled(
+                    self.ui.photo.width(),
+                    self.ui.photo.height(),
+                    Qt.KeepAspectRatioByExpanding,
+                    Qt.SmoothTransformation,
+                )
+                self.ui.photo.setPixmap(pixmap)
+                self.ui.photo.setText("")
 
 
 class ControlGasFormWindow(QMainWindow):
@@ -363,9 +375,28 @@ class ControlGasFormWindow(QMainWindow):
             QMessageBox.warning(self, "Dados inválidos", "Valores numéricos inválidos.")
             return
 
-        # Campos derivados (sem UI por enquanto)
-        odometer_diff = ""
-        avg_consumption = ""
+        # Campos derivados
+        last = ControlGasService.get_last_control_by_plate(
+            plate_number=plate,
+            exclude_id=self.control_data[0] if self.control_data else None
+        )
+        if last:
+            last_odometer = last[6]
+            try:
+                odometer_diff = float(odometer) - float(last_odometer)
+            except (TypeError, ValueError):
+                odometer_diff = ""
+        else:
+            odometer_diff = ""
+
+        if odometer_type == 1:
+            # Km/L
+            avg_consumption = round(odometer_diff / liters, 2) if odometer_diff else 0
+        elif odometer_type == 2:
+            # L/h máquina
+            avg_consumption = round(liters / odometer_diff, 2) if odometer_diff else 0
+        else:
+            avg_consumption = 0
 
         if self.action_mode == "edit":
             if not self.control_data:
