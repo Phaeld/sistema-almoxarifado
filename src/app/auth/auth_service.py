@@ -48,3 +48,29 @@ class AuthService:
         )
         conn.commit()
         conn.close()
+
+    @staticmethod
+    def username_exists(username):
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT 1 FROM TABLE_USERS WHERE username = ?",
+            (username,),
+        )
+        exists = cursor.fetchone() is not None
+        conn.close()
+        return exists
+
+    @staticmethod
+    def create_user(username, name, password, position, level, tag):
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            INSERT INTO TABLE_USERS (username, name, password, position, level, tag)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (username, name, password, position, level, tag),
+        )
+        conn.commit()
+        conn.close()

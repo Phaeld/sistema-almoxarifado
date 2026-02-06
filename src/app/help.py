@@ -26,6 +26,8 @@ from qt_core import *
 
 # IMPORT HELP WINDOW
 from gui.window.main_window.ui_help_window import UI_HelpWindow
+from PySide6.QtGui import QDesktopServices
+from PySide6.QtCore import QUrl
 
 # IMPORT SESSION
 from auth.session import Session
@@ -49,6 +51,7 @@ class HelpWindow(QMainWindow):
         # botão voltar
         self.ui.btn_home.clicked.connect(self.go_home)
         self.ui.btn_profile.clicked.connect(self.open_profile)
+        self.ui.btn_download.clicked.connect(self.open_manual_link)
 
         
         print(self.user["username"])
@@ -65,3 +68,8 @@ class HelpWindow(QMainWindow):
         self.profile = ProfileWindow()
         self.profile.show()
         self.close()
+
+    def open_manual_link(self):
+        # Substituir pelo link real do Google Drive
+        url = "https://drive.google.com/your-manual-link"
+        QDesktopServices.openUrl(QUrl(url))

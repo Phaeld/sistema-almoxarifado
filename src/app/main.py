@@ -43,6 +43,8 @@ class MainWindow(QMainWindow):
 
         self.ui.login_button.clicked.connect(self.try_login)
         self.ui.pass_input.returnPressed.connect(self.try_login)
+        self.ui.user_input.textChanged.connect(self.clear_error)
+        self.ui.pass_input.textChanged.connect(self.clear_error)
 
     def try_login(self):
         username = self.ui.user_input.text()
@@ -57,10 +59,14 @@ class MainWindow(QMainWindow):
             self.home.show()
             self.close()
         else:
-            print("Usuário ou senha inválidos")
+            self.ui.lbl_error.setText("Nome de usuário ou senha inválida. Tente novamente.")
+            self.ui.lbl_error.setVisible(True)
 
     def show_login(self):
         self.show()
+
+    def clear_error(self):
+        self.ui.lbl_error.setVisible(False)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

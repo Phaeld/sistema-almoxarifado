@@ -113,6 +113,64 @@ class ActionService:
         return row
 
     @staticmethod
+    def get_next_action_id(prefix: str):
+        conn = ActionService.get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT id_action FROM TABLE_ACTIONS WHERE id_action LIKE ? ORDER BY id_action DESC LIMIT 1",
+            (f"{prefix}%",),
+        )
+        row = cursor.fetchone()
+        conn.close()
+
+        if not row:
+            return f"{prefix}000001"
+
+        last_id = row[0]
+        try:
+            num = int(last_id[len(prefix):])
+        except ValueError:
+            num = 0
+        return f"{prefix}{num + 1:06d}"
+
+    @staticmethod
+    def insert_action(
+        id_action: str,
+        matter: str,
+        observation: str,
+        category: str,
+        solocitated: str,
+        authorized: str,
+        date_str: str,
+        id_item: str,
+        descrption: str,
+        quantity: int,
+    ):
+        conn = ActionService.get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            INSERT INTO TABLE_ACTIONS
+                (id_action, matter, observation, category, solocitated, authorized, date, id_item, descrption, quantity)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                id_action,
+                matter,
+                observation,
+                category,
+                solocitated,
+                authorized,
+                date_str,
+                id_item,
+                descrption,
+                quantity,
+            ),
+        )
+        conn.commit()
+        conn.close()
+
+    @staticmethod
     def update_action_status(id_action: str, status: str):
         """
         Atualiza o status da ação (CONFIRMADO/CANCELADO).

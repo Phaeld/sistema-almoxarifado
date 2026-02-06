@@ -143,9 +143,9 @@ class UI_HelpWindow(object):
         right_col.setAlignment(Qt.AlignTop)
 
         text_right = QLabel(
-                "Lorem ipsum dolor sit amet consectetur adipisicing elit. "
-                "Quisque faucibus ex sapien vitae pellentesque sem placerat. "
-                "In id cursus mi pretium tellus duis convallis."
+                "Este manual reúne os fluxos principais do sistema, regras de acesso "
+                "e boas práticas de uso. Ele é atualizado conforme novas funcionalidades "
+                "são entregues."
             )
         text_right.setWordWrap(True)
         text_right.setStyleSheet("""
@@ -168,10 +168,10 @@ class UI_HelpWindow(object):
             )
         manual_img.setAlignment(Qt.AlignCenter)
 
-        btn_download = QPushButton("BAIXAR")
-        btn_download.setFixedSize(160, 45)
-        btn_download.setCursor(Qt.PointingHandCursor)
-        btn_download.setStyleSheet("""
+        self.btn_download = QPushButton("BAIXAR")
+        self.btn_download.setFixedSize(160, 45)
+        self.btn_download.setCursor(Qt.PointingHandCursor)
+        self.btn_download.setStyleSheet("""
                 QPushButton {
                     background-color: #3D136F;
                     color: white;
@@ -188,7 +188,7 @@ class UI_HelpWindow(object):
         right_col.addSpacing(10)
         right_col.addWidget(manual_title)
         right_col.addWidget(manual_img)
-        right_col.addWidget(btn_download, alignment=Qt.AlignCenter)
+        right_col.addWidget(self.btn_download, alignment=Qt.AlignCenter)
 
         right_col.addSpacing(30)
 
@@ -258,15 +258,14 @@ class UI_HelpWindow(object):
 
         if bold_first:
             label.setText(
-                    "<b>Lorem ipsum</b> dolor sit amet consectetur adipisicing elit. "
-                    "Quisque faucibus ex sapien vitae pellentesque sem placerat. "
-                    "In id cursus mi pretium tellus duis convallis."
+                    "<b>Objetivo:</b> orientar o uso seguro do sistema, "
+                    "com foco em registro correto, rastreabilidade e "
+                    "boas práticas operacionais."
                 )
         else:
             label.setText(
-                    "Lorem ipsum dolor sit amet consectetur adipisicing elit. "
-                    "Quisque faucibus ex sapien vitae pellentesque sem placerat. "
-                    "In id cursus mi pretium tellus duis convallis."
+                    "Aqui você encontra instruções claras para cada tela, "
+                    "regras de acesso, e dicas para evitar erros comuns."
                 )
 
         label.setStyleSheet("""

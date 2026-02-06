@@ -163,6 +163,17 @@ class UI_MainWindow(object):
 
       self.form_layout.addSpacing(20)
 
+      # ERROR LABEL
+      self.lbl_error = QLabel("")
+      self.lbl_error.setAlignment(Qt.AlignCenter)
+      self.lbl_error.setStyleSheet("""
+            font-size: 14px;
+            color: #7A1E6C;
+            font-weight: bold;
+      """)
+      self.lbl_error.setVisible(False)
+      self.form_layout.addWidget(self.lbl_error)
+
       # SUBMIT BUTTON
       self.login_button = QPushButton("ENTRAR")
       self.login_button.setFixedSize(260, 50)

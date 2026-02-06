@@ -87,6 +87,10 @@ class HomeWindow(QMainWindow):
             self.open_control_gas()
             return
 
+        if tag == "COL":
+            self.open_cad_func()
+            return
+
         supported_tags = {"LIM", "ELE", "HID", "FER", "AUT"}
         if tag in supported_tags:
             self.open_screen_filter(tag)
@@ -111,6 +115,12 @@ class HomeWindow(QMainWindow):
     def open_control_gas(self):
         self.control_gas = ControlGasWindow()
         self.control_gas.show()
+        self.close()
+
+    def open_cad_func(self):
+        self.screen_filter = ScreenFilterWindow("LIM")
+        self.screen_filter.show()
+        self.screen_filter.show_cad_func_page()
         self.close()
 
     def open_profile(self):
