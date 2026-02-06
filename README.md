@@ -17,11 +17,15 @@ O sistema organiza o fluxo do almoxarifado em módulos separados, com serviços 
 - Atualização de estoque (entrada ACE / saída ACS)
 - Tela de perfil do usuário com foto salva no banco
 - Tela de ajuda
+- Controle de acesso ao abastecimento por cargo (ABAST/ADMIN)
 - Módulo de abastecimento:
   - Tela de controle com filtro e listagem
   - Cadastro/edição/exclusão de abastecimento
   - Cadastro/edição/exclusão de veículos
-  - Detalhe simples do abastecimento (duplo clique na tabela)
+  - Detalhe do abastecimento (com foto do veículo)
+  - Relatório gráfico (diário/semanal/mensal) com total, top veículo, gráfico e tabela
+  - Exportação CSV/PDF com períodos (mensal/trimestral/semestral/anual)
+  - Filtro adicional por mês no relatório
 
 ## Estrutura do Projeto
 
@@ -55,6 +59,8 @@ src/
           ui_control_gas_form_window.py
           ui_control_gas_vehicle_window.py
           ui_control_gas_detail_window.py
+          ui_control_gas_export_window.py
+          ui_control_gas_report_window.py
 assets/
 database/
   users.db
@@ -101,12 +107,15 @@ database/
    - Adicionar: cadastro de abastecimento
    - Editar/Excluir: atua sobre o item selecionado
    - Veículos: cadastro/edição/exclusão de veículos
+5. Relatórios:
+   - Impressão com resumo e gráfico
+   - Exportação CSV/PDF por período
 
 ## Próximas Funcionalidades
 
-- Cálculo automático de diferença de odômetro e média de consumo
-- Relatórios e exportação (PDF/CSV)
 - Validações e máscaras de data/placa
+- Melhorias no layout de PDF
+- Relatórios por veículo e períodos customizados
 - Controle de permissões por nível de usuário
 - Integração completa de colaboradores
 

@@ -10,12 +10,18 @@
 """
 
 import os
+import csv
+import io
+from datetime import datetime, timedelta
 from qt_core import *
+from PySide6.QtPrintSupport import QPrinter, QPrintDialog
 
 from gui.window.main_window.ui_control_gas_window import UI_ControlGasWindow
 from gui.window.main_window.ui_control_gas_form_window import UI_ControlGasFormWindow
 from gui.window.main_window.ui_control_gas_vehicle_window import UI_ControlGasVehicleWindow
 from gui.window.main_window.ui_control_gas_detail_window import UI_ControlGasDetailWindow
+from gui.window.main_window.ui_control_gas_export_window import UI_ControlGasExportWindow
+from gui.window.main_window.ui_control_gas_report_window import UI_ControlGasReportWindow
 from auth.session import Session
 from vehicle_service import VehicleService
 from control_gas_service import ControlGasService
@@ -77,12 +83,12 @@ class ControlGasWindow(QMainWindow):
         self.populate_control_table(rows)
 
     def print_report(self):
-        # Placeholder: implementar impressão
-        pass
+        self.report = ControlGasReportWindow()
+        self.report.show()
 
     def export_report(self):
-        # Placeholder: implementar exportação
-        pass
+        self.export = ControlGasExportWindow()
+        self.export.show()
 
     def open_gas_form(self):
         self.form = ControlGasFormWindow(action_mode="register")
@@ -198,6 +204,392 @@ class ControlGasWindow(QMainWindow):
         data = self._controls[row]
         self.detail = ControlGasDetailWindow(data)
         self.detail.show()
+
+
+class ControlGasExportWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+
+        if not Session.is_authenticated():
+            self.close()
+            return
+
+        self.ui = UI_ControlGasExportWindow()
+        self.ui.setup_ui(self)
+
+        self.ui.btn_cancel.clicked.connect(self.close)
+        self.ui.btn_export.clicked.connect(self.handle_export)
+
+        self.show()
+
+    def handle_export(self):
+        period = self.get_selected_period()
+        fmt = self.get_selected_format()
+
+        data = self.filter_by_period(period)
+        if not data:
+            QMessageBox.information(self, "Exportar", "Nenhum registro encontrado.")
+            return
+
+        if fmt == "CSV":
+            self.export_csv(data)
+        else:
+            self.export_pdf(data)
+
+    def get_selected_period(self):
+        if self.ui.radio_quarterly.isChecked():
+            return "quarterly"
+        if self.ui.radio_semiannual.isChecked():
+            return "semiannual"
+        if self.ui.radio_annual.isChecked():
+            return "annual"
+        return "monthly"
+
+    def get_selected_format(self):
+        return "PDF" if self.ui.radio_pdf.isChecked() else "CSV"
+
+    def filter_by_period(self, period):
+        end = datetime.now()
+        if period == "annual":
+            start = end - timedelta(days=365)
+        elif period == "semiannual":
+            start = end - timedelta(days=182)
+        elif period == "quarterly":
+            start = end - timedelta(days=91)
+        else:
+            start = end - timedelta(days=30)
+
+        rows = ControlGasService.list_controls()
+        result = []
+        for r in rows:
+            date_str = r[3]
+            try:
+                dt = datetime.strptime(date_str, "%d/%m/%Y")
+            except (TypeError, ValueError):
+                continue
+            if start <= dt <= end:
+                result.append(r)
+        return result
+
+    def export_csv(self, rows):
+        file_path, _ = QFileDialog.getSaveFileName(
+            self, "Salvar CSV", "", "CSV (*.csv)"
+        )
+        if not file_path:
+            return
+
+        with open(file_path, "w", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            writer.writerow([
+                "ID",
+                "Veiculo",
+                "Placa",
+                "Data",
+                "Motorista",
+                "Tipo Odometro",
+                "Odometro",
+                "Diferenca",
+                "Litros",
+                "Media",
+                "Combustivel",
+                "Valor",
+            ])
+            for r in rows:
+                writer.writerow(r)
+
+        QMessageBox.information(self, "Exportar", "CSV gerado com sucesso.")
+
+    def export_pdf(self, rows):
+        try:
+            from reportlab.lib.pagesizes import A4
+            from reportlab.pdfgen import canvas
+        except ImportError:
+            QMessageBox.warning(
+                self,
+                "PDF",
+                "Dependencia 'reportlab' nao instalada. Use CSV ou instale o pacote.",
+            )
+            return
+
+        file_path, _ = QFileDialog.getSaveFileName(
+            self, "Salvar PDF", "", "PDF (*.pdf)"
+        )
+        if not file_path:
+            return
+
+        c = canvas.Canvas(file_path, pagesize=A4)
+        width, height = A4
+        y = height - 40
+
+        c.setFont("Helvetica-Bold", 14)
+        c.drawString(40, y, "Relatorio de Abastecimento")
+        y -= 20
+        c.setFont("Helvetica", 9)
+
+        headers = [
+            "ID", "Veiculo", "Placa", "Data", "Motorista",
+            "Tipo Odo", "Odo", "Dif", "Litros", "Media", "Comb", "Valor"
+        ]
+        c.drawString(40, y, " | ".join(headers))
+        y -= 14
+
+        for r in rows:
+            line = " | ".join([str(x) for x in r])
+            c.drawString(40, y, line[:200])
+            y -= 12
+            if y < 40:
+                c.showPage()
+                y = height - 40
+                c.setFont("Helvetica", 9)
+
+        c.save()
+        QMessageBox.information(self, "Exportar", "PDF gerado com sucesso.")
+
+
+class ControlGasReportWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+
+        if not Session.is_authenticated():
+            self.close()
+            return
+
+        self.ui = UI_ControlGasReportWindow()
+        self.ui.setup_ui(self)
+
+        self.ui.btn_close.clicked.connect(self.close)
+        self.ui.btn_generate.clicked.connect(self.generate_report)
+        self.ui.btn_print.clicked.connect(self.print_report)
+
+        self._last_rows = []
+        self.generate_report()
+        self.show()
+
+    def get_selected_period(self):
+        if self.ui.radio_daily.isChecked():
+            return "daily"
+        if self.ui.radio_weekly.isChecked():
+            return "weekly"
+        return "monthly"
+
+    def filter_by_period(self, period):
+        end = datetime.now()
+        if period == "weekly":
+            start = end - timedelta(days=7)
+        elif period == "daily":
+            start = end - timedelta(days=1)
+        else:
+            start = end - timedelta(days=30)
+
+        rows = ControlGasService.list_controls()
+        result = []
+        for r in rows:
+            date_str = r[3]
+            try:
+                dt = datetime.strptime(date_str, "%d/%m/%Y")
+            except (TypeError, ValueError):
+                continue
+            if start <= dt <= end:
+                result.append(r)
+        return result
+
+    def generate_report(self):
+        period = self.get_selected_period()
+        rows = self.filter_by_period(period)
+        rows = self.filter_by_month(rows)
+        self._last_rows = rows
+
+        # Totals
+        total_spent = sum(float(r[11]) for r in rows) if rows else 0
+        self.ui.lbl_total.setText(f"Total gasto: R$ {total_spent:.2f}")
+
+        # Vehicle most fueled (by liters)
+        liters_by_vehicle = {}
+        spent_by_vehicle = {}
+        count_by_vehicle = {}
+        by_plate = {}
+
+        for r in rows:
+            vehicle = r[1]
+            plate = r[2]
+            liters = float(r[8]) if r[8] else 0
+            spent = float(r[11]) if r[11] else 0
+            avg = float(r[9]) if r[9] else 0
+            liters_by_vehicle[vehicle] = liters_by_vehicle.get(vehicle, 0) + liters
+            spent_by_vehicle[vehicle] = spent_by_vehicle.get(vehicle, 0) + spent
+            count_by_vehicle[vehicle] = count_by_vehicle.get(vehicle, 0) + 1
+            if plate not in by_plate:
+                by_plate[plate] = {"avg_list": [], "value_list": [], "vehicle": vehicle}
+            by_plate[plate]["avg_list"].append(avg)
+            by_plate[plate]["value_list"].append(spent)
+
+        top_vehicle = max(liters_by_vehicle, key=liters_by_vehicle.get) if liters_by_vehicle else "-"
+        self.ui.lbl_top_vehicle.setText(f"Veiculo que mais abasteceu: {top_vehicle}")
+
+        # Chart
+        self.render_chart(count_by_vehicle, spent_by_vehicle)
+
+        # Table summary
+        self.populate_summary_table(by_plate)
+
+    def filter_by_month(self, rows):
+        month_text = self.ui.combo_month.currentText()
+        if month_text == "Todos os meses":
+            return rows
+
+        month_map = {
+            "Janeiro": 1,
+            "Fevereiro": 2,
+            "Marco": 3,
+            "Abril": 4,
+            "Maio": 5,
+            "Junho": 6,
+            "Julho": 7,
+            "Agosto": 8,
+            "Setembro": 9,
+            "Outubro": 10,
+            "Novembro": 11,
+            "Dezembro": 12,
+        }
+        target = month_map.get(month_text)
+        if not target:
+            return rows
+
+        result = []
+        for r in rows:
+            date_str = r[3]
+            try:
+                dt = datetime.strptime(date_str, "%d/%m/%Y")
+            except (TypeError, ValueError):
+                continue
+            if dt.month == target:
+                result.append(r)
+        return result
+
+    def print_report(self):
+        if not self._last_rows:
+            QMessageBox.information(self, "Imprimir", "Nenhum dado para imprimir.")
+            return
+
+        printer = QPrinter(QPrinter.HighResolution)
+        dialog = QPrintDialog(printer, self)
+        if dialog.exec() != QDialog.Accepted:
+            return
+
+        text = self.build_print_text(self._last_rows)
+        doc = QTextDocument()
+        doc.setPlainText(text)
+        doc.print_(printer)
+
+    def build_print_text(self, rows):
+        by_plate = {}
+        total = 0.0
+        for r in rows:
+            plate = r[2]
+            vehicle = r[1]
+            date_str = r[3]
+            avg = float(r[9]) if r[9] else 0.0
+            value = float(r[11]) if r[11] else 0.0
+
+            total += value
+
+            if plate not in by_plate:
+                by_plate[plate] = {
+                    "vehicle": vehicle,
+                    "dates": [],
+                    "avg_list": [],
+                    "value_sum": 0.0,
+                }
+            by_plate[plate]["dates"].append(date_str)
+            by_plate[plate]["avg_list"].append(avg)
+            by_plate[plate]["value_sum"] += value
+
+        lines = []
+        lines.append("RELATORIO DE ABASTECIMENTO")
+        lines.append("")
+        lines.append("Veiculo | Placa | Media | Data | Valor Parcial")
+        lines.append("-" * 70)
+
+        for plate, data in by_plate.items():
+            avg_list = data["avg_list"]
+            avg_consumption = sum(avg_list) / len(avg_list) if avg_list else 0.0
+            date_latest = self._latest_date(data["dates"])
+            lines.append(
+                f"{data['vehicle']} | {plate} | {avg_consumption:.2f} | {date_latest} | {data['value_sum']:.2f}"
+            )
+
+        lines.append("-" * 70)
+        lines.append(f"TOTAL GASTO: R$ {total:.2f}")
+        return "\n".join(lines)
+
+    def _latest_date(self, date_list):
+        if not date_list:
+            return "-"
+        valid = []
+        for d in date_list:
+            try:
+                valid.append(datetime.strptime(d, "%d/%m/%Y"))
+            except (TypeError, ValueError):
+                continue
+        if not valid:
+            return "-"
+        return max(valid).strftime("%d/%m/%Y")
+
+    def render_chart(self, count_by_vehicle, spent_by_vehicle):
+        try:
+            import matplotlib
+            matplotlib.use("Agg")
+            import matplotlib.pyplot as plt
+        except ImportError:
+            self.ui.chart_label.setText("Instale matplotlib para exibir o grafico.")
+            return
+
+        vehicles = list(count_by_vehicle.keys())
+        counts = [count_by_vehicle[v] for v in vehicles]
+        spent = [spent_by_vehicle.get(v, 0) for v in vehicles]
+
+        fig, ax1 = plt.subplots(figsize=(7, 4), dpi=100)
+        color1 = "#9B3D97"
+        color2 = "#3E0F63"
+
+        ax1.bar(vehicles, counts, color=color1, alpha=0.8, label="Abastecimentos")
+        ax1.set_ylabel("Qtde")
+        ax1.tick_params(axis="x", rotation=45, labelsize=8)
+
+        ax2 = ax1.twinx()
+        ax2.plot(vehicles, spent, color=color2, marker="o", label="Gasto (R$)")
+        ax2.set_ylabel("R$")
+
+        fig.tight_layout()
+        buf = io.BytesIO()
+        fig.savefig(buf, format="png")
+        plt.close(fig)
+        buf.seek(0)
+
+        pixmap = QPixmap()
+        pixmap.loadFromData(buf.getvalue())
+        self.ui.chart_label.setPixmap(pixmap)
+        self.ui.chart_label.setText("")
+
+    def populate_summary_table(self, by_plate):
+        table = self.ui.table_summary
+        table.setRowCount(0)
+        if not by_plate:
+            return
+        table.setRowCount(len(by_plate))
+        for row_idx, (plate, data) in enumerate(by_plate.items()):
+            avg_list = data["avg_list"]
+            value_list = data["value_list"]
+            avg_consumption = sum(avg_list) / len(avg_list) if avg_list else 0
+            avg_value = sum(value_list) / len(value_list) if value_list else 0
+            for col, val in enumerate([
+                plate,
+                f"{avg_consumption:.2f}",
+                f"{avg_value:.2f}",
+            ]):
+                item = QTableWidgetItem(str(val))
+                item.setFlags(item.flags() ^ Qt.ItemIsEditable)
+                table.setItem(row_idx, col, item)
 
 
 class ControlGasDetailWindow(QMainWindow):
