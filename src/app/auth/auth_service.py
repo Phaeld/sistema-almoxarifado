@@ -74,3 +74,41 @@ class AuthService:
         )
         conn.commit()
         conn.close()
+
+    @staticmethod
+    def list_users():
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT id_user, username, name, position, level, tag
+            FROM TABLE_USERS
+            ORDER BY name
+            """
+        )
+        rows = cursor.fetchall()
+        conn.close()
+        return rows
+
+    @staticmethod
+    def update_user(user_id, username, name, password, position, level, tag):
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            UPDATE TABLE_USERS
+            SET username = ?, name = ?, password = ?, position = ?, level = ?, tag = ?
+            WHERE id_user = ?
+            """,
+            (username, name, password, position, level, tag, user_id),
+        )
+        conn.commit()
+        conn.close()
+
+    @staticmethod
+    def delete_user(user_id):
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM TABLE_USERS WHERE id_user = ?", (user_id,))
+        conn.commit()
+        conn.close()

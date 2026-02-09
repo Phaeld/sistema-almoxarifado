@@ -1,4 +1,4 @@
-"""
+﻿"""
 ====================================================================
     INTERNAL WAREHOUSE MANAGEMENT SYSTEM
     Author: Raphael da Silva
@@ -117,7 +117,7 @@ class UI_HelpWindow(object):
         left_col = QVBoxLayout()
         left_col.setSpacing(25)
 
-        title = QLabel("AJUDA (HELP) – MANUAL DE USO DO SOFTWARE E Q&A")
+        title = QLabel("AJUDA (HELP) â€“ MANUAL DE USO DO SOFTWARE E Q&A")
         title.setStyleSheet("""
                 font-size: 32px;
                 font-weight: bold;
@@ -126,14 +126,53 @@ class UI_HelpWindow(object):
 
         left_col.addWidget(title)
 
-        left_col.addWidget(self.section_title("EXPLICAÇÃO SISTEMA"))
-        left_col.addWidget(self.paragraph_text())
+        left_col.addWidget(self.section_title("SOBRE O SISTEMA"))
+        left_col.addWidget(self.paragraph_text(
+            "O sistema Almoxarifado Obras foi criado para controlar materiais, "
+            "entradas e saídas, autorizações e relatórios. Ele garante rastreabilidade "
+            "das movimentações, organiza o estoque e facilita auditorias."
+        ))
 
-        left_col.addWidget(self.section_title("EXPLICAÇÃO TELAS"))
-        left_col.addWidget(self.paragraph_text(bold_first=True))
+        left_col.addWidget(self.section_title("COMO CONSULTAR E FILTRAR MATERIAIS"))
+        left_col.addWidget(self.paragraph_text(
+            "<b>Consultar:</b> acesse a aba Consultar e use os filtros por assunto, "
+            "ID da ação, observação ou data.<br>"
+            "<b>Materiais:</b> selecione a categoria no menu lateral para ver apenas "
+            "os itens daquela área e use os filtros para refinar a busca."
+        ))
 
-        left_col.addWidget(self.section_title("PERMISSÕES E FERRAMENTAS"))
-        left_col.addWidget(self.paragraph_text(bold_first=True))
+        left_col.addWidget(self.section_title("COMO SOLICITAR (ENTRADA/SAÍDA)"))
+        left_col.addWidget(self.paragraph_text(
+            "Na tela Solicitar, escolha a <b>categoria</b> e o tipo de solicitação "
+            "(<b>ACS</b> saída ou <b>ACE</b> entrada). Adicione os itens pelo botão "
+            "+ na tabela, informe as quantidades e confirme. A ação aparecerá em "
+            "Consultar para ser validada."
+        ))
+
+        left_col.addWidget(self.section_title("DASHBOARD – RELATÓRIO"))
+        left_col.addWidget(self.paragraph_text(
+            "O Dashboard resume o estoque: total de itens, entradas e saídas, "
+            "item com menor/maior estoque e gráfico por período. "
+            "Use os filtros de <b>mês</b>, <b>categoria</b> e <b>tipo</b> para ajustar "
+            "a análise."
+        ))
+
+        left_col.addWidget(self.section_title("CONTROLE DE ABASTECIMENTO"))
+        left_col.addWidget(self.paragraph_text(
+            "Apenas usuários com cargo <b>ABAST</b> ou <b>ADMIN</b> acessam o "
+            "módulo de abastecimento. Lá é possível cadastrar veículos, registrar "
+            "abastecimentos e gerar relatórios."
+        ))
+
+        left_col.addWidget(self.section_title("PERMISSÕES E CARGOS"))
+        left_col.addWidget(self.paragraph_text(
+            "<b>ADMIN:</b> acesso total, incluindo edição/exclusão de usuários.<br>"
+            "<b>COORD:</b> pode cadastrar novos usuários, mas não edita/exclui.<br>"
+            "<b>ABAST:</b> acesso ao abastecimento.<br>"
+            "<b>COMUM:</b> acesso restrito ao uso básico do sistema.<br>"
+            "<b>Nível 0:</b> não pode confirmar/cancelar ações. "
+            "<b>Nível 1:</b> pode confirmar/cancelar."
+        ))
 
         left_col.addStretch()
 
@@ -143,9 +182,9 @@ class UI_HelpWindow(object):
         right_col.setAlignment(Qt.AlignTop)
 
         text_right = QLabel(
-                "Este manual reúne os fluxos principais do sistema, regras de acesso "
-                "e boas práticas de uso. Ele é atualizado conforme novas funcionalidades "
-                "são entregues."
+                "Este manual reÃºne os fluxos principais do sistema, regras de acesso "
+                "e boas prÃ¡ticas de uso. Ele Ã© atualizado conforme novas funcionalidades "
+                "sÃ£o entregues."
             )
         text_right.setWordWrap(True)
         text_right.setStyleSheet("""
@@ -192,7 +231,7 @@ class UI_HelpWindow(object):
 
         right_col.addSpacing(30)
 
-        qa_title = QLabel("Q&A – PERGUNTAS E RESPOSTAS")
+        qa_title = QLabel("Q&A â€“ PERGUNTAS E RESPOSTAS")
         qa_title.setStyleSheet("""
             font-size: 26px;
             font-weight: bold;
@@ -204,22 +243,27 @@ class UI_HelpWindow(object):
         # QUESTIONS
         right_col.addWidget(QAItem(
             "Como imprimir ou exportar relatório?",
-            "Acesse o menu Relatórios, selecione o período desejado e clique em Exportar."
+            "No menu Relatório/Imprimir/Exportar, escolha o período e gere o PDF."
         ))
 
         right_col.addWidget(QAItem(
-            "Como cadastrar ou editar um funcionário ou produto?",
-            "Vá até o menu Cadastros e selecione Funcionários ou Produtos."
+            "Como cadastrar um item que não existe?",
+            "Na tela Solicitar, clique em 'Cadastrar Item' e preencha os dados do material."
         ))
 
         right_col.addWidget(QAItem(
-            "Como solicitar retirada de material?",
-            "No menu Almoxarifado, selecione Solicitar Retirada."
+            "Quem pode confirmar ou cancelar ações?",
+            "Apenas usuários de nível 1. Nível 0 tem acesso apenas de leitura."
         ))
 
         right_col.addWidget(QAItem(
-            "Como eu sei qual permissão eu tenho?",
-            "As permissões são exibidas no menu Meu Perfil."
+            "Quem pode cadastrar novos colaboradores?",
+            "Somente ADMIN e COORD. Apenas ADMIN nível 1 pode editar/excluir usuários."
+        ))
+
+        right_col.addWidget(QAItem(
+            "Como acessar o controle de abastecimento?",
+            "Somente cargos ABAST ou ADMIN possuem acesso."
         ))
 
         # ADD COLUMNS
@@ -252,11 +296,13 @@ class UI_HelpWindow(object):
             """)
         return label
 
-    def paragraph_text(self, bold_first=False):
+    def paragraph_text(self, text=None, bold_first=False):
         label = QLabel()
         label.setWordWrap(True)
 
-        if bold_first:
+        if text:
+            label.setText(text)
+        elif bold_first:
             label.setText(
                     "<b>Objetivo:</b> orientar o uso seguro do sistema, "
                     "com foco em registro correto, rastreabilidade e "
@@ -273,3 +319,6 @@ class UI_HelpWindow(object):
                 color: #4A2A6A;
             """)
         return label
+
+
+

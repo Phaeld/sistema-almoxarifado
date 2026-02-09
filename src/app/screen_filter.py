@@ -19,7 +19,11 @@ from auth.session import Session
 from auth.auth_service import AuthService
 from material_service import MaterialService
 from action_service import ActionService
-from datetime import datetime
+from datetime import datetime, timedelta
+import io
+from PySide6.QtPrintSupport import QPrinter, QPrintDialog
+from PySide6.QtGui import QTextDocument
+from pathlib import Path
 
 
 class ScreenFilterWindow(QMainWindow):
@@ -85,6 +89,12 @@ class ScreenFilterWindow(QMainWindow):
         # Cadastro de Funcionários
         self.ui.btn_sidebar_cad_func.clicked.connect(self.show_cad_func_page)
 
+        # Relatorio
+        self.ui.btn_sidebar_relatorio.clicked.connect(self.show_report_page)
+        self.ui.btn_sidebar_exportar.clicked.connect(self.export_stock_report_pdf)
+        self.ui.btn_sidebar_imprimir.clicked.connect(self.print_stock_report)
+        self.ui.btn_sidebar_ajuda.clicked.connect(self.open_help)
+
         # (Relatório / Imprimir / Exportar e Ajuda você liga depois, quando tiver as telas)
 
         # -----------------------------
@@ -128,6 +138,9 @@ class ScreenFilterWindow(QMainWindow):
 
         # Cadastro de funcionarios
         self.setup_employee_form()
+
+        # Relatorio
+        self.setup_report_form()
 
     # ============================================================
     #  CARREGAR / FILTRAR MATERIAIS
@@ -472,6 +485,12 @@ class ScreenFilterWindow(QMainWindow):
             pass
         self.ui.btn_req_clear.clicked.connect(self.clear_request_form)
 
+        try:
+            self.ui.btn_add_material.clicked.disconnect()
+        except TypeError:
+            pass
+        self.ui.btn_add_material.clicked.connect(self.open_add_material_dialog)
+
         self.load_request_items()
 
     def clear_request_form(self):
@@ -604,6 +623,1324 @@ class ScreenFilterWindow(QMainWindow):
         QMessageBox.information(self, "Solicitação", "Movimento gerado com sucesso.")
         self.show_consult_page()
 
+    def open_add_material_dialog(self):
+        dialog = AddMaterialDialog(self)
+        if dialog.exec() == QDialog.Accepted:
+            self.load_request_items()
+
+    def apply_action_to_stock(self):
+        """
+        Atualiza o estoque conforme o tipo da ação:
+        ACE -> entrada (soma)
+        ACS -> saída (subtrai)
+        """
+        if not self._current_action:
+            QMessageBox.warning(
+                self,
+                "Ação inválida",
+                "Não há ação carregada para atualizar o estoque."
+            )
+            return False
+
+        id_item = (self._current_action.get("id_item") or "").strip()
+        quantity = self._current_action.get("quantity")
+        id_action = (self._current_action.get("id_action") or "").strip()
+
+        if not id_item:
+            QMessageBox.warning(
+                self,
+                "Item não informado",
+                "A ação não possui número de item para atualizar o estoque."
+            )
+            return False
+
+        if quantity is None:
+            QMessageBox.warning(
+                self,
+                "Quantidade inválida",
+                "A ação não possui quantidade informada."
+            )
+            return False
+
+        try:
+            qty_value = float(quantity)
+        except (TypeError, ValueError):
+            QMessageBox.warning(
+                self,
+                "Quantidade inválida",
+                "A quantidade da ação não é numérica."
+            )
+            return False
+
+        if qty_value <= 0:
+            QMessageBox.warning(
+                self,
+                "Quantidade inválida",
+                "A quantidade deve ser maior que zero."
+            )
+            return False
+
+        if id_action.startswith("ACE"):
+            delta = qty_value
+        else:
+            delta = -qty_value
+
+        ok, message, _new_qty = MaterialService.update_material_quantity(
+            id_item, delta
+        )
+        if not ok:
+            QMessageBox.warning(self, "Falha ao atualizar", message)
+            return False
+
+        return True
+
+    # ============================================================
+    #  NAVEGAÇÃO
+    # ============================================================
+    def go_home(self):
+        from home import HomeWindow
+        self.home = HomeWindow()
+        self.home.show()
+        self.close()
+
+    def open_profile(self):
+        from profile import ProfileWindow
+        self.profile = ProfileWindow()
+        self.profile.show()
+        self.close()
+
+    def open_help(self):
+        from help import HelpWindow
+        self.help = HelpWindow()
+        self.help.show()
+        self.close()
+
+    # ============================================================
+    #  CADASTRO DE FUNCIONARIOS
+    # ============================================================
+    def show_cad_func_page(self):
+        position = (self.user.get("position") or "").upper()
+        if position not in {"ADMIN", "COORD"}:
+            QMessageBox.warning(
+                self,
+                "Acesso negado",
+                "Somente ADMIN ou COORD podem cadastrar usuarios."
+            )
+            return
+        self.ui.pages_stack.setCurrentWidget(self.ui.page_cad_func)
+
+    def setup_employee_form(self):
+        self.ui.emp_combo_level.clear()
+        self.ui.emp_combo_level.addItems(["Selecione", "0", "1"])
+
+        self.ui.emp_combo_position.clear()
+        self.ui.emp_combo_position.addItems([
+            "Selecione",
+            "ADMIN",
+            "COORD",
+            "ABAST",
+            "COMUM",
+        ])
+
+        try:
+            self.ui.btn_emp_register.clicked.disconnect()
+        except TypeError:
+            pass
+        self.ui.btn_emp_register.clicked.connect(self.register_employee)
+
+        try:
+            self.ui.btn_emp_clear.clicked.disconnect()
+        except TypeError:
+            pass
+        self.ui.btn_emp_clear.clicked.connect(self.clear_employee_form)
+
+        try:
+            self.ui.btn_emp_cancel.clicked.disconnect()
+        except TypeError:
+            pass
+        self.ui.btn_emp_cancel.clicked.connect(self.show_consult_page)
+
+        try:
+            self.ui.btn_emp_list.clicked.disconnect()
+        except TypeError:
+            pass
+        self.ui.btn_emp_list.clicked.connect(self.open_employee_list)
+
+    def clear_employee_form(self):
+        self.ui.emp_input_username.clear()
+        self.ui.emp_input_fullname.clear()
+        self.ui.emp_combo_level.setCurrentIndex(0)
+        self.ui.emp_combo_position.setCurrentIndex(0)
+        self.ui.emp_input_session.clear()
+        self.ui.emp_input_password.clear()
+        self.ui.emp_input_confirm.clear()
+
+    def register_employee(self):
+        position = (self.user.get("position") or "").upper()
+        if position not in {"ADMIN", "COORD"}:
+            QMessageBox.warning(
+                self,
+                "Acesso negado",
+                "Somente ADMIN ou COORD podem cadastrar usuarios."
+            )
+            return
+
+        username = self.ui.emp_input_username.text().strip()
+        fullname = self.ui.emp_input_fullname.text().strip()
+        level_text = self.ui.emp_combo_level.currentText().strip()
+        position_text = self.ui.emp_combo_position.currentText().strip()
+        tag = self.ui.emp_input_session.text().strip()
+        password = self.ui.emp_input_password.text()
+        confirm = self.ui.emp_input_confirm.text()
+
+        if not username:
+            QMessageBox.warning(self, "Dados invalidos", "Informe o usuario.")
+            return
+        if not fullname:
+            QMessageBox.warning(self, "Dados invalidos", "Informe o nome completo.")
+            return
+        if level_text == "Selecione":
+            QMessageBox.warning(self, "Dados invalidos", "Selecione o nivel.")
+            return
+        if position_text == "Selecione":
+            QMessageBox.warning(self, "Dados invalidos", "Selecione o cargo.")
+            return
+        if not tag:
+            QMessageBox.warning(self, "Dados invalidos", "Informe a sessao/tag.")
+            return
+        if not password:
+            QMessageBox.warning(self, "Dados invalidos", "Informe a senha.")
+            return
+        if password != confirm:
+            QMessageBox.warning(self, "Dados invalidos", "As senhas nao conferem.")
+            return
+
+        if AuthService.username_exists(username):
+            QMessageBox.warning(self, "Dados invalidos", "Usuario ja existe.")
+            return
+
+        try:
+            level_value = int(level_text)
+        except ValueError:
+            QMessageBox.warning(self, "Dados invalidos", "Nivel invalido.")
+            return
+
+        AuthService.create_user(
+            username=username,
+            name=fullname,
+            password=password,
+            position=position_text,
+            level=level_value,
+            tag=tag,
+        )
+        QMessageBox.information(self, "Cadastro", "Usuario cadastrado com sucesso.")
+        self.clear_employee_form()
+
+    # ============================================================
+    #  RELATORIO (DASHBOARD)
+    # ============================================================
+    def show_report_page(self):
+        self.ui.pages_stack.setCurrentWidget(self.ui.page_relatorio)
+        self.update_report()
+
+    def setup_report_form(self):
+        # Meses
+        self.ui.report_combo_month.clear()
+        self.ui.report_combo_month.addItems([
+            "Todos",
+            "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+            "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+        ])
+
+        # Categoria
+        self.ui.report_combo_category.clear()
+        self.ui.report_combo_category.addItems([
+            "Todos",
+            "Limpeza, Higiene e Alimentos",
+            "Elétrica",
+            "Hidráulica",
+            "Ferramentas Gerais",
+            "Automóveis",
+        ])
+
+        # Tipo
+        self.ui.report_combo_type.clear()
+        self.ui.report_combo_type.addItems(["Retirada", "Chegada"])
+
+        # Periodo
+        self.ui.report_combo_period.clear()
+        self.ui.report_combo_period.addItems([
+            "Diário", "Semanal", "Mensal", "Trimestral", "Semestral"
+        ])
+
+        self.ui.report_combo_month.currentTextChanged.connect(self.update_report)
+        self.ui.report_combo_category.currentTextChanged.connect(self.update_report)
+        self.ui.report_combo_type.currentTextChanged.connect(self.update_report)
+        self.ui.report_combo_period.currentTextChanged.connect(self.update_report)
+
+    def update_report(self):
+        actions = self.load_actions_report()
+        materials = self.load_materials_report()
+
+        total_items = sum([float(r[4]) for r in materials]) if materials else 0
+        self.ui.lbl_total_items.setText(str(int(total_items)))
+
+        items_out = sum((a[5] or 0) for a in actions if a[0].startswith("ACS"))
+        items_in = sum((a[5] or 0) for a in actions if a[0].startswith("ACE"))
+        self.ui.lbl_items_out.setText(str(int(items_out)))
+        self.ui.lbl_items_in.setText(str(int(items_in)))
+
+        report_type = self.ui.report_combo_type.currentText()
+        if report_type == "Chegada":
+            self.ui.report_chart_title.setText("QNT. ITENS CHEGARAM NA SEMANA")
+            self.ui.report_top_title.setText("ITENS MAIS CHEGARAM")
+            item = max(materials, key=lambda r: r[4], default=None)
+            self.ui.lbl_stock_item.setText(item[1] if item else "-")
+            self.ui.lbl_stock_item.setToolTip(item[1] if item else "")
+        else:
+            self.ui.report_chart_title.setText("QNT. ITENS RETIRADOS NA SEMANA")
+            self.ui.report_top_title.setText("ITENS MAIS SÃO RETIRADOS")
+            item = min(materials, key=lambda r: r[4], default=None)
+            self.ui.lbl_stock_item.setText(item[1] if item else "-")
+            self.ui.lbl_stock_item.setToolTip(item[1] if item else "")
+
+        self.update_top_items(actions)
+        self.update_chart(actions)
+
+    def load_actions_report(self):
+        rows = ActionService.list_actions()
+        # map to tuple: (id_action, category, date, id_item, descr, qty)
+        data = []
+        for r in rows:
+            data.append((r[0], r[3], r[6], r[7], r[8], r[9]))
+
+        # filtros
+        category = self.ui.report_combo_category.currentText()
+        if category != "Todos":
+            data = [r for r in data if category.lower() in (r[1] or "").lower()]
+
+        month = self.ui.report_combo_month.currentText()
+        if month != "Todos":
+            month_map = {
+                "Janeiro": 1, "Fevereiro": 2, "Março": 3, "Abril": 4, "Maio": 5, "Junho": 6,
+                "Julho": 7, "Agosto": 8, "Setembro": 9, "Outubro": 10, "Novembro": 11, "Dezembro": 12
+            }
+            target = month_map.get(month)
+            if target:
+                data = [r for r in data if self._date_month(r[2]) == target]
+
+        return data
+
+    def load_materials_report(self):
+        category = self.ui.report_combo_category.currentText()
+        tag_map = {
+            "Limpeza, Higiene e Alimentos": "LIM",
+            "Elétrica": "ELE",
+            "Hidráulica": "HID",
+            "Ferramentas Gerais": "FER",
+            "Automóveis": "AUT",
+        }
+        tag = tag_map.get(category) if category != "Todos" else None
+
+        rows = MaterialService.get_materials(
+            category_tag=tag,
+            description=None,
+            item_number=None,
+            product=None,
+            category=None,
+        )
+        return rows
+
+    def update_top_items(self, actions):
+        report_type = self.ui.report_combo_type.currentText()
+        prefix = "ACE" if report_type == "Chegada" else "ACS"
+        items = {}
+        for id_action, _category, _date, _id_item, descr, qty in actions:
+            if not id_action.startswith(prefix):
+                continue
+            items[descr] = items.get(descr, 0) + (qty or 0)
+
+        top = sorted(items.items(), key=lambda x: x[1], reverse=True)[:5]
+
+        table = self.ui.report_top_items
+        table.setRowCount(0)
+        if not top:
+            return
+        table.setRowCount(len(top))
+        for i, (descr, _qty) in enumerate(top):
+            text = descr if len(descr) <= 18 else descr[:18] + "..."
+            item = QTableWidgetItem(text)
+            item.setToolTip(descr)
+            item.setFlags(item.flags() ^ Qt.ItemIsEditable)
+            table.setItem(i, 0, item)
+
+    def update_chart(self, actions):
+        report_type = self.ui.report_combo_type.currentText()
+        prefix = "ACE" if report_type == "Chegada" else "ACS"
+        period = self.ui.report_combo_period.currentText()
+
+        # window length
+        days_map = {
+            "Diário": 1,
+            "Semanal": 7,
+            "Mensal": 30,
+            "Trimestral": 90,
+            "Semestral": 180,
+        }
+        days = days_map.get(period, 7)
+        end = datetime.now()
+        start = end - timedelta(days=days)
+
+        buckets = {}
+        for id_action, _category, date_str, _id_item, _descr, qty in actions:
+            if not id_action.startswith(prefix):
+                continue
+            dt = self._parse_date(date_str)
+            if not dt:
+                continue
+            if dt < start or dt > end:
+                continue
+            key = dt.strftime("%d/%m")
+            buckets[key] = buckets.get(key, 0) + (qty or 0)
+
+        labels = list(buckets.keys())
+        values = [buckets[k] for k in labels]
+
+        try:
+            import matplotlib
+            matplotlib.use("Agg")
+            import matplotlib.pyplot as plt
+        except ImportError:
+            self.ui.report_chart.setText("Instale matplotlib para exibir o gráfico.")
+            return
+
+        fig, ax = plt.subplots(figsize=(6, 3), dpi=100)
+        ax.bar(labels, values, color="#9B3D97")
+        ax.set_ylabel("Quantidade")
+        ax.tick_params(axis="x", rotation=45, labelsize=8)
+        fig.tight_layout()
+
+        buf = io.BytesIO()
+        fig.savefig(buf, format="png")
+        plt.close(fig)
+        buf.seek(0)
+
+        pixmap = QPixmap()
+        pixmap.loadFromData(buf.getvalue())
+        self.ui.report_chart.setPixmap(pixmap)
+        self.ui.report_chart.setText("")
+
+    def _parse_date(self, date_str):
+        try:
+            return datetime.strptime(date_str, "%d/%m/%Y")
+        except (TypeError, ValueError):
+            return None
+
+    def _date_month(self, date_str):
+        dt = self._parse_date(date_str)
+        return dt.month if dt else None
+
+    # ============================================================
+    #  IMPRESSÃO – RELATÓRIO COMPLETO DE ESTOQUE
+    # ============================================================
+    def print_stock_report(self):
+        printer = QPrinter(QPrinter.HighResolution)
+        dialog = QPrintDialog(printer, self)
+        if dialog.exec() != QDialog.Accepted:
+            return
+
+        html = self.build_stock_report_html()
+        doc = QTextDocument()
+        doc.setHtml(html)
+        doc.print_(printer)
+
+    def export_stock_report_pdf(self):
+        file_path, _ = QFileDialog.getSaveFileName(
+            self, "Exportar PDF", "", "PDF (*.pdf)"
+        )
+        if not file_path:
+            return
+
+        printer = QPrinter(QPrinter.HighResolution)
+        printer.setOutputFormat(QPrinter.PdfFormat)
+        printer.setOutputFileName(file_path)
+
+        html = self.build_stock_report_html()
+        doc = QTextDocument()
+        doc.setHtml(html)
+        doc.print_(printer)
+
+        QMessageBox.information(self, "Exportar", "PDF gerado com sucesso.")
+
+    def build_stock_report_html(self):
+        # Dados
+        materials = MaterialService.get_materials(
+            category_tag=None,
+            description=None,
+            item_number=None,
+            product=None,
+            category=None,
+        )
+        actions = ActionService.list_actions()
+
+        # Totais
+        total_stock = sum(float(r[4]) for r in materials) if materials else 0
+        total_out = sum((a[9] or 0) for a in actions if a[0].startswith("ACS"))
+        total_in = sum((a[9] or 0) for a in actions if a[0].startswith("ACE"))
+
+        # Itens mais pegos (saídas)
+        picked = {}
+        for a in actions:
+            if not a[0].startswith("ACS"):
+                continue
+            descr = a[8]
+            qty = a[9] or 0
+            picked[descr] = picked.get(descr, 0) + qty
+        top_picked = sorted(picked.items(), key=lambda x: x[1], reverse=True)[:10]
+
+        # Logo
+        logo_path = (Path(__file__).resolve().parents[2] / "assets" / "logo_secretaria.png")
+        logo_uri = logo_path.as_uri()
+
+        def row_material(m):
+            qty = float(m[4])
+            color = "color:#B00020; font-weight:bold;" if qty < 10 else ""
+            return f"""
+                <tr>
+                    <td>{m[0]}</td>
+                    <td>{m[1]}</td>
+                    <td>{m[2]}</td>
+                    <td>{m[3]}</td>
+                    <td style="{color}">{qty}</td>
+                    <td>{m[5]}</td>
+                </tr>
+            """
+
+        def row_action(a):
+            return f"""
+                <tr>
+                    <td>{a[0]}</td>
+                    <td>{a[3]}</td>
+                    <td>{a[6]}</td>
+                    <td>{a[7]}</td>
+                    <td>{a[8]}</td>
+                    <td>{a[9]}</td>
+                    <td>{a[10] or ""}</td>
+                </tr>
+            """
+
+        html = f"""
+        <html>
+        <head>
+            <style>
+                body {{ font-family: Arial, sans-serif; color: #3A1A5E; font-size: 14px; }}
+                h1 {{ color: #3E0F63; font-size: 24px; }}
+                h2 {{ color: #3E0F63; font-size: 18px; margin-top: 20px; }}
+                table {{ width: 100%; border-collapse: collapse; margin-top: 10px; }}
+                th, td {{ border: 1px solid #CBB2E6; padding: 8px; font-size: 14px; }}
+                th {{ background: #E6D9F2; color: #3E0F63; }}
+                .kpi {{ margin: 8px 0; font-size: 15px; }}
+            </style>
+        </head>
+        <body>
+            <div style="display:flex; align-items:center; gap:12px;">
+                <img src="{logo_uri}" width="120"/>
+                <div>
+                    <h1>Relatório Completo de Estoque</h1>
+                    <div>{datetime.now().strftime("%d/%m/%Y %H:%M")}</div>
+                </div>
+            </div>
+
+            <div class="kpi"><b>QNT. TOTAL DE ITENS:</b> {int(total_stock)}</div>
+            <div class="kpi"><b>QNT. ITENS SAIU:</b> {int(total_out)}</div>
+            <div class="kpi"><b>QNT. ITENS CHEGOU:</b> {int(total_in)}</div>
+
+            <h2>Estoque Atual (itens com quantidade abaixo de 10 em vermelho)</h2>
+            <table>
+                <tr>
+                    <th>Número</th><th>Descrição</th><th>Produto</th>
+                    <th>Categoria</th><th>Quantidade</th><th>Un.</th>
+                </tr>
+                {''.join(row_material(m) for m in materials)}
+            </table>
+
+            <h2>Ações (Entradas e Saídas)</h2>
+            <table>
+                <tr>
+                    <th>ID Ação</th><th>Categoria</th><th>Data</th>
+                    <th>ID Item</th><th>Descrição</th><th>Quantidade</th><th>Status</th>
+                </tr>
+                {''.join(row_action(a) for a in actions)}
+            </table>
+
+            <h2>Itens Mais Pegos (Saídas)</h2>
+            <table>
+                <tr><th>Descrição</th><th>Quantidade</th></tr>
+                {''.join(f"<tr><td>{d}</td><td>{q}</td></tr>" for d,q in top_picked)}
+            </table>
+        </body>
+        </html>
+        """
+        return html
+
+    def open_employee_list(self):
+        dialog = EmployeeListDialog(self, self.user)
+        dialog.exec()
+
+
+class EmployeeListDialog(QDialog):
+    def __init__(self, parent, current_user):
+        super().__init__(parent)
+        self.setWindowTitle("Colaboradores")
+        self.setMinimumSize(720, 420)
+        self.setStyleSheet("background-color: #E8E2EE;")
+
+        self.current_user = current_user
+        self.is_admin_level1 = (
+            (current_user.get("position") or "").upper() == "ADMIN"
+            and str(current_user.get("level")) == "1"
+        )
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(16, 16, 16, 16)
+        layout.setSpacing(10)
+
+        self.table = QTableWidget()
+        self.table.setColumnCount(6)
+        self.table.setHorizontalHeaderLabels(
+            ["ID", "Usuário", "Nome", "Cargo", "Nível", "Tag"]
+        )
+        self.table.horizontalHeader().setStretchLastSection(True)
+        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.table.verticalHeader().setVisible(False)
+        self.table.setAlternatingRowColors(True)
+        self.table.setStyleSheet("""
+            QTableWidget {
+                background-color: #F8F3FF;
+                gridline-color: #CBB2E6;
+                color: #3A1A5E;
+            }
+            QHeaderView::section {
+                background-color: #3E0F63;
+                color: white;
+                font-weight: bold;
+                font-size: 12px;
+                border: none;
+                padding: 6px;
+            }
+        """)
+        layout.addWidget(self.table)
+
+        form = QGridLayout()
+        form.setHorizontalSpacing(10)
+        form.setVerticalSpacing(8)
+
+        label_style = "font-size: 12px; font-weight: bold; color: #3A1A5E;"
+        line_style = """
+            QLineEdit {
+                background-color: #E8E2EE;
+                border-radius: 6px;
+                padding: 6px 10px;
+                border: 1px solid #C7B7DF;
+                color: #3A1A5E;
+            }
+        """
+        combo_style = """
+            QComboBox {
+                background-color: #E8E2EE;
+                border-radius: 6px;
+                padding: 4px 10px;
+                border: 1px solid #C7B7DF;
+                color: #3A1A5E;
+            }
+        """
+
+        self.input_username = QLineEdit()
+        self.input_username.setStyleSheet(line_style)
+        self.input_name = QLineEdit()
+        self.input_name.setStyleSheet(line_style)
+        self.input_password = QLineEdit()
+        self.input_password.setStyleSheet(line_style)
+        self.input_password.setEchoMode(QLineEdit.Password)
+
+        self.combo_position = QComboBox()
+        self.combo_position.setStyleSheet(combo_style)
+        self.combo_position.addItems(["ADMIN", "COORD", "ABAST", "COMUM"])
+        self.combo_level = QComboBox()
+        self.combo_level.setStyleSheet(combo_style)
+        self.combo_level.addItems(["0", "1"])
+        self.input_tag = QLineEdit()
+        self.input_tag.setStyleSheet(line_style)
+
+        form.addWidget(QLabel("Usuário"), 0, 0)
+        form.itemAt(0).widget().setStyleSheet(label_style)
+        form.addWidget(self.input_username, 1, 0)
+        form.addWidget(QLabel("Nome"), 0, 1)
+        form.itemAt(2).widget().setStyleSheet(label_style)
+        form.addWidget(self.input_name, 1, 1)
+        form.addWidget(QLabel("Senha"), 0, 2)
+        form.itemAt(4).widget().setStyleSheet(label_style)
+        form.addWidget(self.input_password, 1, 2)
+        form.addWidget(QLabel("Cargo"), 2, 0)
+        form.itemAt(6).widget().setStyleSheet(label_style)
+        form.addWidget(self.combo_position, 3, 0)
+        form.addWidget(QLabel("Nível"), 2, 1)
+        form.itemAt(8).widget().setStyleSheet(label_style)
+        form.addWidget(self.combo_level, 3, 1)
+        form.addWidget(QLabel("Tag"), 2, 2)
+        form.itemAt(10).widget().setStyleSheet(label_style)
+        form.addWidget(self.input_tag, 3, 2)
+
+        layout.addLayout(form)
+
+        btn_row = QHBoxLayout()
+        btn_row.addStretch()
+        self.btn_close = QPushButton("FECHAR")
+        self.btn_close.setStyleSheet(self._light_button())
+        self.btn_save = QPushButton("SALVAR")
+        self.btn_save.setStyleSheet(self._primary_button())
+        self.btn_delete = QPushButton("EXCLUIR")
+        self.btn_delete.setStyleSheet(self._secondary_button())
+        btn_row.addWidget(self.btn_close)
+        btn_row.addWidget(self.btn_save)
+        btn_row.addWidget(self.btn_delete)
+        layout.addLayout(btn_row)
+
+        self.btn_close.clicked.connect(self.accept)
+        self.btn_save.clicked.connect(self.save_user)
+        self.btn_delete.clicked.connect(self.delete_user)
+
+        if not self.is_admin_level1:
+            self.input_username.setReadOnly(True)
+            self.input_name.setReadOnly(True)
+            self.input_password.setReadOnly(True)
+            self.combo_position.setEnabled(False)
+            self.combo_level.setEnabled(False)
+            self.input_tag.setReadOnly(True)
+            self.btn_save.setEnabled(False)
+            self.btn_delete.setEnabled(False)
+
+        self.table.itemSelectionChanged.connect(self.on_select_row)
+        self.load_users()
+
+    def load_users(self):
+        rows = AuthService.list_users()
+        self.table.setRowCount(0)
+        self._rows = rows
+        if not rows:
+            return
+        self.table.setRowCount(len(rows))
+        for i, r in enumerate(rows):
+            for j, val in enumerate(r):
+                item = QTableWidgetItem(str(val))
+                item.setFlags(item.flags() ^ Qt.ItemIsEditable)
+                self.table.setItem(i, j, item)
+
+    def on_select_row(self):
+        row = self.table.currentRow()
+        if row < 0 or row >= len(self._rows):
+            return
+        user_id, username, name, position, level, tag = self._rows[row]
+        self._selected_id = user_id
+        self.input_username.setText(username)
+        self.input_name.setText(name)
+        self.combo_position.setCurrentText(position)
+        self.combo_level.setCurrentText(str(level))
+        self.input_tag.setText(tag)
+        self.input_password.clear()
+
+    def save_user(self):
+        if not self.is_admin_level1:
+            return
+        if not hasattr(self, "_selected_id"):
+            return
+        password = self.input_password.text()
+        if not password:
+            QMessageBox.warning(self, "Dados inválidos", "Informe a senha para atualizar.")
+            return
+        AuthService.update_user(
+            self._selected_id,
+            self.input_username.text().strip(),
+            self.input_name.text().strip(),
+            password,
+            self.combo_position.currentText(),
+            int(self.combo_level.currentText()),
+            self.input_tag.text().strip(),
+        )
+        QMessageBox.information(self, "Atualizado", "Usuário atualizado.")
+        self.load_users()
+
+    def delete_user(self):
+        if not self.is_admin_level1:
+            return
+        if not hasattr(self, "_selected_id"):
+            return
+        confirm = QMessageBox.question(
+            self,
+            "Confirmar exclusão",
+            "Deseja excluir este usuário?",
+            QMessageBox.Yes | QMessageBox.No,
+        )
+        if confirm != QMessageBox.Yes:
+            return
+        AuthService.delete_user(self._selected_id)
+        QMessageBox.information(self, "Excluído", "Usuário excluído.")
+        self.load_users()
+
+    def _primary_button(self) -> str:
+        return """
+            QPushButton {
+                background-color: #3E0F63;
+                color: white;
+                font-size: 14px;
+                font-weight: bold;
+                border-radius: 18px;
+                padding: 8px 26px;
+            }
+            QPushButton:hover {
+                background-color: #53207E;
+            }
+        """
+
+    def _secondary_button(self) -> str:
+        return """
+            QPushButton {
+                background-color: #B5B1C2;
+                color: #3A1A5E;
+                font-size: 14px;
+                font-weight: bold;
+                border-radius: 18px;
+                padding: 8px 26px;
+            }
+            QPushButton:hover {
+                background-color: #9E99AF;
+            }
+        """
+
+    def _light_button(self) -> str:
+        return """
+            QPushButton {
+                background-color: #EADDF8;
+                color: #3A1A5E;
+                font-size: 14px;
+                font-weight: bold;
+                border-radius: 18px;
+                padding: 8px 26px;
+            }
+            QPushButton:hover {
+                background-color: #DDC8F0;
+            }
+        """
+
+    # ============================================================
+    #  RELATORIO (DASHBOARD)
+    # ============================================================
+    def show_report_page(self):
+        self.ui.pages_stack.setCurrentWidget(self.ui.page_relatorio)
+        self.update_report()
+
+    # ============================================================
+    #  IMPRESSÃO – RELATÓRIO COMPLETO DE ESTOQUE
+    # ============================================================
+    def print_stock_report(self):
+        printer = QPrinter(QPrinter.HighResolution)
+        dialog = QPrintDialog(printer, self)
+        if dialog.exec() != QDialog.Accepted:
+            return
+
+        html = self.build_stock_report_html()
+        doc = QTextDocument()
+        doc.setHtml(html)
+        doc.print_(printer)
+
+    def export_stock_report_pdf(self):
+        file_path, _ = QFileDialog.getSaveFileName(
+            self, "Exportar PDF", "", "PDF (*.pdf)"
+        )
+        if not file_path:
+            return
+
+        printer = QPrinter(QPrinter.HighResolution)
+        printer.setOutputFormat(QPrinter.PdfFormat)
+        printer.setOutputFileName(file_path)
+
+        html = self.build_stock_report_html()
+        doc = QTextDocument()
+        doc.setHtml(html)
+        doc.print_(printer)
+
+        QMessageBox.information(self, "Exportar", "PDF gerado com sucesso.")
+
+    def build_stock_report_html(self):
+        # Dados
+        materials = MaterialService.get_materials(
+            category_tag=None,
+            description=None,
+            item_number=None,
+            product=None,
+            category=None,
+        )
+        actions = ActionService.list_actions()
+
+        # Totais
+        total_stock = sum(float(r[4]) for r in materials) if materials else 0
+        total_out = sum((a[9] or 0) for a in actions if a[0].startswith("ACS"))
+        total_in = sum((a[9] or 0) for a in actions if a[0].startswith("ACE"))
+
+        # Itens mais pegos (saídas)
+        picked = {}
+        for a in actions:
+            if not a[0].startswith("ACS"):
+                continue
+            descr = a[8]
+            qty = a[9] or 0
+            picked[descr] = picked.get(descr, 0) + qty
+        top_picked = sorted(picked.items(), key=lambda x: x[1], reverse=True)[:10]
+
+        # Logo
+        logo_path = (Path(__file__).resolve().parents[2] / "assets" / "logo_secretaria.png")
+        logo_uri = logo_path.as_uri()
+
+        def row_material(m):
+            qty = float(m[4])
+            color = "color:#B00020; font-weight:bold;" if qty < 10 else ""
+            return f"""
+                <tr>
+                    <td>{m[0]}</td>
+                    <td>{m[1]}</td>
+                    <td>{m[2]}</td>
+                    <td>{m[3]}</td>
+                    <td style="{color}">{qty}</td>
+                    <td>{m[5]}</td>
+                </tr>
+            """
+
+        def row_action(a):
+            return f"""
+                <tr>
+                    <td>{a[0]}</td>
+                    <td>{a[3]}</td>
+                    <td>{a[6]}</td>
+                    <td>{a[7]}</td>
+                    <td>{a[8]}</td>
+                    <td>{a[9]}</td>
+                    <td>{a[10] or ""}</td>
+                </tr>
+            """
+
+        html = f"""
+        <html>
+        <head>
+            <style>
+                body {{ font-family: Arial, sans-serif; color: #3A1A5E; font-size: 14px; }}
+                h1 {{ color: #3E0F63; font-size: 24px; }}
+                h2 {{ color: #3E0F63; font-size: 18px; margin-top: 20px; }}
+                table {{ width: 100%; border-collapse: collapse; margin-top: 10px; }}
+                th, td {{ border: 1px solid #CBB2E6; padding: 8px; font-size: 14px; }}
+                th {{ background: #E6D9F2; color: #3E0F63; }}
+                .kpi {{ margin: 8px 0; font-size: 15px; }}
+            </style>
+        </head>
+        <body>
+            <div style="display:flex; align-items:center; gap:12px;">
+                <img src="{logo_uri}" width="120"/>
+                <div>
+                    <h1>Relatório Completo de Estoque</h1>
+                    <div>{datetime.now().strftime("%d/%m/%Y %H:%M")}</div>
+                </div>
+            </div>
+
+            <div class="kpi"><b>QNT. TOTAL DE ITENS:</b> {int(total_stock)}</div>
+            <div class="kpi"><b>QNT. ITENS SAIU:</b> {int(total_out)}</div>
+            <div class="kpi"><b>QNT. ITENS CHEGOU:</b> {int(total_in)}</div>
+
+            <h2>Estoque Atual (itens com quantidade abaixo de 10 em vermelho)</h2>
+            <table>
+                <tr>
+                    <th>Número</th><th>Descrição</th><th>Produto</th>
+                    <th>Categoria</th><th>Quantidade</th><th>Un.</th>
+                </tr>
+                {''.join(row_material(m) for m in materials)}
+            </table>
+
+            <h2>Ações (Entradas e Saídas)</h2>
+            <table>
+                <tr>
+                    <th>ID Ação</th><th>Categoria</th><th>Data</th>
+                    <th>ID Item</th><th>Descrição</th><th>Quantidade</th><th>Status</th>
+                </tr>
+                {''.join(row_action(a) for a in actions)}
+            </table>
+
+            <h2>Itens Mais Pegos (Saídas)</h2>
+            <table>
+                <tr><th>Descrição</th><th>Quantidade</th></tr>
+                {''.join(f"<tr><td>{d}</td><td>{q}</td></tr>" for d,q in top_picked)}
+            </table>
+        </body>
+        </html>
+        """
+        return html
+
+    def setup_report_form(self):
+        self.ui.report_combo_month.clear()
+        self.ui.report_combo_month.addItems([
+            "Todos",
+            "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+            "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+        ])
+
+        self.ui.report_combo_category.clear()
+        self.ui.report_combo_category.addItems([
+            "Todos",
+            "Limpeza, Higiene e Alimentos",
+            "Elétrica",
+            "Hidráulica",
+            "Ferramentas Gerais",
+            "Automóveis",
+        ])
+
+        self.ui.report_combo_type.clear()
+        self.ui.report_combo_type.addItems(["Retirada", "Chegada"])
+
+        self.ui.report_combo_period.clear()
+        self.ui.report_combo_period.addItems([
+            "Diário", "Semanal", "Mensal", "Trimestral", "Semestral"
+        ])
+
+        self.ui.report_combo_month.currentTextChanged.connect(self.update_report)
+        self.ui.report_combo_category.currentTextChanged.connect(self.update_report)
+        self.ui.report_combo_type.currentTextChanged.connect(self.update_report)
+        self.ui.report_combo_period.currentTextChanged.connect(self.update_report)
+
+    def update_report(self):
+        actions = self.load_actions_report()
+        materials = self.load_materials_report()
+
+        total_items = sum([float(r[4]) for r in materials]) if materials else 0
+        self.ui.lbl_total_items.setText(str(int(total_items)))
+
+        items_out = sum((a[5] or 0) for a in actions if a[0].startswith("ACS"))
+        items_in = sum((a[5] or 0) for a in actions if a[0].startswith("ACE"))
+        self.ui.lbl_items_out.setText(str(int(items_out)))
+        self.ui.lbl_items_in.setText(str(int(items_in)))
+
+        report_type = self.ui.report_combo_type.currentText()
+        if report_type == "Chegada":
+            self.ui.report_chart_title.setText("QNT. ITENS CHEGARAM NA SEMANA")
+            self.ui.report_top_title.setText("ITENS MAIS CHEGARAM")
+            item = max(materials, key=lambda r: r[4], default=None)
+            self.ui.lbl_stock_item.setText(item[1] if item else "-")
+            self.ui.lbl_stock_item.setToolTip(item[1] if item else "")
+        else:
+            self.ui.report_chart_title.setText("QNT. ITENS RETIRADOS NA SEMANA")
+            self.ui.report_top_title.setText("ITENS MAIS SÃO RETIRADOS")
+            item = min(materials, key=lambda r: r[4], default=None)
+            self.ui.lbl_stock_item.setText(item[1] if item else "-")
+            self.ui.lbl_stock_item.setToolTip(item[1] if item else "")
+
+        self.update_top_items(actions)
+        self.update_chart(actions)
+
+    def load_actions_report(self):
+        rows = ActionService.list_actions()
+        data = []
+        for r in rows:
+            data.append((r[0], r[3], r[6], r[7], r[8], r[9]))
+
+        category = self.ui.report_combo_category.currentText()
+        if category != "Todos":
+            data = [r for r in data if category.lower() in (r[1] or "").lower()]
+
+        month = self.ui.report_combo_month.currentText()
+        if month != "Todos":
+            month_map = {
+                "Janeiro": 1, "Fevereiro": 2, "Março": 3, "Abril": 4, "Maio": 5, "Junho": 6,
+                "Julho": 7, "Agosto": 8, "Setembro": 9, "Outubro": 10, "Novembro": 11, "Dezembro": 12
+            }
+            target = month_map.get(month)
+            if target:
+                data = [r for r in data if self._date_month(r[2]) == target]
+
+        return data
+
+    def load_materials_report(self):
+        category = self.ui.report_combo_category.currentText()
+        tag_map = {
+            "Limpeza, Higiene e Alimentos": "LIM",
+            "Elétrica": "ELE",
+            "Hidráulica": "HID",
+            "Ferramentas Gerais": "FER",
+            "Automóveis": "AUT",
+        }
+        tag = tag_map.get(category) if category != "Todos" else None
+
+        rows = MaterialService.get_materials(
+            category_tag=tag,
+            description=None,
+            item_number=None,
+            product=None,
+            category=None,
+        )
+        return rows
+
+    def update_top_items(self, actions):
+        report_type = self.ui.report_combo_type.currentText()
+        prefix = "ACE" if report_type == "Chegada" else "ACS"
+        items = {}
+        for id_action, _category, _date, _id_item, descr, qty in actions:
+            if not id_action.startswith(prefix):
+                continue
+            items[descr] = items.get(descr, 0) + (qty or 0)
+
+        top = sorted(items.items(), key=lambda x: x[1], reverse=True)[:5]
+
+        table = self.ui.report_top_items
+        table.setRowCount(0)
+        if not top:
+            return
+        table.setRowCount(len(top))
+        for i, (descr, _qty) in enumerate(top):
+            text = descr if len(descr) <= 18 else descr[:18] + "..."
+            item = QTableWidgetItem(text)
+            item.setToolTip(descr)
+            item.setFlags(item.flags() ^ Qt.ItemIsEditable)
+            table.setItem(i, 0, item)
+
+    def update_chart(self, actions):
+        report_type = self.ui.report_combo_type.currentText()
+        prefix = "ACE" if report_type == "Chegada" else "ACS"
+        period = self.ui.report_combo_period.currentText()
+
+        days_map = {
+            "Diário": 1,
+            "Semanal": 7,
+            "Mensal": 30,
+            "Trimestral": 90,
+            "Semestral": 180,
+        }
+        days = days_map.get(period, 7)
+        end = datetime.now()
+        start = end - timedelta(days=days)
+
+        buckets = {}
+        for id_action, _category, date_str, _id_item, _descr, qty in actions:
+            if not id_action.startswith(prefix):
+                continue
+            dt = self._parse_date(date_str)
+            if not dt:
+                continue
+            if dt < start or dt > end:
+                continue
+            key = dt.strftime("%d/%m")
+            buckets[key] = buckets.get(key, 0) + (qty or 0)
+
+        labels = list(buckets.keys())
+        values = [buckets[k] for k in labels]
+
+        try:
+            import matplotlib
+            matplotlib.use("Agg")
+            import matplotlib.pyplot as plt
+        except ImportError:
+            self.ui.report_chart.setText("Instale matplotlib para exibir o gráfico.")
+            return
+
+        fig, ax = plt.subplots(figsize=(6, 3), dpi=100)
+        ax.bar(labels, values, color="#9B3D97")
+        ax.set_ylabel("Quantidade")
+        ax.tick_params(axis="x", rotation=45, labelsize=8)
+        fig.tight_layout()
+
+        buf = io.BytesIO()
+        fig.savefig(buf, format="png")
+        plt.close(fig)
+        buf.seek(0)
+
+        pixmap = QPixmap()
+        pixmap.loadFromData(buf.getvalue())
+        self.ui.report_chart.setPixmap(pixmap)
+        self.ui.report_chart.setText("")
+
+    def _parse_date(self, date_str):
+        try:
+            return datetime.strptime(date_str, "%d/%m/%Y")
+        except (TypeError, ValueError):
+            return None
+
+    def _date_month(self, date_str):
+        dt = self._parse_date(date_str)
+        return dt.month if dt else None
+
+
+class AddMaterialDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Cadastrar Item")
+        self.setMinimumWidth(480)
+        self.setStyleSheet("background-color: #E8E2EE;")
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(10)
+
+        label_style = "font-size: 12px; font-weight: bold; color: #3A1A5E;"
+        line_style = """
+            QLineEdit {
+                background-color: #E8E2EE;
+                border-radius: 6px;
+                padding: 6px 10px;
+                border: 1px solid #C7B7DF;
+                color: #3A1A5E;
+            }
+        """
+        combo_style = """
+            QComboBox {
+                background-color: #E8E2EE;
+                border-radius: 6px;
+                padding: 4px 10px;
+                border: 1px solid #C7B7DF;
+                color: #3A1A5E;
+            }
+        """
+
+        grid = QGridLayout()
+        grid.setHorizontalSpacing(12)
+        grid.setVerticalSpacing(8)
+
+        self.input_id = QLineEdit()
+        self.input_id.setStyleSheet(line_style)
+        self.input_id.setReadOnly(True)
+        self.input_desc = QLineEdit()
+        self.input_desc.setStyleSheet(line_style)
+        self.input_product = QLineEdit()
+        self.input_product.setStyleSheet(line_style)
+        self.combo_category = QComboBox()
+        self.combo_category.setStyleSheet(combo_style)
+        self.combo_category.addItems([
+            "Selecione",
+            "Limpeza, Higiene e Alimentos",
+            "Elétrica",
+            "Hidráulica",
+            "Ferramentas Gerais",
+            "Automóveis",
+        ])
+        self.input_quantity = QLineEdit()
+        self.input_quantity.setStyleSheet(line_style)
+        self.input_unit = QLineEdit()
+        self.input_unit.setStyleSheet(line_style)
+
+        lbl_id = QLabel("Número Item")
+        lbl_id.setStyleSheet(label_style)
+        lbl_desc = QLabel("Descrição")
+        lbl_desc.setStyleSheet(label_style)
+        lbl_product = QLabel("Produto")
+        lbl_product.setStyleSheet(label_style)
+        lbl_category = QLabel("Categoria")
+        lbl_category.setStyleSheet(label_style)
+        lbl_qty = QLabel("Quantidade")
+        lbl_qty.setStyleSheet(label_style)
+        lbl_unit = QLabel("Un. Medida")
+        lbl_unit.setStyleSheet(label_style)
+
+        grid.addWidget(lbl_id, 0, 0)
+        grid.addWidget(self.input_id, 1, 0)
+        grid.addWidget(lbl_desc, 0, 1)
+        grid.addWidget(self.input_desc, 1, 1)
+        grid.addWidget(lbl_product, 2, 0)
+        grid.addWidget(self.input_product, 3, 0)
+        grid.addWidget(lbl_category, 2, 1)
+        grid.addWidget(self.combo_category, 3, 1)
+        grid.addWidget(lbl_qty, 4, 0)
+        grid.addWidget(self.input_quantity, 5, 0)
+        grid.addWidget(lbl_unit, 4, 1)
+        grid.addWidget(self.input_unit, 5, 1)
+
+        layout.addLayout(grid)
+
+        btn_row = QHBoxLayout()
+        btn_row.addStretch()
+        self.btn_cancel = QPushButton("CANCELAR")
+        self.btn_cancel.setStyleSheet("""
+            QPushButton {
+                background-color: #B5B1C2;
+                color: #3A1A5E;
+                font-size: 13px;
+                font-weight: bold;
+                border-radius: 10px;
+                padding: 6px 18px;
+            }
+            QPushButton:hover {
+                background-color: #9E99AF;
+            }
+        """)
+        self.btn_save = QPushButton("SALVAR")
+        self.btn_save.setStyleSheet("""
+            QPushButton {
+                background-color: #3E0F63;
+                color: white;
+                font-size: 13px;
+                font-weight: bold;
+                border-radius: 10px;
+                padding: 6px 18px;
+            }
+            QPushButton:hover {
+                background-color: #53207E;
+            }
+        """)
+        btn_row.addWidget(self.btn_cancel)
+        btn_row.addWidget(self.btn_save)
+        layout.addLayout(btn_row)
+
+        self.btn_cancel.clicked.connect(self.reject)
+        self.btn_save.clicked.connect(self.save)
+
+        self.combo_category.currentTextChanged.connect(self.update_auto_id)
+
+    def save(self):
+        id_item = self.input_id.text().strip()
+        descr = self.input_desc.text().strip()
+        product = self.input_product.text().strip()
+        category = self.combo_category.currentText()
+        qty_text = self.input_quantity.text().strip()
+        unit = self.input_unit.text().strip()
+
+        if not id_item or not descr or not product or category == "Selecione":
+            QMessageBox.warning(self, "Dados inválidos", "Preencha todos os campos obrigatórios.")
+            return
+        try:
+            qty = float(qty_text.replace(",", ".")) if qty_text else 0
+        except ValueError:
+            QMessageBox.warning(self, "Dados inválidos", "Quantidade inválida.")
+            return
+
+        MaterialService.create_material(
+            id_item=id_item,
+            descrption=descr,
+            product=product,
+            category=category,
+            quantity=qty,
+            unit_measurement=unit,
+        )
+        QMessageBox.information(self, "Cadastro", "Item cadastrado com sucesso.")
+        self.accept()
+
+    def update_auto_id(self):
+        tag_map = {
+            "Limpeza, Higiene e Alimentos": "L",
+            "Elétrica": "E",
+            "Hidráulica": "H",
+            "Ferramentas Gerais": "F",
+            "Automóveis": "A",
+        }
+        category = self.combo_category.currentText()
+        prefix = tag_map.get(category)
+        if not prefix:
+            self.input_id.clear()
+            return
+        next_id = MaterialService.get_next_item_id(prefix)
+        self.input_id.setText(next_id)
+
     def apply_action_to_stock(self):
         """
         Atualiza o estoque conforme o tipo da ação:
@@ -685,6 +2022,216 @@ class ScreenFilterWindow(QMainWindow):
         self.profile = ProfileWindow()
         self.profile.show()
         self.close()
+
+    def open_help(self):
+        from help import HelpWindow
+        self.help = HelpWindow()
+        self.help.show()
+        self.close()
+
+    # ============================================================
+    #  RELATORIO (DASHBOARD)
+    # ============================================================
+    def show_report_page(self):
+        self.ui.pages_stack.setCurrentWidget(self.ui.page_relatorio)
+        self.update_report()
+
+    def setup_report_form(self):
+        # Meses
+        self.ui.report_combo_month.clear()
+        self.ui.report_combo_month.addItems([
+            "Todos",
+            "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+            "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+        ])
+
+        # Categoria
+        self.ui.report_combo_category.clear()
+        self.ui.report_combo_category.addItems([
+            "Todos",
+            "Limpeza, Higiene e Alimentos",
+            "Elétrica",
+            "Hidráulica",
+            "Ferramentas Gerais",
+            "Automóveis",
+        ])
+
+        # Tipo
+        self.ui.report_combo_type.clear()
+        self.ui.report_combo_type.addItems(["Retirada", "Chegada"])
+
+        # Periodo
+        self.ui.report_combo_period.clear()
+        self.ui.report_combo_period.addItems([
+            "Diário", "Semanal", "Mensal", "Trimestral", "Semestral"
+        ])
+
+        self.ui.report_combo_month.currentTextChanged.connect(self.update_report)
+        self.ui.report_combo_category.currentTextChanged.connect(self.update_report)
+        self.ui.report_combo_type.currentTextChanged.connect(self.update_report)
+        self.ui.report_combo_period.currentTextChanged.connect(self.update_report)
+
+    def update_report(self):
+        actions = self.load_actions_report()
+        materials = self.load_materials_report()
+
+        total_items = sum([float(r[4]) for r in materials]) if materials else 0
+        self.ui.lbl_total_items.setText(str(int(total_items)))
+
+        items_out = sum((a[5] or 0) for a in actions if a[0].startswith("ACS"))
+        items_in = sum((a[5] or 0) for a in actions if a[0].startswith("ACE"))
+        self.ui.lbl_items_out.setText(str(int(items_out)))
+        self.ui.lbl_items_in.setText(str(int(items_in)))
+
+        report_type = self.ui.report_combo_type.currentText()
+        if report_type == "Chegada":
+            self.ui.report_chart_title.setText("QNT. ITENS CHEGARAM NA SEMANA")
+            self.ui.report_top_title.setText("ITENS MAIS CHEGARAM")
+            item = max(materials, key=lambda r: r[4], default=None)
+            self.ui.lbl_stock_item.setText(item[1] if item else "-")
+            self.ui.lbl_stock_item.setToolTip(item[1] if item else "")
+        else:
+            self.ui.report_chart_title.setText("QNT. ITENS RETIRADOS NA SEMANA")
+            self.ui.report_top_title.setText("ITENS MAIS SÃO RETIRADOS")
+            item = min(materials, key=lambda r: r[4], default=None)
+            self.ui.lbl_stock_item.setText(item[1] if item else "-")
+            self.ui.lbl_stock_item.setToolTip(item[1] if item else "")
+
+        self.update_top_items(actions)
+        self.update_chart(actions)
+
+    def load_actions_report(self):
+        rows = ActionService.list_actions()
+        # map to tuple: (id_action, category, date, id_item, descr, qty)
+        data = []
+        for r in rows:
+            data.append((r[0], r[3], r[6], r[7], r[8], r[9]))
+
+        # filtros
+        category = self.ui.report_combo_category.currentText()
+        if category != "Todos":
+            data = [r for r in data if category.lower() in (r[1] or "").lower()]
+
+        month = self.ui.report_combo_month.currentText()
+        if month != "Todos":
+            month_map = {
+                "Janeiro": 1, "Fevereiro": 2, "Março": 3, "Abril": 4, "Maio": 5, "Junho": 6,
+                "Julho": 7, "Agosto": 8, "Setembro": 9, "Outubro": 10, "Novembro": 11, "Dezembro": 12
+            }
+            target = month_map.get(month)
+            if target:
+                data = [r for r in data if self._date_month(r[2]) == target]
+
+        return data
+
+    def load_materials_report(self):
+        category = self.ui.report_combo_category.currentText()
+        tag_map = {
+            "Limpeza, Higiene e Alimentos": "LIM",
+            "Elétrica": "ELE",
+            "Hidráulica": "HID",
+            "Ferramentas Gerais": "FER",
+            "Automóveis": "AUT",
+        }
+        tag = tag_map.get(category) if category != "Todos" else None
+
+        rows = MaterialService.get_materials(
+            category_tag=tag,
+            description=None,
+            item_number=None,
+            product=None,
+            category=None,
+        )
+        return rows
+
+    def update_top_items(self, actions):
+        report_type = self.ui.report_combo_type.currentText()
+        prefix = "ACE" if report_type == "Chegada" else "ACS"
+        items = {}
+        for id_action, _category, _date, _id_item, descr, qty in actions:
+            if not id_action.startswith(prefix):
+                continue
+            items[descr] = items.get(descr, 0) + (qty or 0)
+
+        top = sorted(items.items(), key=lambda x: x[1], reverse=True)[:5]
+
+        table = self.ui.report_top_items
+        table.setRowCount(0)
+        if not top:
+            return
+        table.setRowCount(len(top))
+        for i, (descr, _qty) in enumerate(top):
+            text = descr if len(descr) <= 18 else descr[:18] + "..."
+            item = QTableWidgetItem(text)
+            item.setToolTip(descr)
+            item.setFlags(item.flags() ^ Qt.ItemIsEditable)
+            table.setItem(i, 0, item)
+
+    def update_chart(self, actions):
+        report_type = self.ui.report_combo_type.currentText()
+        prefix = "ACE" if report_type == "Chegada" else "ACS"
+        period = self.ui.report_combo_period.currentText()
+
+        # window length
+        days_map = {
+            "Diário": 1,
+            "Semanal": 7,
+            "Mensal": 30,
+            "Trimestral": 90,
+            "Semestral": 180,
+        }
+        days = days_map.get(period, 7)
+        end = datetime.now()
+        start = end - timedelta(days=days)
+
+        buckets = {}
+        for id_action, _category, date_str, _id_item, _descr, qty in actions:
+            if not id_action.startswith(prefix):
+                continue
+            dt = self._parse_date(date_str)
+            if not dt:
+                continue
+            if dt < start or dt > end:
+                continue
+            key = dt.strftime("%d/%m")
+            buckets[key] = buckets.get(key, 0) + (qty or 0)
+
+        labels = list(buckets.keys())
+        values = [buckets[k] for k in labels]
+
+        try:
+            import matplotlib
+            matplotlib.use("Agg")
+            import matplotlib.pyplot as plt
+        except ImportError:
+            self.ui.report_chart.setText("Instale matplotlib para exibir o gráfico.")
+            return
+
+        fig, ax = plt.subplots(figsize=(6, 3), dpi=100)
+        ax.bar(labels, values, color="#9B3D97")
+        ax.set_ylabel("Quantidade")
+        ax.tick_params(axis="x", rotation=45, labelsize=8)
+        fig.tight_layout()
+
+        buf = io.BytesIO()
+        fig.savefig(buf, format="png")
+        plt.close(fig)
+        buf.seek(0)
+
+        pixmap = QPixmap()
+        pixmap.loadFromData(buf.getvalue())
+        self.ui.report_chart.setPixmap(pixmap)
+        self.ui.report_chart.setText("")
+
+    def _parse_date(self, date_str):
+        try:
+            return datetime.strptime(date_str, "%d/%m/%Y")
+        except (TypeError, ValueError):
+            return None
+
+    def _date_month(self, date_str):
+        dt = self._parse_date(date_str)
+        return dt.month if dt else None
 
     # ============================================================
     #  CADASTRO DE FUNCIONARIOS
@@ -800,3 +2347,5 @@ class ScreenFilterWindow(QMainWindow):
         )
         QMessageBox.information(self, "Cadastro", "Usuario cadastrado com sucesso.")
         self.clear_employee_form()
+
+

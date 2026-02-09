@@ -171,6 +171,32 @@ class ActionService:
         conn.close()
 
     @staticmethod
+    def list_actions():
+        conn = ActionService.get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT
+                id_action,
+                matter,
+                observation,
+                category,
+                solocitated,
+                authorized,
+                date,
+                id_item,
+                descrption,
+                quantity,
+                status
+            FROM TABLE_ACTIONS
+            ORDER BY date DESC
+            """
+        )
+        rows = cursor.fetchall()
+        conn.close()
+        return rows
+
+    @staticmethod
     def update_action_status(id_action: str, status: str):
         """
         Atualiza o status da ação (CONFIRMADO/CANCELADO).

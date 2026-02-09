@@ -151,11 +151,13 @@ class UI_ScreenFilterWindow(object):
         self.page_materials = self._build_page_materials()
         self.page_consultar = self._build_page_consultar()
         self.page_solicitar = self._build_page_solicitar()
+        self.page_relatorio = self._build_page_relatorio()
         self.page_cad_func = self._build_page_cad_func()
 
         self.pages_stack.addWidget(self.page_materials)
         self.pages_stack.addWidget(self.page_consultar)
         self.pages_stack.addWidget(self.page_solicitar)
+        self.pages_stack.addWidget(self.page_relatorio)
         self.pages_stack.addWidget(self.page_cad_func)
 
         # Página inicial padrão: materiais
@@ -520,7 +522,13 @@ class UI_ScreenFilterWindow(object):
         # TABELA DE ITENS
         lbl_itens = QLabel("Itens")
         lbl_itens.setStyleSheet(label_style)
-        card_layout.addWidget(lbl_itens)
+        items_header = QHBoxLayout()
+        items_header.addWidget(lbl_itens)
+        items_header.addStretch()
+        self.btn_add_material = QPushButton("CADASTRAR ITEM")
+        self.btn_add_material.setStyleSheet(self._secondary_button())
+        items_header.addWidget(self.btn_add_material)
+        card_layout.addLayout(items_header)
 
         self.table_request_items = QTableWidget()
         self.table_request_items.setColumnCount(4)
@@ -591,6 +599,216 @@ class UI_ScreenFilterWindow(object):
         card_layout.addLayout(btn_row)
 
         layout.addWidget(card)
+        return page
+
+    # ============================================================
+    #  PÁGINA 4 – RELATÓRIO (DASHBOARD)
+    # ============================================================
+    def _build_page_relatorio(self) -> QWidget:
+        page = QWidget()
+        layout = QVBoxLayout(page)
+        layout.setSpacing(15)
+
+        # HEADER FILTERS
+        card = QFrame()
+        card.setStyleSheet("""
+            QFrame {
+                background-color: #DDD4E6;
+                border-radius: 10px;
+            }
+        """)
+        card_layout = QVBoxLayout(card)
+        card_layout.setContentsMargins(25, 20, 25, 20)
+        card_layout.setSpacing(12)
+
+        title = QLabel("DASHBOARD – Relatório")
+        title.setStyleSheet("""
+            QLabel {
+                font-size: 20px;
+                font-weight: bold;
+                color: #3E0F63;
+            }
+        """)
+        card_layout.addWidget(title)
+
+        label_style = """
+            QLabel {
+                font-size: 13px;
+                font-weight: bold;
+                color: #3A1A5E;
+            }
+        """
+        combo_style = """
+            QComboBox {
+                background-color: #E8E2EE;
+                border-radius: 6px;
+                padding: 4px 10px;
+                border: 1px solid #C7B7DF;
+                color: #3A1A5E;
+            }
+        """
+
+        grid = QGridLayout()
+        grid.setHorizontalSpacing(30)
+        grid.setVerticalSpacing(10)
+
+        lbl_month = QLabel("Meses")
+        lbl_month.setStyleSheet(label_style)
+        self.report_combo_month = QComboBox()
+        self.report_combo_month.setStyleSheet(combo_style)
+
+        lbl_cat = QLabel("Categoria")
+        lbl_cat.setStyleSheet(label_style)
+        self.report_combo_category = QComboBox()
+        self.report_combo_category.setStyleSheet(combo_style)
+
+        lbl_type = QLabel("Tipo")
+        lbl_type.setStyleSheet(label_style)
+        self.report_combo_type = QComboBox()
+        self.report_combo_type.setStyleSheet(combo_style)
+
+        grid.addWidget(lbl_month, 0, 0)
+        grid.addWidget(self.report_combo_month, 1, 0)
+        grid.addWidget(lbl_cat, 0, 1)
+        grid.addWidget(self.report_combo_category, 1, 1)
+        grid.addWidget(lbl_type, 0, 2)
+        grid.addWidget(self.report_combo_type, 1, 2)
+
+        card_layout.addLayout(grid)
+        layout.addWidget(card)
+
+        # METRICS ROW
+        metrics = QHBoxLayout()
+        metrics.setSpacing(15)
+
+        def metric_card(title_text, value_label_ref):
+            frame = QFrame()
+            frame.setStyleSheet("""
+                QFrame {
+                    background-color: #B8A9C9;
+                    border-radius: 10px;
+                }
+            """)
+            l = QVBoxLayout(frame)
+            l.setContentsMargins(18, 14, 18, 14)
+            t = QLabel(title_text)
+            t.setStyleSheet("font-size: 12px; font-weight: bold; color: white;")
+            v = QLabel("0")
+            v.setStyleSheet("font-size: 26px; font-weight: bold; color: white;")
+            l.addWidget(v)
+            l.addWidget(t)
+            return frame, v
+
+        card_total, self.lbl_total_items = metric_card("QNT. TOTAL DE ITENS", None)
+        card_out, self.lbl_items_out = metric_card("QNT. ITENS SAIU", None)
+        card_in, self.lbl_items_in = metric_card("QNT. ITENS CHEGOU", None)
+
+        stock_frame = QFrame()
+        stock_frame.setStyleSheet("""
+            QFrame {
+                background-color: #B8A9C9;
+                border-radius: 10px;
+            }
+        """)
+        stock_layout = QVBoxLayout(stock_frame)
+        stock_layout.setContentsMargins(18, 14, 18, 14)
+        self.lbl_stock_item = QLabel("-")
+        self.lbl_stock_item.setStyleSheet("font-size: 16px; font-weight: bold; color: white;")
+        stock_title = QLabel("ITEM MAIS BAIXO ESTOQUE")
+        stock_title.setStyleSheet("font-size: 12px; font-weight: bold; color: white;")
+        stock_layout.addWidget(self.lbl_stock_item)
+        stock_layout.addWidget(stock_title)
+
+        metrics.addWidget(card_total)
+        metrics.addWidget(card_out)
+        metrics.addWidget(card_in)
+        metrics.addWidget(stock_frame)
+
+        layout.addLayout(metrics)
+
+        # CHART + TOP ITEMS
+        content = QHBoxLayout()
+        content.setSpacing(15)
+
+        chart_frame = QFrame()
+        chart_frame.setStyleSheet("""
+            QFrame {
+                background-color: #B8A9C9;
+                border-radius: 10px;
+            }
+        """)
+        chart_layout = QVBoxLayout(chart_frame)
+        chart_layout.setContentsMargins(16, 12, 16, 12)
+        chart_layout.setSpacing(8)
+
+        chart_title_row = QHBoxLayout()
+        self.report_chart_title = QLabel("QNT. ITENS RETIRADOS NA SEMANA")
+        self.report_chart_title.setStyleSheet("font-size: 12px; font-weight: bold; color: white;")
+        chart_title_row.addWidget(self.report_chart_title)
+        chart_title_row.addStretch()
+
+        lbl_period = QLabel("Período")
+        lbl_period.setStyleSheet("font-size: 12px; font-weight: bold; color: white;")
+        self.report_combo_period = QComboBox()
+        self.report_combo_period.setStyleSheet(combo_style)
+        chart_title_row.addWidget(lbl_period)
+        chart_title_row.addWidget(self.report_combo_period)
+        chart_layout.addLayout(chart_title_row)
+
+        self.report_chart = QLabel()
+        self.report_chart.setMinimumSize(520, 260)
+        self.report_chart.setStyleSheet("""
+            QLabel {
+                background-color: #D9CEE6;
+                border-radius: 8px;
+            }
+        """)
+        self.report_chart.setAlignment(Qt.AlignCenter)
+        chart_layout.addWidget(self.report_chart)
+
+        top_frame = QFrame()
+        top_frame.setStyleSheet("""
+            QFrame {
+                background-color: #B8A9C9;
+                border-radius: 10px;
+            }
+        """)
+        top_layout = QVBoxLayout(top_frame)
+        top_layout.setContentsMargins(16, 12, 16, 12)
+        top_layout.setSpacing(8)
+
+        self.report_top_title = QLabel("ITENS MAIS SÃO RETIRADOS")
+        self.report_top_title.setStyleSheet("font-size: 12px; font-weight: bold; color: white;")
+        top_layout.addWidget(self.report_top_title)
+
+        self.report_top_items = QTableWidget()
+        self.report_top_items.setColumnCount(1)
+        self.report_top_items.setHorizontalHeaderLabels(["Itens"])
+        self.report_top_items.horizontalHeader().setStretchLastSection(True)
+        self.report_top_items.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.report_top_items.verticalHeader().setVisible(False)
+        self.report_top_items.setAlternatingRowColors(True)
+        self.report_top_items.setStyleSheet("""
+            QTableWidget {
+                background-color: #F6F1FA;
+                gridline-color: #CBB2E6;
+                color: #3A1A5E;
+            }
+            QHeaderView::section {
+                background-color: #9B3D97;
+                color: white;
+                font-weight: bold;
+                font-size: 12px;
+                border: none;
+                padding: 6px;
+            }
+        """)
+        top_layout.addWidget(self.report_top_items)
+
+        content.addWidget(chart_frame, stretch=3)
+        content.addWidget(top_frame, stretch=1)
+
+        layout.addLayout(content)
         return page
 
     # ============================================================
@@ -725,6 +943,9 @@ class UI_ScreenFilterWindow(object):
         btn_row = QHBoxLayout()
         btn_row.addStretch()
 
+        self.btn_emp_list = QPushButton("EXIBIR COLABORADORES")
+        self.btn_emp_list.setStyleSheet(self._light_button())
+
         self.btn_emp_cancel = QPushButton("CANCELAR")
         self.btn_emp_cancel.setStyleSheet(self._secondary_button())
 
@@ -734,6 +955,7 @@ class UI_ScreenFilterWindow(object):
         self.btn_emp_register = QPushButton("CADASTRAR")
         self.btn_emp_register.setStyleSheet(self._primary_button())
 
+        btn_row.addWidget(self.btn_emp_list)
         btn_row.addWidget(self.btn_emp_cancel)
         btn_row.addWidget(self.btn_emp_clear)
         btn_row.addWidget(self.btn_emp_register)

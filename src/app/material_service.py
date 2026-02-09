@@ -139,6 +139,51 @@ class MaterialService:
         return values
 
     @staticmethod
+    def create_material(
+        id_item,
+        descrption,
+        product,
+        category,
+        quantity,
+        unit_measurement,
+    ):
+        conn = MaterialService.get_connection()
+        cur = conn.cursor()
+        cur.execute(
+            """
+            INSERT INTO TABLE_MATERIAL
+                (id_item, descreption, product, category, quantity, unit_measurement)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (id_item, descrption, product, category, quantity, unit_measurement),
+        )
+        conn.commit()
+        cur.close()
+        conn.close()
+
+    @staticmethod
+    def get_next_item_id(prefix: str):
+        conn = MaterialService.get_connection()
+        cur = conn.cursor()
+        cur.execute(
+            "SELECT id_item FROM TABLE_MATERIAL WHERE id_item LIKE ? ORDER BY id_item DESC LIMIT 1",
+            (f"{prefix}%",),
+        )
+        row = cur.fetchone()
+        cur.close()
+        conn.close()
+
+        if not row:
+            return f"{prefix}0001"
+
+        last_id = row[0]
+        try:
+            num = int(last_id[len(prefix):])
+        except ValueError:
+            num = 0
+        return f"{prefix}{num + 1:04d}"
+
+    @staticmethod
     def update_material_quantity(id_item: str, delta: float):
         """
         Atualiza a quantidade de um item somando o delta (pode ser negativo).
