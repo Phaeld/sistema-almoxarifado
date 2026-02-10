@@ -27,6 +27,25 @@ from vehicle_service import VehicleService
 from control_gas_service import ControlGasService
 
 
+def format_odometer_value(value):
+    if value is None or value == "":
+        return "Null"
+    return str(value)
+
+
+def format_odometer_diff(odometer_type, odometer_value, odometer_diff):
+    if odometer_value is None or odometer_value == "":
+        return "Null"
+    try:
+        if odometer_type == 3 or float(odometer_value) == 0:
+            return "none"
+    except (TypeError, ValueError):
+        return "Null"
+    if odometer_diff is None or odometer_diff == "":
+        return "Null"
+    return str(odometer_diff)
+
+
 class ControlGasWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -180,8 +199,8 @@ class ControlGasWindow(QMainWindow):
                 plate_numbler,
                 date_str,
                 driver,
-                odometer,
-                odometer_diff,
+                format_odometer_value(odometer),
+                format_odometer_diff(_odometer_type, odometer, odometer_diff),
                 liters_filled,
                 avg_consumption,
                 fuel_type,
@@ -361,6 +380,7 @@ class ControlGasReportWindow(QMainWindow):
         self.ui.btn_generate.clicked.connect(self.generate_report)
         self.ui.btn_print.clicked.connect(self.print_report)
 
+        self.load_vehicle_filter()
         self._last_rows = []
         self.generate_report()
         self.show()
@@ -372,16 +392,18 @@ class ControlGasReportWindow(QMainWindow):
             return "weekly"
         return "monthly"
 
-    def filter_by_period(self, period):
-        end = datetime.now()
-        if period == "weekly":
-            start = end - timedelta(days=7)
-        elif period == "daily":
-            start = end - timedelta(days=1)
+    def filter_by_period(self, rows, period):
+        now = datetime.now()
+        if period == "daily":
+            start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+            end = now.replace(hour=23, minute=59, second=59, microsecond=999999)
+        elif period == "weekly":
+            end = now.replace(hour=23, minute=59, second=59, microsecond=999999)
+            start = (end - timedelta(days=6)).replace(hour=0, minute=0, second=0, microsecond=0)
         else:
-            start = end - timedelta(days=30)
+            end = now.replace(hour=23, minute=59, second=59, microsecond=999999)
+            start = (end - timedelta(days=29)).replace(hour=0, minute=0, second=0, microsecond=0)
 
-        rows = ControlGasService.list_controls()
         result = []
         for r in rows:
             date_str = r[3]
@@ -393,10 +415,72 @@ class ControlGasReportWindow(QMainWindow):
                 result.append(r)
         return result
 
+    def filter_by_date_range(self, rows, start, end):
+        result = []
+        for r in rows:
+            date_str = r[3]
+            try:
+                dt = datetime.strptime(date_str, "%d/%m/%Y")
+            except (TypeError, ValueError):
+                continue
+            if start <= dt <= end:
+                result.append(r)
+        return result
+
+    def get_custom_date_range(self):
+        start_text = self.ui.input_date_from.text().strip()
+        end_text = self.ui.input_date_to.text().strip()
+        if not start_text and not end_text:
+            return None, None
+        if start_text and not end_text:
+            end_text = start_text
+        if end_text and not start_text:
+            start_text = end_text
+        try:
+            start = datetime.strptime(start_text, "%d/%m/%Y")
+            end = datetime.strptime(end_text, "%d/%m/%Y")
+        except ValueError:
+            QMessageBox.warning(
+                self,
+                "Datas inválidas",
+                "Use o formato dd/mm/aaaa para o período personalizado."
+            )
+            return None, None
+        if start > end:
+            start, end = end, start
+        return start, end
+
+    def get_selected_vehicle(self):
+        vehicle = self.ui.combo_vehicle.currentText().strip()
+        if not vehicle or vehicle == "Todos veículos":
+            return None
+        return vehicle
+
+    def load_vehicle_filter(self):
+        rows = ControlGasService.list_controls()
+        vehicles = sorted({r[1] for r in rows if r[1]})
+        self.ui.combo_vehicle.clear()
+        self.ui.combo_vehicle.addItem("Todos veículos")
+        for v in vehicles:
+            self.ui.combo_vehicle.addItem(v)
+
     def generate_report(self):
-        period = self.get_selected_period()
-        rows = self.filter_by_period(period)
-        rows = self.filter_by_month(rows)
+        rows = ControlGasService.list_controls()
+        start, end = self.get_custom_date_range()
+        has_custom = bool(self.ui.input_date_from.text().strip() or self.ui.input_date_to.text().strip())
+        if has_custom and not (start and end):
+            return
+        if start and end:
+            rows = self.filter_by_date_range(rows, start, end)
+        else:
+            period = self.get_selected_period()
+            rows = self.filter_by_period(rows, period)
+            rows = self.filter_by_month(rows)
+
+        vehicle = self.get_selected_vehicle()
+        if vehicle:
+            rows = [r for r in rows if r[1] == vehicle]
+
         self._last_rows = rows
 
         # Totals
@@ -418,10 +502,11 @@ class ControlGasReportWindow(QMainWindow):
             liters_by_vehicle[vehicle] = liters_by_vehicle.get(vehicle, 0) + liters
             spent_by_vehicle[vehicle] = spent_by_vehicle.get(vehicle, 0) + spent
             count_by_vehicle[vehicle] = count_by_vehicle.get(vehicle, 0) + 1
-            if plate not in by_plate:
-                by_plate[plate] = {"avg_list": [], "value_list": [], "vehicle": vehicle}
-            by_plate[plate]["avg_list"].append(avg)
-            by_plate[plate]["value_list"].append(spent)
+            key = (vehicle, plate)
+            if key not in by_plate:
+                by_plate[key] = {"avg_list": [], "value_list": [], "vehicle": vehicle, "plate": plate}
+            by_plate[key]["avg_list"].append(avg)
+            by_plate[key]["value_list"].append(spent)
 
         top_vehicle = max(liters_by_vehicle, key=liters_by_vehicle.get) if liters_by_vehicle else "-"
         self.ui.lbl_top_vehicle.setText(f"Veiculo que mais abasteceu: {top_vehicle}")
@@ -482,44 +567,50 @@ class ControlGasReportWindow(QMainWindow):
         doc.print_(printer)
 
     def build_print_text(self, rows):
-        by_plate = {}
         total = 0.0
-        for r in rows:
-            plate = r[2]
-            vehicle = r[1]
-            date_str = r[3]
-            avg = float(r[9]) if r[9] else 0.0
-            value = float(r[11]) if r[11] else 0.0
-
-            total += value
-
-            if plate not in by_plate:
-                by_plate[plate] = {
-                    "vehicle": vehicle,
-                    "dates": [],
-                    "avg_list": [],
-                    "value_sum": 0.0,
-                }
-            by_plate[plate]["dates"].append(date_str)
-            by_plate[plate]["avg_list"].append(avg)
-            by_plate[plate]["value_sum"] += value
-
         lines = []
         lines.append("RELATORIO DE ABASTECIMENTO")
         lines.append("")
-        lines.append("Veiculo | Placa | Media | Data | Valor Parcial")
-        lines.append("-" * 70)
+        selected_vehicle = self.get_selected_vehicle()
+        if selected_vehicle:
+            lines.append(f"VEICULO: {selected_vehicle}")
+            lines.append("")
+            lines.append("Placa | Data | Media | Valor")
+            lines.append("-" * 70)
+        else:
+            lines.append("Veiculo | Placa | Motorista | Data | Media | Odo | Valor")
+            lines.append("-" * 110)
 
-        for plate, data in by_plate.items():
-            avg_list = data["avg_list"]
-            avg_consumption = sum(avg_list) / len(avg_list) if avg_list else 0.0
-            date_latest = self._latest_date(data["dates"])
-            lines.append(
-                f"{data['vehicle']} | {plate} | {avg_consumption:.2f} | {date_latest} | {data['value_sum']:.2f}"
-            )
+        for r in rows:
+            vehicle = r[1]
+            plate = r[2]
+            date_str = r[3]
+            driver = r[4]
+            odometer_type = r[5]
+            odometer = r[6]
+            avg = float(r[9]) if r[9] else 0.0
+            value = float(r[11]) if r[11] else 0.0
+            total += value
 
-        lines.append("-" * 70)
-        lines.append(f"TOTAL GASTO: R$ {total:.2f}")
+            odo_display = format_odometer_value(odometer)
+            diff_display = format_odometer_diff(odometer_type, odometer, r[7])
+            if diff_display in ("Null", "none"):
+                odo_display = diff_display
+
+            if selected_vehicle:
+                lines.append(
+                    f"{plate} | {date_str} | {avg:.2f} | {value:.2f}"
+                )
+            else:
+                lines.append(
+                    f"{vehicle} | {plate} | {driver} | {date_str} | {avg:.2f} | {odo_display} | {value:.2f}"
+                )
+
+        lines.append("-" * (70 if selected_vehicle else 110))
+        if selected_vehicle:
+            lines.append(f"TOTAL GASTO DO VEICULO: R$ {total:.2f}")
+        else:
+            lines.append(f"TOTAL GASTO: R$ {total:.2f}")
         return "\n".join(lines)
 
     def _latest_date(self, date_list):
@@ -577,13 +668,13 @@ class ControlGasReportWindow(QMainWindow):
         if not by_plate:
             return
         table.setRowCount(len(by_plate))
-        for row_idx, (plate, data) in enumerate(by_plate.items()):
+        for row_idx, (_key, data) in enumerate(by_plate.items()):
             avg_list = data["avg_list"]
             value_list = data["value_list"]
             avg_consumption = sum(avg_list) / len(avg_list) if avg_list else 0
             avg_value = sum(value_list) / len(value_list) if value_list else 0
             for col, val in enumerate([
-                plate,
+                data.get("plate", ""),
                 f"{avg_consumption:.2f}",
                 f"{avg_value:.2f}",
             ]):
@@ -620,8 +711,8 @@ class ControlGasDetailWindow(QMainWindow):
         self.ui.val_date.setText(str(date_str))
         self.ui.val_driver.setText(str(driver))
         self.ui.val_odo_type.setText(str(odometer_type))
-        self.ui.val_odo.setText(str(odometer))
-        self.ui.val_diff.setText(str(odometer_diff))
+        self.ui.val_odo.setText(format_odometer_value(odometer))
+        self.ui.val_diff.setText(format_odometer_diff(odometer_type, odometer, odometer_diff))
         self.ui.val_liters.setText(str(liters_filled))
         self.ui.val_avg.setText(str(avg_consumption))
         self.ui.val_fuel.setText(str(fuel_type))
@@ -768,24 +859,24 @@ class ControlGasFormWindow(QMainWindow):
             return
 
         # Campos derivados
-        last = ControlGasService.get_last_control_by_plate(
-            plate_number=plate,
-            exclude_id=self.control_data[0] if self.control_data else None
-        )
-        if last:
-            last_odometer = last[6]
-            try:
-                odometer_diff = float(odometer) - float(last_odometer)
-            except (TypeError, ValueError):
-                odometer_diff = ""
-        else:
-            odometer_diff = ""
+        odometer_diff = None
+        if odometer_type != 3 and odometer != 0:
+            last = ControlGasService.get_last_control_by_plate(
+                plate_number=plate,
+                exclude_id=self.control_data[0] if self.control_data else None
+            )
+            if last:
+                last_odometer = last[6]
+                try:
+                    odometer_diff = float(odometer) - float(last_odometer)
+                except (TypeError, ValueError):
+                    odometer_diff = None
 
         if odometer_type == 1:
             # Km/L
             avg_consumption = round(odometer_diff / liters, 2) if odometer_diff else 0
         elif odometer_type == 2:
-            # L/h máquina
+            # L/h maquina
             avg_consumption = round(liters / odometer_diff, 2) if odometer_diff else 0
         else:
             avg_consumption = 0
@@ -1128,3 +1219,5 @@ class ControlGasVehicleWindow(QMainWindow):
             if self.ui.combo_odo_type.findText(odometer_text) == -1:
                 self.ui.combo_odo_type.addItem(odometer_text)
             self.ui.combo_odo_type.setCurrentText(odometer_text)
+
+

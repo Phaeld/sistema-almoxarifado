@@ -94,6 +94,59 @@ class UI_ControlGasReportWindow(object):
         controls_layout.addSpacing(12)
         controls_layout.addWidget(self.combo_month)
 
+        label_style = "font-size: 12px; font-weight: bold; color: #3A1A5E;"
+
+        lbl_from = QLabel("De")
+        lbl_from.setStyleSheet(label_style)
+        self.input_date_from = QLineEdit()
+        self.input_date_from.setPlaceholderText("dd/mm/aaaa")
+        self.input_date_from.setStyleSheet("""
+            QLineEdit {
+                background-color: #E8E2EE;
+                border-radius: 8px;
+                padding: 4px 10px;
+                border: 1px solid #CBB2E6;
+                color: #3A1A5E;
+            }
+        """)
+
+        lbl_to = QLabel("Até")
+        lbl_to.setStyleSheet(label_style)
+        self.input_date_to = QLineEdit()
+        self.input_date_to.setPlaceholderText("dd/mm/aaaa")
+        self.input_date_to.setStyleSheet("""
+            QLineEdit {
+                background-color: #E8E2EE;
+                border-radius: 8px;
+                padding: 4px 10px;
+                border: 1px solid #CBB2E6;
+                color: #3A1A5E;
+            }
+        """)
+
+        lbl_vehicle = QLabel("Veículo")
+        lbl_vehicle.setStyleSheet(label_style)
+        self.combo_vehicle = QComboBox()
+        self.combo_vehicle.addItem("Todos veículos")
+        self.combo_vehicle.setStyleSheet("""
+            QComboBox {
+                background-color: #E8E2EE;
+                border-radius: 8px;
+                padding: 4px 10px;
+                border: 1px solid #CBB2E6;
+                color: #3A1A5E;
+            }
+        """)
+
+        controls_layout.addSpacing(12)
+        controls_layout.addWidget(lbl_from)
+        controls_layout.addWidget(self.input_date_from)
+        controls_layout.addWidget(lbl_to)
+        controls_layout.addWidget(self.input_date_to)
+        controls_layout.addSpacing(12)
+        controls_layout.addWidget(lbl_vehicle)
+        controls_layout.addWidget(self.combo_vehicle)
+
         controls_layout.addStretch()
         self.btn_generate = QPushButton("GERAR")
         self.btn_generate.setStyleSheet(self._primary_button())
