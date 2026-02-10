@@ -25,6 +25,7 @@ from gui.window.main_window.ui_control_gas_report_window import UI_ControlGasRep
 from auth.session import Session
 from vehicle_service import VehicleService
 from control_gas_service import ControlGasService
+from log_service import LogService
 
 
 def format_odometer_value(value):
@@ -808,6 +809,11 @@ class ControlGasFormWindow(QMainWindow):
                 return
             ControlGasService.delete_control(control_id)
             QMessageBox.information(self, "Exclusão", "Abastecimento deletado com sucesso.")
+            LogService.log_event(
+                "CONTROL_GAS_DELETE",
+                f"id_control={control_id} vehicle={name} plate={plate} date={date_str}",
+                self.user,
+            )
             self.back_to_control()
             return
 
@@ -901,6 +907,11 @@ class ControlGasFormWindow(QMainWindow):
                 value,
             )
             QMessageBox.information(self, "Edição", "Abastecimento atualizado com sucesso.")
+            LogService.log_event(
+                "CONTROL_GAS_UPDATE",
+                f"id_control={control_id} vehicle={name} plate={plate} date={date_str}",
+                self.user,
+            )
             self.back_to_control()
             return
 
@@ -918,6 +929,7 @@ class ControlGasFormWindow(QMainWindow):
             value,
         )
         QMessageBox.information(self, "Cadastro", "Abastecimento cadastrado com sucesso.")
+        LogService.log_event("CONTROL_GAS_CREATE", f"vehicle={name} plate={plate} date={date_str}", self.user)
         self.back_to_control()
 
     def load_form_data(self):
@@ -1122,6 +1134,11 @@ class ControlGasVehicleWindow(QMainWindow):
                 return
             VehicleService.delete_vehicle(self._selected_vehicle_id)
             QMessageBox.information(self, "Exclusão", "Veículo deletado com sucesso.")
+            LogService.log_event(
+                "VEHICLE_DELETE",
+                f"vehicle_id={self._selected_vehicle_id} name={name} plate={plate}",
+                self.user,
+            )
             self.back_to_control()
             return
 
@@ -1138,6 +1155,11 @@ class ControlGasVehicleWindow(QMainWindow):
                 self._selected_photo_path,
             )
             QMessageBox.information(self, "Edição", "Veículo atualizado com sucesso.")
+            LogService.log_event(
+                "VEHICLE_UPDATE",
+                f"vehicle_id={self._selected_vehicle_id} name={name} plate={plate}",
+                self.user,
+            )
             self.back_to_control()
             return
 
@@ -1149,6 +1171,11 @@ class ControlGasVehicleWindow(QMainWindow):
             self._selected_photo_path,
         )
         QMessageBox.information(self, "Cadastro", "Veículo cadastrado com sucesso.")
+        LogService.log_event(
+            "VEHICLE_CREATE",
+            f"name={name} plate={plate}",
+            self.user,
+        )
         self.back_to_control()
 
     def select_photo(self):
@@ -1219,5 +1246,11 @@ class ControlGasVehicleWindow(QMainWindow):
             if self.ui.combo_odo_type.findText(odometer_text) == -1:
                 self.ui.combo_odo_type.addItem(odometer_text)
             self.ui.combo_odo_type.setCurrentText(odometer_text)
+
+
+
+
+
+
 
 

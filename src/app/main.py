@@ -31,6 +31,7 @@ from home import HomeWindow
 # IMPORT AUTH
 from auth.auth_service import AuthService
 from auth.session import Session
+from log_service import LogService
 
 
 
@@ -54,6 +55,7 @@ class MainWindow(QMainWindow):
 
         if user:
             Session.start(user)
+            LogService.log_event("LOGIN_SUCCESS", "Login realizado com sucesso.", user)
 
             self.home = HomeWindow(on_logout=self.show_login)
             self.home.show()
@@ -61,6 +63,7 @@ class MainWindow(QMainWindow):
         else:
             self.ui.lbl_error.setText("Nome de usuário ou senha inválida. Tente novamente.")
             self.ui.lbl_error.setVisible(True)
+            LogService.log_event("LOGIN_FAILED", f"Tentativa de login para usuario={username}.", {"username": username})
 
     def show_login(self):
         self.show()
@@ -73,3 +76,7 @@ if __name__ == "__main__":
     window = MainWindow()
     window.show()
     sys.exit(app.exec())
+
+
+
+

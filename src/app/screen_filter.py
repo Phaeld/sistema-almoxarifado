@@ -19,6 +19,7 @@ from auth.session import Session
 from auth.auth_service import AuthService
 from material_service import MaterialService
 from action_service import ActionService
+from log_service import LogService
 from datetime import datetime, timedelta
 import io
 from PySide6.QtPrintSupport import QPrinter, QPrintDialog
@@ -408,6 +409,11 @@ class ScreenFilterWindow(QMainWindow):
             ActionService.update_action_status(
                 self._current_action.get("id_action"), "CANCELADO"
             )
+            LogService.log_event(
+                "ACTION_CANCELLED",
+                f"id_action={self._current_action.get('id_action')} id_item={self._current_action.get('id_item')} qty={self._current_action.get('quantity')}",
+                self.user,
+            )
             QMessageBox.information(
                 self,
                 "Ação cancelada",
@@ -421,6 +427,11 @@ class ScreenFilterWindow(QMainWindow):
             if ok:
                 ActionService.update_action_status(
                     self._current_action.get("id_action"), "CONFIRMADO"
+                )
+                LogService.log_event(
+                    "ACTION_CONFIRMED",
+                    f"id_action={self._current_action.get('id_action')} id_item={self._current_action.get('id_item')} qty={self._current_action.get('quantity')}",
+                    self.user,
                 )
                 QMessageBox.information(
                     self,
@@ -618,6 +629,11 @@ class ScreenFilterWindow(QMainWindow):
                 id_item=id_item,
                 descrption=descr,
                 quantity=qty,
+            )
+            LogService.log_event(
+                "ACTION_CREATED",
+                f"id_action={id_action} id_item={id_item} qty={qty} type={prefix}",
+                self.user,
             )
 
         QMessageBox.information(self, "Solicitação", "Movimento gerado com sucesso.")
@@ -832,6 +848,16 @@ class ScreenFilterWindow(QMainWindow):
             position=position_text,
             level=level_value,
             tag=tag,
+        )
+        LogService.log_event(
+            "USER_CREATE",
+            f"username={username} position={position_text} level={level_value} tag={tag}",
+            self.user,
+        )
+        LogService.log_event(
+            "USER_CREATE",
+            f"username={username} position={position_text} level={level_value} tag={tag}",
+            self.user,
         )
         QMessageBox.information(self, "Cadastro", "Usuario cadastrado com sucesso.")
         self.clear_employee_form()
@@ -1367,6 +1393,11 @@ class EmployeeListDialog(QDialog):
             int(self.combo_level.currentText()),
             self.input_tag.text().strip(),
         )
+        LogService.log_event(
+            "USER_UPDATE",
+            f"id_user={self._selected_id} username={self.input_username.text().strip()}",
+            self.current_user,
+        )
         QMessageBox.information(self, "Atualizado", "Usuário atualizado.")
         self.load_users()
 
@@ -1384,6 +1415,11 @@ class EmployeeListDialog(QDialog):
         if confirm != QMessageBox.Yes:
             return
         AuthService.delete_user(self._selected_id)
+        LogService.log_event(
+            "USER_DELETE",
+            f"id_user={self._selected_id}",
+            self.current_user,
+        )
         QMessageBox.information(self, "Excluído", "Usuário excluído.")
         self.load_users()
 
@@ -1922,6 +1958,11 @@ class AddMaterialDialog(QDialog):
             quantity=qty,
             unit_measurement=unit,
         )
+        LogService.log_event(
+            "MATERIAL_CREATE",
+            f"id_item={id_item} category={category} qty={qty}",
+            Session.get(),
+        )
         QMessageBox.information(self, "Cadastro", "Item cadastrado com sucesso.")
         self.accept()
 
@@ -2345,7 +2386,30 @@ class AddMaterialDialog(QDialog):
             level=level_value,
             tag=tag,
         )
+        LogService.log_event(
+            "USER_CREATE",
+            f"username={username} position={position_text} level={level_value} tag={tag}",
+            self.user,
+        )
+        LogService.log_event(
+            "USER_CREATE",
+            f"username={username} position={position_text} level={level_value} tag={tag}",
+            self.user,
+        )
         QMessageBox.information(self, "Cadastro", "Usuario cadastrado com sucesso.")
         self.clear_employee_form()
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

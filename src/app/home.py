@@ -32,6 +32,7 @@ from help import HelpWindow
 
 # IMPORT SESSION
 from auth.session import Session
+from log_service import LogService
 
 
 # HOME WINDOW
@@ -137,3 +138,6 @@ class HomeWindow(QMainWindow):
             self.on_logout()
 
         self.close()
+
+
+

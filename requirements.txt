@@ -10,3 +10,5 @@ python-dotenv>=1.0
 # Relatorios e graficos
 matplotlib>=3.8
 reportlab>=4.0
+pycryptodomex
+
