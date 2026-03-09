@@ -599,9 +599,7 @@ class ControlGasReportWindow(QMainWindow):
                 odo_display = diff_display
 
             if selected_vehicle:
-                lines.append(
-                    f"{plate} | {date_str} | {avg:.2f} | {value:.2f}"
-                )
+                lines.append(f"{plate} | {date_str} | {avg:.2f} | {value:.2f}")
             else:
                 lines.append(
                     f"{vehicle} | {plate} | {driver} | {date_str} | {avg:.2f} | {odo_display} | {value:.2f}"
@@ -613,6 +611,42 @@ class ControlGasReportWindow(QMainWindow):
         else:
             lines.append(f"TOTAL GASTO: R$ {total:.2f}")
         return "\n".join(lines)
+
+    def describe_period(self, rows):
+        start_text = self.ui.input_date_from.text().strip()
+        end_text = self.ui.input_date_to.text().strip()
+        if start_text or end_text:
+            if not start_text:
+                start_text = end_text
+            if not end_text:
+                end_text = start_text
+            if start_text == end_text:
+                return f"Diario do dia {start_text}"
+            return f"De {start_text} a {end_text}"
+
+        unique_dates = sorted({str(r[3] or "") for r in rows if str(r[3] or "").strip()})
+        period = self.get_selected_period()
+
+        if period == "daily":
+            if unique_dates:
+                return f"Diario do dia {unique_dates[-1]}"
+            return "Diario"
+        if period == "weekly":
+            if unique_dates:
+                return "Semanal dos dias " + ", ".join(unique_dates)
+            return "Semanal"
+
+        month_text = self.ui.combo_month.currentText()
+        if month_text and month_text != "Todos os meses":
+            return f"Mensal - {month_text}"
+
+        if unique_dates:
+            return f"Mensal de {unique_dates[0]} a {unique_dates[-1]}"
+        return "Mensal"
+
+    def _fmt_money(self, value):
+        text = f"{float(value):,.2f}"
+        return text.replace(",", "X").replace(".", ",").replace("X", ".")
 
     def _latest_date(self, date_list):
         if not date_list:

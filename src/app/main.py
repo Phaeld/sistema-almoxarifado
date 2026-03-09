@@ -45,7 +45,7 @@ class MainWindow(QMainWindow):
         self.ui.login_button.clicked.connect(self.try_login)
         self.ui.pass_input.returnPressed.connect(self.try_login)
         self.ui.user_input.textChanged.connect(self.clear_error)
-        self.ui.pass_input.textChanged.connect(self.clear_error)
+        self.ui.pass_input.textChanged.connect(self.clear_error) 
 
     def try_login(self):
         username = self.ui.user_input.text()

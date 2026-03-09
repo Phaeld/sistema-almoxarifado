@@ -1,4 +1,4 @@
-"""
+﻿"""
 ====================================================================
     INTERNAL WAREHOUSE MANAGEMENT SYSTEM
     Author: Raphael da Silva
@@ -11,6 +11,7 @@
 
 import sys
 import os
+import json
 
 from qt_core import *
 
@@ -32,7 +33,7 @@ class ScreenFilterWindow(QMainWindow):
         super().__init__()
 
         # -----------------------------
-        #  Sessão
+        #  SessÃ£o
         # -----------------------------
         if not Session.is_authenticated():
             self.close()
@@ -49,17 +50,17 @@ class ScreenFilterWindow(QMainWindow):
         self.ui = UI_ScreenFilterWindow()
         self.ui.setup_ui(self)
 
-        # Página inicial sempre a de materiais
+        # PÃ¡gina inicial sempre a de materiais
         self.ui.pages_stack.setCurrentWidget(self.ui.page_materials)
 
         # -----------------------------
-        #  Conexões TOP BAR
+        #  ConexÃµes TOP BAR
         # -----------------------------
         self.ui.btn_home.clicked.connect(self.go_home)
         self.ui.btn_profile.clicked.connect(self.open_profile)
 
         # -----------------------------
-        #  Conexões SIDEBAR – CATEGORIA
+        #  ConexÃµes SIDEBAR â€“ CATEGORIA
         #  (troca a tag e recarrega materiais)
         # -----------------------------
         self.ui.btn_cat_limpeza.clicked.connect(
@@ -79,7 +80,7 @@ class ScreenFilterWindow(QMainWindow):
         )
 
         # -----------------------------
-        #  Conexões SIDEBAR – AÇÕES
+        #  ConexÃµes SIDEBAR â€“ AÃ‡Ã•ES
         # -----------------------------
         # Consultar
         self.ui.btn_sidebar_consultar.clicked.connect(self.show_consult_page)
@@ -87,7 +88,7 @@ class ScreenFilterWindow(QMainWindow):
         # Solicitar
         self.ui.btn_sidebar_solicitar.clicked.connect(self.show_request_page)
 
-        # Cadastro de Funcionários
+        # Cadastro de FuncionÃ¡rios
         self.ui.btn_sidebar_cad_func.clicked.connect(self.show_cad_func_page)
 
         # Relatorio
@@ -96,20 +97,20 @@ class ScreenFilterWindow(QMainWindow):
         self.ui.btn_sidebar_imprimir.clicked.connect(self.print_stock_report)
         self.ui.btn_sidebar_ajuda.clicked.connect(self.open_help)
 
-        # (Relatório / Imprimir / Exportar e Ajuda você liga depois, quando tiver as telas)
+        # (RelatÃ³rio / Imprimir / Exportar e Ajuda vocÃª liga depois, quando tiver as telas)
 
         # -----------------------------
-        #  BOTÃO FILTRAR MATERIAIS
+        #  BOTÃƒO FILTRAR MATERIAIS
         # -----------------------------
         self.ui.btn_filter_materials.clicked.connect(self.apply_filters)
 
         # -----------------------------
-        #  BOTÃO FILTRAR CONSULTAR
+        #  BOTÃƒO FILTRAR CONSULTAR
         # -----------------------------
         self.ui.btn_filter_consult.clicked.connect(self.apply_consult_filters)
 
         # -----------------------------
-        #  AÇÕES DA TELA SOLICITAR (MODO CONSULTA)
+        #  AÃ‡Ã•ES DA TELA SOLICITAR (MODO CONSULTA)
         # -----------------------------
         self._request_mode = "new"
         self._current_action = None
@@ -135,6 +136,7 @@ class ScreenFilterWindow(QMainWindow):
 
         # Solicitar: preparar combos e eventos
         self._request_items = []
+        self._custom_request_items = []
         self.setup_request_form()
 
         # Cadastro de funcionarios
@@ -148,7 +150,7 @@ class ScreenFilterWindow(QMainWindow):
     # ============================================================
     def change_category(self, tag: str):
         """
-        Chamado quando o usuário clica numa categoria do sidebar.
+        Chamado quando o usuÃ¡rio clica numa categoria do sidebar.
         Troca a tag e recarrega os materiais.
         """
         self.category_tag = tag
@@ -170,7 +172,7 @@ class ScreenFilterWindow(QMainWindow):
 
     def apply_filters(self):
         """
-        Botão FILTRAR da página de materiais.
+        BotÃ£o FILTRAR da pÃ¡gina de materiais.
         Usa os campos do filtro + a tag da categoria.
         """
         description = self.ui.input_description.text().strip()
@@ -210,11 +212,11 @@ class ScreenFilterWindow(QMainWindow):
         for row_index, row in enumerate(rows):
             for col_index, value in enumerate(row):
                 item = QTableWidgetItem(str(value))
-                item.setFlags(item.flags() ^ Qt.ItemIsEditable)  # só leitura
+                item.setFlags(item.flags() ^ Qt.ItemIsEditable)  # sÃ³ leitura
                 table.setItem(row_index, col_index, item)
 
     # ============================================================
-    #  CARREGAR / FILTRAR AÇÕES (CONSULTAR)
+    #  CARREGAR / FILTRAR AÃ‡Ã•ES (CONSULTAR)
     # ============================================================
     def show_consult_page(self):
         self.ui.pages_stack.setCurrentWidget(self.ui.page_consultar)
@@ -250,11 +252,11 @@ class ScreenFilterWindow(QMainWindow):
         for row_index, row in enumerate(rows):
             for col_index, value in enumerate(row):
                 item = QTableWidgetItem(str(value))
-                item.setFlags(item.flags() ^ Qt.ItemIsEditable)  # só leitura
+                item.setFlags(item.flags() ^ Qt.ItemIsEditable)  # sÃ³ leitura
                 table.setItem(row_index, col_index, item)
 
     # ============================================================
-    #  DETALHE DA AÇÃO (ABRIR NA TELA SOLICITAR)
+    #  DETALHE DA AÃ‡ÃƒO (ABRIR NA TELA SOLICITAR)
     # ============================================================
     def show_request_page(self):
         self.ui.pages_stack.setCurrentWidget(self.ui.page_solicitar)
@@ -274,8 +276,8 @@ class ScreenFilterWindow(QMainWindow):
         if not data:
             QMessageBox.warning(
                 self,
-                "Ação não encontrada",
-                "Não foi possível carregar os dados da ação."
+                "AÃ§Ã£o nÃ£o encontrada",
+                "NÃ£o foi possÃ­vel carregar os dados da aÃ§Ã£o."
             )
             return
 
@@ -315,30 +317,43 @@ class ScreenFilterWindow(QMainWindow):
         # Tipo (ACS/ACE)
         tipo = ""
         if id_action and id_action.startswith("ACS"):
-            tipo = "SAÍDA"
+            tipo = "Saida (ACS)"
         elif id_action and id_action.startswith("ACE"):
-            tipo = "ENTRADA"
+            tipo = "Entrada (ACE)"
         if tipo:
             if self.ui.req_combo_type.findText(tipo) == -1:
                 self.ui.req_combo_type.addItem(tipo)
             self.ui.req_combo_type.setCurrentText(tipo)
 
-        # Descrição / Assunto
+        # DescriÃ§Ã£o / Assunto
         self.ui.req_input_description.setText(str(matter or ""))
 
         # Itens
         self.ui.table_request_items.setRowCount(0)
-        if id_item or descrption or quantity is not None:
-            self.ui.table_request_items.setRowCount(1)
-            self._set_table_item(self.ui.table_request_items, 0, 0, "✓")
-            self._set_table_item(self.ui.table_request_items, 0, 1, id_item or "")
-            self._set_table_item(self.ui.table_request_items, 0, 2, descrption or "")
-            self._set_table_item(self.ui.table_request_items, 0, 3, quantity or "")
+        parsed_items = self._parse_action_items(id_item, descrption, quantity)
+        if parsed_items:
+            self.ui.table_request_items.setRowCount(len(parsed_items))
+            for row_index, item_data in enumerate(parsed_items):
+                self._set_table_item(self.ui.table_request_items, row_index, 0, "✓")
+                item_number = item_data["id_item"]
+                display_item = item_number
+                if item_number.startswith("NEWJSON:"):
+                    try:
+                        payload = json.loads(item_number[len("NEWJSON:"):])
+                        display_item = payload.get("id_item_preview") or "NOVO"
+                    except json.JSONDecodeError:
+                        display_item = "NOVO"
+                item_cell = QTableWidgetItem(str(display_item))
+                item_cell.setFlags(item_cell.flags() ^ Qt.ItemIsEditable)
+                item_cell.setData(Qt.UserRole, item_number)
+                self.ui.table_request_items.setItem(row_index, 1, item_cell)
+                self._set_table_item(self.ui.table_request_items, row_index, 2, item_data["descr"])
+                self._set_table_item(self.ui.table_request_items, row_index, 3, item_data["qty"])
 
         # Solicitado por
         self.ui.req_input_requested_by.setText(str(solocitated or ""))
 
-        # Observações
+        # ObservaÃ§Ãµes
         self.ui.req_input_obs.setPlainText(str(observation or ""))
 
         # Autorizado por
@@ -352,9 +367,9 @@ class ScreenFilterWindow(QMainWindow):
 
         is_consult = mode == "consult"
 
-        # Título
+        # Titulo
         if is_consult and id_action:
-            self.ui.req_title.setText(f"TABELA - Solicitar (Ação {id_action})")
+            self.ui.req_title.setText(f"TABELA - Solicitar (Acao {id_action})")
         else:
             self.ui.req_title.setText("TABELA - Solicitar")
 
@@ -373,7 +388,7 @@ class ScreenFilterWindow(QMainWindow):
                 QTableWidget.DoubleClicked | QTableWidget.SelectedClicked
             )
 
-        # Botões
+        # BotÃµes
         if is_consult:
             self.ui.btn_req_clear.setText("VOLTAR")
             self.ui.btn_req_cancel.setText("CANCELADO")
@@ -416,8 +431,8 @@ class ScreenFilterWindow(QMainWindow):
             )
             QMessageBox.information(
                 self,
-                "Ação cancelada",
-                "Ação marcada como CANCELADO."
+                "AÃ§Ã£o cancelada",
+                "AÃ§Ã£o marcada como CANCELADO."
             )
             self.show_consult_page()
             return
@@ -435,16 +450,16 @@ class ScreenFilterWindow(QMainWindow):
                 )
                 QMessageBox.information(
                     self,
-                    "Ação confirmada",
-                    "Estoque atualizado e ação confirmada."
+                    "AÃ§Ã£o confirmada",
+                    "Estoque atualizado e aÃ§Ã£o confirmada."
                 )
                 self.show_consult_page()
             return
 
         QMessageBox.information(
             self,
-            "Status da Ação",
-            f"Ação marcada como {status}."
+            "Status da AÃ§Ã£o",
+            f"AÃ§Ã£o marcada como {status}."
         )
         self.show_consult_page()
 
@@ -467,22 +482,35 @@ class ScreenFilterWindow(QMainWindow):
         self.ui.req_combo_category.addItems([
             "Selecione",
             "Limpeza, Higiene e Alimentos",
-            "Elétrica",
-            "Hidráulica",
+            "Eletrica",
+            "Hidraulica",
             "Ferramentas Gerais",
-            "Automóveis",
+            "Automoveis",
         ])
 
         self.ui.req_combo_type.clear()
-        self.ui.req_combo_type.addItems(["Selecione", "Saída (ACS)", "Entrada (ACE)"])
+        self.ui.req_combo_type.addItems(["Selecione", "Saida (ACS)", "Entrada (ACE)"])
 
-        self.ui.req_combo_authorized.setEditable(True)
+        self.ui.req_combo_authorized.clear()
+        self.ui.req_combo_authorized.setEditable(False)
+        self.ui.req_combo_authorized.addItems([
+            "Selecione",
+            "Aide Rodrigues de Novaes Bigi",
+            "Luiza Eduardo da Silva",
+            "Raphael da Silva",
+        ])
 
         try:
             self.ui.req_combo_category.currentTextChanged.disconnect()
         except TypeError:
             pass
         self.ui.req_combo_category.currentTextChanged.connect(self.load_request_items)
+
+        try:
+            self.ui.req_input_item_search.textChanged.disconnect()
+        except TypeError:
+            pass
+        self.ui.req_input_item_search.textChanged.connect(self.load_request_items)
 
         try:
             self.ui.btn_req_confirm.clicked.disconnect()
@@ -511,16 +539,22 @@ class ScreenFilterWindow(QMainWindow):
         self.ui.req_input_requested_by.clear()
         self.ui.req_input_obs.clear()
         self.ui.req_combo_authorized.setCurrentIndex(0)
+        self.ui.req_input_item_search.clear()
+        self._custom_request_items = []
         self.load_request_items()
 
     def load_request_items(self):
         category_text = self.ui.req_combo_category.currentText()
+        search_text = self.ui.req_input_item_search.text().strip().lower()
         tag_map = {
             "Limpeza, Higiene e Alimentos": "LIM",
-            "Elétrica": "ELE",
-            "Hidráulica": "HID",
+            "Eletrica": "ELE",
+            "Hidraulica": "HID",
             "Ferramentas Gerais": "FER",
-            "Automóveis": "AUT",
+            "Automoveis": "AUT",
+            "Eletrica": "ELE",
+            "Hidraulica": "HID",
+            "Automoveis": "AUT",
         }
         tag = tag_map.get(category_text)
 
@@ -535,6 +569,29 @@ class ScreenFilterWindow(QMainWindow):
             product=None,
             category=None,
         )
+        if search_text:
+            rows = [r for r in rows if search_text in str(r[1] or "").lower()]
+
+        custom_rows = []
+        for item_data in self._custom_request_items:
+            if item_data["category"] != category_text:
+                continue
+            if search_text and search_text not in item_data["descr"].lower():
+                continue
+            token = self._build_new_item_token(item_data)
+            custom_rows.append(
+                (
+                    item_data.get("id_item_preview", ""),
+                    item_data["descr"],
+                    item_data["product"],
+                    item_data["category"],
+                    float(item_data["qty"]),
+                    item_data["unit"],
+                    token,
+                )
+            )
+
+        rows = list(rows) + custom_rows
         self.populate_request_items(rows)
 
     def populate_request_items(self, rows):
@@ -547,7 +604,11 @@ class ScreenFilterWindow(QMainWindow):
 
         table.setRowCount(len(rows))
         for row_index, row in enumerate(rows):
-            id_item, descr, _product, _category, _qty, _unit = row
+            if len(row) >= 7:
+                id_item, descr, _product, _category, _qty, _unit, internal_id = row
+            else:
+                id_item, descr, _product, _category, _qty, _unit = row
+                internal_id = id_item
 
             btn = QPushButton("+")
             btn.setFixedWidth(30)
@@ -555,6 +616,9 @@ class ScreenFilterWindow(QMainWindow):
             table.setCellWidget(row_index, 0, btn)
 
             self._set_table_item(table, row_index, 1, id_item)
+            item_cell = table.item(row_index, 1)
+            if item_cell:
+                item_cell.setData(Qt.UserRole, internal_id)
             self._set_table_item(table, row_index, 2, descr)
 
             spin = QSpinBox()
@@ -577,7 +641,6 @@ class ScreenFilterWindow(QMainWindow):
 
     def submit_request(self):
         if self._request_mode != "new":
-            # Em modo consulta, CONFIRMAR deve seguir o fluxo de confirmação
             self.handle_action_status("CONFIRMADO")
             return
 
@@ -589,16 +652,19 @@ class ScreenFilterWindow(QMainWindow):
         authorized = self.ui.req_combo_authorized.currentText().strip()
 
         if category == "Selecione":
-            QMessageBox.warning(self, "Dados inválidos", "Selecione a categoria.")
+            QMessageBox.warning(self, "Dados invalidos", "Selecione a categoria.")
             return
         if request_type == "Selecione":
-            QMessageBox.warning(self, "Dados inválidos", "Selecione o tipo de solicitação.")
+            QMessageBox.warning(self, "Dados invalidos", "Selecione o tipo de solicitacao.")
             return
         if not requested_by:
-            QMessageBox.warning(self, "Dados inválidos", "Informe quem solicitou.")
+            QMessageBox.warning(self, "Dados invalidos", "Informe quem solicitou.")
+            return
+        if authorized == "Selecione":
+            QMessageBox.warning(self, "Dados invalidos", "Selecione quem autorizou.")
             return
 
-        prefix = "ACS" if "Saída" in request_type else "ACE"
+        prefix = "ACS" if ("Saida" in request_type or "Saída" in request_type) else "ACE"
 
         table = self.ui.table_request_items
         selected_rows = []
@@ -606,8 +672,12 @@ class ScreenFilterWindow(QMainWindow):
             btn = table.cellWidget(row_index, 0)
             spin = table.cellWidget(row_index, 3)
             if btn and btn.text() == "-" and spin and spin.value() > 0:
-                id_item = table.item(row_index, 1).text()
-                descr = table.item(row_index, 2).text()
+                id_item_cell = table.item(row_index, 1)
+                if not id_item_cell:
+                    continue
+                id_item = id_item_cell.data(Qt.UserRole) or id_item_cell.text()
+                descr_cell = table.item(row_index, 2)
+                descr = descr_cell.text() if descr_cell else ""
                 qty = spin.value()
                 selected_rows.append((id_item, descr, qty))
 
@@ -616,102 +686,158 @@ class ScreenFilterWindow(QMainWindow):
             return
 
         date_str = datetime.now().strftime("%d/%m/%Y")
-        for id_item, descr, qty in selected_rows:
-            id_action = ActionService.get_next_action_id(prefix)
-            ActionService.insert_action(
-                id_action=id_action,
-                matter=description,
-                observation=observation,
-                category=category,
-                solocitated=requested_by,
-                authorized=authorized,
-                date_str=date_str,
-                id_item=id_item,
-                descrption=descr,
-                quantity=qty,
-            )
-            LogService.log_event(
-                "ACTION_CREATED",
-                f"id_action={id_action} id_item={id_item} qty={qty} type={prefix}",
-                self.user,
-            )
+        id_action = ActionService.get_next_action_id(prefix)
+        id_items = ";;".join(str(row[0]) for row in selected_rows)
+        descrs = ";;".join(str(row[1]) for row in selected_rows)
+        quantities = ";;".join(str(int(row[2])) for row in selected_rows)
+        ActionService.insert_action(
+            id_action=id_action,
+            matter=description,
+            observation=observation,
+            category=category,
+            solocitated=requested_by,
+            authorized=authorized,
+            date_str=date_str,
+            id_item=id_items,
+            descrption=descrs,
+            quantity=quantities,
+        )
+        LogService.log_event(
+            "ACTION_CREATED",
+            f"id_action={id_action} items={len(selected_rows)} type={prefix}",
+            self.user,
+        )
 
-        QMessageBox.information(self, "Solicitação", "Movimento gerado com sucesso.")
+        QMessageBox.information(self, "Solicitacao", "Movimento gerado com sucesso.")
         self.show_consult_page()
 
     def open_add_material_dialog(self):
         dialog = AddMaterialDialog(self)
         if dialog.exec() == QDialog.Accepted:
+            item_data = getattr(dialog, "item_data", None)
+            if item_data:
+                self._custom_request_items.append(item_data)
             self.load_request_items()
 
     def apply_action_to_stock(self):
         """
-        Atualiza o estoque conforme o tipo da ação:
+        Atualiza o estoque conforme o tipo da acao:
         ACE -> entrada (soma)
-        ACS -> saída (subtrai)
+        ACS -> saida (subtrai)
         """
         if not self._current_action:
             QMessageBox.warning(
                 self,
-                "Ação inválida",
-                "Não há ação carregada para atualizar o estoque."
+                "Acao invalida",
+                "Nao ha acao carregada para atualizar o estoque."
             )
             return False
 
-        id_item = (self._current_action.get("id_item") or "").strip()
-        quantity = self._current_action.get("quantity")
         id_action = (self._current_action.get("id_action") or "").strip()
 
-        if not id_item:
-            QMessageBox.warning(
-                self,
-                "Item não informado",
-                "A ação não possui número de item para atualizar o estoque."
-            )
+        table = self.ui.table_request_items
+        if table.rowCount() == 0:
+            QMessageBox.warning(self, "Sem itens", "A acao nao possui itens.")
             return False
 
-        if quantity is None:
-            QMessageBox.warning(
-                self,
-                "Quantidade inválida",
-                "A ação não possui quantidade informada."
-            )
-            return False
+        for row_index in range(table.rowCount()):
+            item_cell = table.item(row_index, 1)
+            qty_cell = table.item(row_index, 3)
+            descr_cell = table.item(row_index, 2)
+            if not item_cell or not qty_cell:
+                continue
 
-        try:
-            qty_value = float(quantity)
-        except (TypeError, ValueError):
-            QMessageBox.warning(
-                self,
-                "Quantidade inválida",
-                "A quantidade da ação não é numérica."
-            )
-            return False
+            id_item = (item_cell.data(Qt.UserRole) or item_cell.text() or "").strip()
+            descr = (descr_cell.text() if descr_cell else "").strip()
+            try:
+                qty_value = float(str(qty_cell.text()).replace(",", "."))
+            except (TypeError, ValueError):
+                QMessageBox.warning(self, "Quantidade invalida", "Item com quantidade invalida.")
+                return False
 
-        if qty_value <= 0:
-            QMessageBox.warning(
-                self,
-                "Quantidade inválida",
-                "A quantidade deve ser maior que zero."
-            )
-            return False
+            if qty_value <= 0:
+                continue
 
-        if id_action.startswith("ACE"):
-            delta = qty_value
-        else:
-            delta = -qty_value
+            if id_item.startswith("NEWJSON:"):
+                if not id_action.startswith("ACE"):
+                    QMessageBox.warning(
+                        self,
+                        "Item novo invalido",
+                        "Item novo so pode ser confirmado em solicitacao de entrada (ACE).",
+                    )
+                    return False
+                try:
+                    payload = json.loads(id_item[len("NEWJSON:"):])
+                except json.JSONDecodeError:
+                    QMessageBox.warning(self, "Dados invalidos", "Nao foi possivel ler o item novo.")
+                    return False
 
-        ok, message, _new_qty = MaterialService.update_material_quantity(
-            id_item, delta
-        )
-        if not ok:
-            QMessageBox.warning(self, "Falha ao atualizar", message)
-            return False
+                prefix_map = {
+                    "Limpeza, Higiene e Alimentos": "L",
+                    "Eletrica": "E",
+                    "Hidraulica": "H",
+                    "Ferramentas Gerais": "F",
+                    "Automoveis": "A",
+                    "Elétrica": "E",
+                    "Hidráulica": "H",
+                    "Automóveis": "A",
+                }
+                prefix = prefix_map.get(payload.get("category"))
+                if not prefix:
+                    QMessageBox.warning(self, "Categoria invalida", "Categoria do item novo invalida.")
+                    return False
+
+                new_id = MaterialService.get_next_item_id(prefix)
+                MaterialService.create_material(
+                    id_item=new_id,
+                    descrption=payload.get("descr") or descr or "Sem descricao",
+                    product=payload.get("product") or "N/A",
+                    category=payload.get("category") or "",
+                    quantity=qty_value,
+                    unit_measurement=payload.get("unit") or "",
+                )
+                LogService.log_event(
+                    "MATERIAL_CREATE_FROM_ACE",
+                    f"id_action={id_action} id_item={new_id} qty={qty_value}",
+                    self.user,
+                )
+                continue
+
+            delta = qty_value if id_action.startswith("ACE") else -qty_value
+            ok, message, _new_qty = MaterialService.update_material_quantity(id_item, delta)
+            if not ok:
+                QMessageBox.warning(self, "Falha ao atualizar", message)
+                return False
 
         return True
 
+    def _build_new_item_token(self, item_data):
+        return "NEWJSON:" + json.dumps(item_data, ensure_ascii=True)
+
+    def _parse_action_items(self, id_item_field, descr_field, quantity_field):
+        ids = str(id_item_field or "").split(";;") if id_item_field else []
+        descrs = str(descr_field or "").split(";;") if descr_field else []
+        qtys = str(quantity_field or "").split(";;") if quantity_field else []
+        size = max(len(ids), len(descrs), len(qtys), 0)
+        items = []
+        for i in range(size):
+            items.append(
+                {
+                    "id_item": ids[i].strip() if i < len(ids) else "",
+                    "descr": descrs[i].strip() if i < len(descrs) else "",
+                    "qty": qtys[i].strip() if i < len(qtys) else "0",
+                }
+            )
+        return items
+
+    def _safe_float(self, value):
+        try:
+            return float(str(value).replace(",", "."))
+        except (TypeError, ValueError):
+            return 0.0
+
     # ============================================================
-    #  NAVEGAÇÃO
+    #  NAVEGAÃ‡ÃƒO
     # ============================================================
     def go_home(self):
         from home import HomeWindow
@@ -874,7 +1000,7 @@ class ScreenFilterWindow(QMainWindow):
         self.ui.report_combo_month.clear()
         self.ui.report_combo_month.addItems([
             "Todos",
-            "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+            "Janeiro", "Fevereiro", "Marco", "Abril", "Maio", "Junho",
             "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
         ])
 
@@ -883,10 +1009,10 @@ class ScreenFilterWindow(QMainWindow):
         self.ui.report_combo_category.addItems([
             "Todos",
             "Limpeza, Higiene e Alimentos",
-            "Elétrica",
-            "Hidráulica",
+            "Eletrica",
+            "Hidraulica",
             "Ferramentas Gerais",
-            "Automóveis",
+            "Automoveis",
         ])
 
         # Tipo
@@ -896,7 +1022,7 @@ class ScreenFilterWindow(QMainWindow):
         # Periodo
         self.ui.report_combo_period.clear()
         self.ui.report_combo_period.addItems([
-            "Diário", "Semanal", "Mensal", "Trimestral", "Semestral"
+            "Diario", "Semanal", "Mensal", "Trimestral", "Semestral"
         ])
 
         self.ui.report_combo_month.currentTextChanged.connect(self.update_report)
@@ -911,8 +1037,8 @@ class ScreenFilterWindow(QMainWindow):
         total_items = sum([float(r[4]) for r in materials]) if materials else 0
         self.ui.lbl_total_items.setText(str(int(total_items)))
 
-        items_out = sum((a[5] or 0) for a in actions if a[0].startswith("ACS"))
-        items_in = sum((a[5] or 0) for a in actions if a[0].startswith("ACE"))
+        items_out = sum(self._safe_float(a[5]) for a in actions if a[0].startswith("ACS"))
+        items_in = sum(self._safe_float(a[5]) for a in actions if a[0].startswith("ACE"))
         self.ui.lbl_items_out.setText(str(int(items_out)))
         self.ui.lbl_items_in.setText(str(int(items_in)))
 
@@ -925,7 +1051,7 @@ class ScreenFilterWindow(QMainWindow):
             self.ui.lbl_stock_item.setToolTip(item[1] if item else "")
         else:
             self.ui.report_chart_title.setText("QNT. ITENS RETIRADOS NA SEMANA")
-            self.ui.report_top_title.setText("ITENS MAIS SÃO RETIRADOS")
+            self.ui.report_top_title.setText("ITENS MAIS SÃƒO RETIRADOS")
             item = min(materials, key=lambda r: r[4], default=None)
             self.ui.lbl_stock_item.setText(item[1] if item else "-")
             self.ui.lbl_stock_item.setToolTip(item[1] if item else "")
@@ -935,10 +1061,23 @@ class ScreenFilterWindow(QMainWindow):
 
     def load_actions_report(self):
         rows = ActionService.list_actions()
-        # map to tuple: (id_action, category, date, id_item, descr, qty)
         data = []
         for r in rows:
-            data.append((r[0], r[3], r[6], r[7], r[8], r[9]))
+            parsed_items = self._parse_action_items(r[7], r[8], r[9])
+            if parsed_items:
+                for item in parsed_items:
+                    data.append(
+                        (
+                            r[0],
+                            r[3],
+                            r[6],
+                            item["id_item"],
+                            item["descr"],
+                            self._safe_float(item["qty"]),
+                        )
+                    )
+            else:
+                data.append((r[0], r[3], r[6], r[7], r[8], self._safe_float(r[9])))
 
         # filtros
         category = self.ui.report_combo_category.currentText()
@@ -948,7 +1087,7 @@ class ScreenFilterWindow(QMainWindow):
         month = self.ui.report_combo_month.currentText()
         if month != "Todos":
             month_map = {
-                "Janeiro": 1, "Fevereiro": 2, "Março": 3, "Abril": 4, "Maio": 5, "Junho": 6,
+                "Janeiro": 1, "Fevereiro": 2, "Marco": 3, "Abril": 4, "Maio": 5, "Junho": 6,
                 "Julho": 7, "Agosto": 8, "Setembro": 9, "Outubro": 10, "Novembro": 11, "Dezembro": 12
             }
             target = month_map.get(month)
@@ -961,10 +1100,10 @@ class ScreenFilterWindow(QMainWindow):
         category = self.ui.report_combo_category.currentText()
         tag_map = {
             "Limpeza, Higiene e Alimentos": "LIM",
-            "Elétrica": "ELE",
-            "Hidráulica": "HID",
+            "Eletrica": "ELE",
+            "Hidraulica": "HID",
             "Ferramentas Gerais": "FER",
-            "Automóveis": "AUT",
+            "Automoveis": "AUT",
         }
         tag = tag_map.get(category) if category != "Todos" else None
 
@@ -1007,7 +1146,7 @@ class ScreenFilterWindow(QMainWindow):
 
         # window length
         days_map = {
-            "Diário": 1,
+            "Diario": 1,
             "Semanal": 7,
             "Mensal": 30,
             "Trimestral": 90,
@@ -1037,7 +1176,7 @@ class ScreenFilterWindow(QMainWindow):
             matplotlib.use("Agg")
             import matplotlib.pyplot as plt
         except ImportError:
-            self.ui.report_chart.setText("Instale matplotlib para exibir o gráfico.")
+            self.ui.report_chart.setText("Instale matplotlib para exibir o grÃ¡fico.")
             return
 
         fig, ax = plt.subplots(figsize=(6, 3), dpi=100)
@@ -1067,7 +1206,7 @@ class ScreenFilterWindow(QMainWindow):
         return dt.month if dt else None
 
     # ============================================================
-    #  IMPRESSÃO – RELATÓRIO COMPLETO DE ESTOQUE
+    #  IMPRESSÃƒO â€“ RELATÃ“RIO COMPLETO DE ESTOQUE
     # ============================================================
     def print_stock_report(self):
         printer = QPrinter(QPrinter.HighResolution)
@@ -1114,7 +1253,7 @@ class ScreenFilterWindow(QMainWindow):
         total_out = sum((a[9] or 0) for a in actions if a[0].startswith("ACS"))
         total_in = sum((a[9] or 0) for a in actions if a[0].startswith("ACE"))
 
-        # Itens mais pegos (saídas)
+        # Itens mais pegos (saÃ­das)
         picked = {}
         for a in actions:
             if not a[0].startswith("ACS"):
@@ -1172,7 +1311,7 @@ class ScreenFilterWindow(QMainWindow):
             <div style="display:flex; align-items:center; gap:12px;">
                 <img src="{logo_uri}" width="120"/>
                 <div>
-                    <h1>Relatório Completo de Estoque</h1>
+                    <h1>RelatÃ³rio Completo de Estoque</h1>
                     <div>{datetime.now().strftime("%d/%m/%Y %H:%M")}</div>
                 </div>
             </div>
@@ -1184,24 +1323,24 @@ class ScreenFilterWindow(QMainWindow):
             <h2>Estoque Atual (itens com quantidade abaixo de 10 em vermelho)</h2>
             <table>
                 <tr>
-                    <th>Número</th><th>Descrição</th><th>Produto</th>
+                    <th>NÃºmero</th><th>DescriÃ§Ã£o</th><th>Produto</th>
                     <th>Categoria</th><th>Quantidade</th><th>Un.</th>
                 </tr>
                 {''.join(row_material(m) for m in materials)}
             </table>
 
-            <h2>Ações (Entradas e Saídas)</h2>
+            <h2>AÃ§Ãµes (Entradas e Saidas)</h2>
             <table>
                 <tr>
-                    <th>ID Ação</th><th>Categoria</th><th>Data</th>
-                    <th>ID Item</th><th>Descrição</th><th>Quantidade</th><th>Status</th>
+                    <th>ID AÃ§Ã£o</th><th>Categoria</th><th>Data</th>
+                    <th>ID Item</th><th>DescriÃ§Ã£o</th><th>Quantidade</th><th>Status</th>
                 </tr>
                 {''.join(row_action(a) for a in actions)}
             </table>
 
-            <h2>Itens Mais Pegos (Saídas)</h2>
+            <h2>Itens Mais Pegos (Saidas)</h2>
             <table>
-                <tr><th>Descrição</th><th>Quantidade</th></tr>
+                <tr><th>DescriÃ§Ã£o</th><th>Quantidade</th></tr>
                 {''.join(f"<tr><td>{d}</td><td>{q}</td></tr>" for d,q in top_picked)}
             </table>
         </body>
@@ -1234,7 +1373,7 @@ class EmployeeListDialog(QDialog):
         self.table = QTableWidget()
         self.table.setColumnCount(6)
         self.table.setHorizontalHeaderLabels(
-            ["ID", "Usuário", "Nome", "Cargo", "Nível", "Tag"]
+            ["ID", "UsuÃ¡rio", "Nome", "Cargo", "NÃ­vel", "Tag"]
         )
         self.table.horizontalHeader().setStretchLastSection(True)
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
@@ -1298,7 +1437,7 @@ class EmployeeListDialog(QDialog):
         self.input_tag = QLineEdit()
         self.input_tag.setStyleSheet(line_style)
 
-        form.addWidget(QLabel("Usuário"), 0, 0)
+        form.addWidget(QLabel("UsuÃ¡rio"), 0, 0)
         form.itemAt(0).widget().setStyleSheet(label_style)
         form.addWidget(self.input_username, 1, 0)
         form.addWidget(QLabel("Nome"), 0, 1)
@@ -1310,7 +1449,7 @@ class EmployeeListDialog(QDialog):
         form.addWidget(QLabel("Cargo"), 2, 0)
         form.itemAt(6).widget().setStyleSheet(label_style)
         form.addWidget(self.combo_position, 3, 0)
-        form.addWidget(QLabel("Nível"), 2, 1)
+        form.addWidget(QLabel("NÃ­vel"), 2, 1)
         form.itemAt(8).widget().setStyleSheet(label_style)
         form.addWidget(self.combo_level, 3, 1)
         form.addWidget(QLabel("Tag"), 2, 2)
@@ -1382,7 +1521,7 @@ class EmployeeListDialog(QDialog):
             return
         password = self.input_password.text()
         if not password:
-            QMessageBox.warning(self, "Dados inválidos", "Informe a senha para atualizar.")
+            QMessageBox.warning(self, "Dados invÃ¡lidos", "Informe a senha para atualizar.")
             return
         AuthService.update_user(
             self._selected_id,
@@ -1398,7 +1537,7 @@ class EmployeeListDialog(QDialog):
             f"id_user={self._selected_id} username={self.input_username.text().strip()}",
             self.current_user,
         )
-        QMessageBox.information(self, "Atualizado", "Usuário atualizado.")
+        QMessageBox.information(self, "Atualizado", "UsuÃ¡rio atualizado.")
         self.load_users()
 
     def delete_user(self):
@@ -1408,8 +1547,8 @@ class EmployeeListDialog(QDialog):
             return
         confirm = QMessageBox.question(
             self,
-            "Confirmar exclusão",
-            "Deseja excluir este usuário?",
+            "Confirmar exclusÃ£o",
+            "Deseja excluir este usuÃ¡rio?",
             QMessageBox.Yes | QMessageBox.No,
         )
         if confirm != QMessageBox.Yes:
@@ -1420,7 +1559,7 @@ class EmployeeListDialog(QDialog):
             f"id_user={self._selected_id}",
             self.current_user,
         )
-        QMessageBox.information(self, "Excluído", "Usuário excluído.")
+        QMessageBox.information(self, "ExcluÃ­do", "UsuÃ¡rio excluÃ­do.")
         self.load_users()
 
     def _primary_button(self) -> str:
@@ -1476,7 +1615,7 @@ class EmployeeListDialog(QDialog):
         self.update_report()
 
     # ============================================================
-    #  IMPRESSÃO – RELATÓRIO COMPLETO DE ESTOQUE
+    #  IMPRESSÃƒO â€“ RELATÃ“RIO COMPLETO DE ESTOQUE
     # ============================================================
     def print_stock_report(self):
         printer = QPrinter(QPrinter.HighResolution)
@@ -1523,7 +1662,7 @@ class EmployeeListDialog(QDialog):
         total_out = sum((a[9] or 0) for a in actions if a[0].startswith("ACS"))
         total_in = sum((a[9] or 0) for a in actions if a[0].startswith("ACE"))
 
-        # Itens mais pegos (saídas)
+        # Itens mais pegos (saÃ­das)
         picked = {}
         for a in actions:
             if not a[0].startswith("ACS"):
@@ -1581,7 +1720,7 @@ class EmployeeListDialog(QDialog):
             <div style="display:flex; align-items:center; gap:12px;">
                 <img src="{logo_uri}" width="120"/>
                 <div>
-                    <h1>Relatório Completo de Estoque</h1>
+                    <h1>RelatÃ³rio Completo de Estoque</h1>
                     <div>{datetime.now().strftime("%d/%m/%Y %H:%M")}</div>
                 </div>
             </div>
@@ -1593,24 +1732,24 @@ class EmployeeListDialog(QDialog):
             <h2>Estoque Atual (itens com quantidade abaixo de 10 em vermelho)</h2>
             <table>
                 <tr>
-                    <th>Número</th><th>Descrição</th><th>Produto</th>
+                    <th>NÃºmero</th><th>DescriÃ§Ã£o</th><th>Produto</th>
                     <th>Categoria</th><th>Quantidade</th><th>Un.</th>
                 </tr>
                 {''.join(row_material(m) for m in materials)}
             </table>
 
-            <h2>Ações (Entradas e Saídas)</h2>
+            <h2>AÃ§Ãµes (Entradas e Saidas)</h2>
             <table>
                 <tr>
-                    <th>ID Ação</th><th>Categoria</th><th>Data</th>
-                    <th>ID Item</th><th>Descrição</th><th>Quantidade</th><th>Status</th>
+                    <th>ID AÃ§Ã£o</th><th>Categoria</th><th>Data</th>
+                    <th>ID Item</th><th>DescriÃ§Ã£o</th><th>Quantidade</th><th>Status</th>
                 </tr>
                 {''.join(row_action(a) for a in actions)}
             </table>
 
-            <h2>Itens Mais Pegos (Saídas)</h2>
+            <h2>Itens Mais Pegos (Saidas)</h2>
             <table>
-                <tr><th>Descrição</th><th>Quantidade</th></tr>
+                <tr><th>DescriÃ§Ã£o</th><th>Quantidade</th></tr>
                 {''.join(f"<tr><td>{d}</td><td>{q}</td></tr>" for d,q in top_picked)}
             </table>
         </body>
@@ -1622,7 +1761,7 @@ class EmployeeListDialog(QDialog):
         self.ui.report_combo_month.clear()
         self.ui.report_combo_month.addItems([
             "Todos",
-            "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+            "Janeiro", "Fevereiro", "Marco", "Abril", "Maio", "Junho",
             "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
         ])
 
@@ -1630,10 +1769,10 @@ class EmployeeListDialog(QDialog):
         self.ui.report_combo_category.addItems([
             "Todos",
             "Limpeza, Higiene e Alimentos",
-            "Elétrica",
-            "Hidráulica",
+            "Eletrica",
+            "Hidraulica",
             "Ferramentas Gerais",
-            "Automóveis",
+            "Automoveis",
         ])
 
         self.ui.report_combo_type.clear()
@@ -1641,7 +1780,7 @@ class EmployeeListDialog(QDialog):
 
         self.ui.report_combo_period.clear()
         self.ui.report_combo_period.addItems([
-            "Diário", "Semanal", "Mensal", "Trimestral", "Semestral"
+            "Diario", "Semanal", "Mensal", "Trimestral", "Semestral"
         ])
 
         self.ui.report_combo_month.currentTextChanged.connect(self.update_report)
@@ -1670,7 +1809,7 @@ class EmployeeListDialog(QDialog):
             self.ui.lbl_stock_item.setToolTip(item[1] if item else "")
         else:
             self.ui.report_chart_title.setText("QNT. ITENS RETIRADOS NA SEMANA")
-            self.ui.report_top_title.setText("ITENS MAIS SÃO RETIRADOS")
+            self.ui.report_top_title.setText("ITENS MAIS SÃƒO RETIRADOS")
             item = min(materials, key=lambda r: r[4], default=None)
             self.ui.lbl_stock_item.setText(item[1] if item else "-")
             self.ui.lbl_stock_item.setToolTip(item[1] if item else "")
@@ -1691,7 +1830,7 @@ class EmployeeListDialog(QDialog):
         month = self.ui.report_combo_month.currentText()
         if month != "Todos":
             month_map = {
-                "Janeiro": 1, "Fevereiro": 2, "Março": 3, "Abril": 4, "Maio": 5, "Junho": 6,
+                "Janeiro": 1, "Fevereiro": 2, "Marco": 3, "Abril": 4, "Maio": 5, "Junho": 6,
                 "Julho": 7, "Agosto": 8, "Setembro": 9, "Outubro": 10, "Novembro": 11, "Dezembro": 12
             }
             target = month_map.get(month)
@@ -1704,10 +1843,10 @@ class EmployeeListDialog(QDialog):
         category = self.ui.report_combo_category.currentText()
         tag_map = {
             "Limpeza, Higiene e Alimentos": "LIM",
-            "Elétrica": "ELE",
-            "Hidráulica": "HID",
+            "Eletrica": "ELE",
+            "Hidraulica": "HID",
             "Ferramentas Gerais": "FER",
-            "Automóveis": "AUT",
+            "Automoveis": "AUT",
         }
         tag = tag_map.get(category) if category != "Todos" else None
 
@@ -1749,7 +1888,7 @@ class EmployeeListDialog(QDialog):
         period = self.ui.report_combo_period.currentText()
 
         days_map = {
-            "Diário": 1,
+            "Diario": 1,
             "Semanal": 7,
             "Mensal": 30,
             "Trimestral": 90,
@@ -1779,7 +1918,7 @@ class EmployeeListDialog(QDialog):
             matplotlib.use("Agg")
             import matplotlib.pyplot as plt
         except ImportError:
-            self.ui.report_chart.setText("Instale matplotlib para exibir o gráfico.")
+            self.ui.report_chart.setText("Instale matplotlib para exibir o grÃ¡fico.")
             return
 
         fig, ax = plt.subplots(figsize=(6, 3), dpi=100)
@@ -1856,19 +1995,19 @@ class AddMaterialDialog(QDialog):
         self.combo_category.addItems([
             "Selecione",
             "Limpeza, Higiene e Alimentos",
-            "Elétrica",
-            "Hidráulica",
+            "Eletrica",
+            "Hidraulica",
             "Ferramentas Gerais",
-            "Automóveis",
+            "Automoveis",
         ])
         self.input_quantity = QLineEdit()
         self.input_quantity.setStyleSheet(line_style)
         self.input_unit = QLineEdit()
         self.input_unit.setStyleSheet(line_style)
 
-        lbl_id = QLabel("Número Item")
+        lbl_id = QLabel("Numero Item")
         lbl_id.setStyleSheet(label_style)
-        lbl_desc = QLabel("Descrição")
+        lbl_desc = QLabel("Descricao")
         lbl_desc.setStyleSheet(label_style)
         lbl_product = QLabel("Produto")
         lbl_product.setStyleSheet(label_style)
@@ -1942,37 +2081,34 @@ class AddMaterialDialog(QDialog):
         unit = self.input_unit.text().strip()
 
         if not id_item or not descr or not product or category == "Selecione":
-            QMessageBox.warning(self, "Dados inválidos", "Preencha todos os campos obrigatórios.")
+            QMessageBox.warning(self, "Dados invalidos", "Preencha todos os campos obrigatorios.")
             return
         try:
             qty = float(qty_text.replace(",", ".")) if qty_text else 0
         except ValueError:
-            QMessageBox.warning(self, "Dados inválidos", "Quantidade inválida.")
+            QMessageBox.warning(self, "Dados invalidos", "Quantidade invalida.")
+            return
+        if qty <= 0:
+            QMessageBox.warning(self, "Dados invalidos", "Quantidade deve ser maior que zero.")
             return
 
-        MaterialService.create_material(
-            id_item=id_item,
-            descrption=descr,
-            product=product,
-            category=category,
-            quantity=qty,
-            unit_measurement=unit,
-        )
-        LogService.log_event(
-            "MATERIAL_CREATE",
-            f"id_item={id_item} category={category} qty={qty}",
-            Session.get(),
-        )
-        QMessageBox.information(self, "Cadastro", "Item cadastrado com sucesso.")
+        self.item_data = {
+            "id_item_preview": id_item,
+            "descr": descr,
+            "product": product,
+            "category": category,
+            "qty": qty,
+            "unit": unit,
+        }
         self.accept()
 
     def update_auto_id(self):
         tag_map = {
             "Limpeza, Higiene e Alimentos": "L",
-            "Elétrica": "E",
-            "Hidráulica": "H",
+            "Eletrica": "E",
+            "Hidraulica": "H",
             "Ferramentas Gerais": "F",
-            "Automóveis": "A",
+            "Automoveis": "A",
         }
         category = self.combo_category.currentText()
         prefix = tag_map.get(category)
@@ -1984,15 +2120,15 @@ class AddMaterialDialog(QDialog):
 
     def apply_action_to_stock(self):
         """
-        Atualiza o estoque conforme o tipo da ação:
+        Atualiza o estoque conforme o tipo da aÃ§Ã£o:
         ACE -> entrada (soma)
-        ACS -> saída (subtrai)
+        ACS -> saÃ­da (subtrai)
         """
         if not self._current_action:
             QMessageBox.warning(
                 self,
-                "Ação inválida",
-                "Não há ação carregada para atualizar o estoque."
+                "AÃ§Ã£o invÃ¡lida",
+                "NÃ£o hÃ¡ aÃ§Ã£o carregada para atualizar o estoque."
             )
             return False
 
@@ -2003,16 +2139,16 @@ class AddMaterialDialog(QDialog):
         if not id_item:
             QMessageBox.warning(
                 self,
-                "Item não informado",
-                "A ação não possui número de item para atualizar o estoque."
+                "Item nÃ£o informado",
+                "A aÃ§Ã£o nÃ£o possui nÃºmero de item para atualizar o estoque."
             )
             return False
 
         if quantity is None:
             QMessageBox.warning(
                 self,
-                "Quantidade inválida",
-                "A ação não possui quantidade informada."
+                "Quantidade invÃ¡lida",
+                "A aÃ§Ã£o nÃ£o possui quantidade informada."
             )
             return False
 
@@ -2021,24 +2157,24 @@ class AddMaterialDialog(QDialog):
         except (TypeError, ValueError):
             QMessageBox.warning(
                 self,
-                "Quantidade inválida",
-                "A quantidade da ação não é numérica."
+                "Quantidade invÃ¡lida",
+                "A quantidade da aÃ§Ã£o nÃ£o Ã© numÃ©rica."
             )
             return False
 
         if qty_value <= 0:
             QMessageBox.warning(
                 self,
-                "Quantidade inválida",
+                "Quantidade invÃ¡lida",
                 "A quantidade deve ser maior que zero."
             )
             return False
 
-        # Define o delta conforme o tipo da ação
+        # Define o delta conforme o tipo da aÃ§Ã£o
         if id_action.startswith("ACE"):
             delta = qty_value
         else:
-            # padrão: ACS (saída)
+            # padrÃ£o: ACS (saÃ­da)
             delta = -qty_value
 
         ok, message, _new_qty = MaterialService.update_material_quantity(
@@ -2050,7 +2186,7 @@ class AddMaterialDialog(QDialog):
 
         return True
     # ============================================================
-    #  NAVEGAÇÃO
+    #  NAVEGAÃ‡ÃƒO
     # ============================================================
     def go_home(self):
         from home import HomeWindow
@@ -2082,7 +2218,7 @@ class AddMaterialDialog(QDialog):
         self.ui.report_combo_month.clear()
         self.ui.report_combo_month.addItems([
             "Todos",
-            "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+            "Janeiro", "Fevereiro", "Marco", "Abril", "Maio", "Junho",
             "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
         ])
 
@@ -2091,10 +2227,10 @@ class AddMaterialDialog(QDialog):
         self.ui.report_combo_category.addItems([
             "Todos",
             "Limpeza, Higiene e Alimentos",
-            "Elétrica",
-            "Hidráulica",
+            "Eletrica",
+            "Hidraulica",
             "Ferramentas Gerais",
-            "Automóveis",
+            "Automoveis",
         ])
 
         # Tipo
@@ -2104,7 +2240,7 @@ class AddMaterialDialog(QDialog):
         # Periodo
         self.ui.report_combo_period.clear()
         self.ui.report_combo_period.addItems([
-            "Diário", "Semanal", "Mensal", "Trimestral", "Semestral"
+            "Diario", "Semanal", "Mensal", "Trimestral", "Semestral"
         ])
 
         self.ui.report_combo_month.currentTextChanged.connect(self.update_report)
@@ -2133,7 +2269,7 @@ class AddMaterialDialog(QDialog):
             self.ui.lbl_stock_item.setToolTip(item[1] if item else "")
         else:
             self.ui.report_chart_title.setText("QNT. ITENS RETIRADOS NA SEMANA")
-            self.ui.report_top_title.setText("ITENS MAIS SÃO RETIRADOS")
+            self.ui.report_top_title.setText("ITENS MAIS SÃƒO RETIRADOS")
             item = min(materials, key=lambda r: r[4], default=None)
             self.ui.lbl_stock_item.setText(item[1] if item else "-")
             self.ui.lbl_stock_item.setToolTip(item[1] if item else "")
@@ -2156,7 +2292,7 @@ class AddMaterialDialog(QDialog):
         month = self.ui.report_combo_month.currentText()
         if month != "Todos":
             month_map = {
-                "Janeiro": 1, "Fevereiro": 2, "Março": 3, "Abril": 4, "Maio": 5, "Junho": 6,
+                "Janeiro": 1, "Fevereiro": 2, "Marco": 3, "Abril": 4, "Maio": 5, "Junho": 6,
                 "Julho": 7, "Agosto": 8, "Setembro": 9, "Outubro": 10, "Novembro": 11, "Dezembro": 12
             }
             target = month_map.get(month)
@@ -2169,10 +2305,10 @@ class AddMaterialDialog(QDialog):
         category = self.ui.report_combo_category.currentText()
         tag_map = {
             "Limpeza, Higiene e Alimentos": "LIM",
-            "Elétrica": "ELE",
-            "Hidráulica": "HID",
+            "Eletrica": "ELE",
+            "Hidraulica": "HID",
             "Ferramentas Gerais": "FER",
-            "Automóveis": "AUT",
+            "Automoveis": "AUT",
         }
         tag = tag_map.get(category) if category != "Todos" else None
 
@@ -2215,7 +2351,7 @@ class AddMaterialDialog(QDialog):
 
         # window length
         days_map = {
-            "Diário": 1,
+            "Diario": 1,
             "Semanal": 7,
             "Mensal": 30,
             "Trimestral": 90,
@@ -2245,7 +2381,7 @@ class AddMaterialDialog(QDialog):
             matplotlib.use("Agg")
             import matplotlib.pyplot as plt
         except ImportError:
-            self.ui.report_chart.setText("Instale matplotlib para exibir o gráfico.")
+            self.ui.report_chart.setText("Instale matplotlib para exibir o grÃ¡fico.")
             return
 
         fig, ax = plt.subplots(figsize=(6, 3), dpi=100)
@@ -2398,6 +2534,10 @@ class AddMaterialDialog(QDialog):
         )
         QMessageBox.information(self, "Cadastro", "Usuario cadastrado com sucesso.")
         self.clear_employee_form()
+
+
+
+
 
 
 
