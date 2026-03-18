@@ -59,8 +59,8 @@ class UI_ControlGasDetailWindow(object):
         left_layout.setHorizontalSpacing(30)
         left_layout.setVerticalSpacing(16)
 
-        label_style = "font-size: 13px; font-weight: bold; color: #3A1A5E;"
-        value_style = "font-size: 13px; color: #3A1A5E;"
+        label_style = "font-size: 13px; font-weight: bold; color: #390E68;"
+        value_style = "font-size: 13px; color: #390E68;"
 
         def make_row(text):
             lbl = QLabel(text)

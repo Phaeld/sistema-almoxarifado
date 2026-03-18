@@ -103,6 +103,7 @@ class ScreenFilterWindow(QMainWindow):
         #  BOTÃƒO FILTRAR MATERIAIS
         # -----------------------------
         self.ui.btn_filter_materials.clicked.connect(self.apply_filters)
+        self.ui.btn_material_settings.clicked.connect(self.open_material_editor)
 
         # -----------------------------
         #  BOTÃƒO FILTRAR CONSULTAR
@@ -114,9 +115,7 @@ class ScreenFilterWindow(QMainWindow):
         # -----------------------------
         self._request_mode = "new"
         self._current_action = None
-        self.ui.btn_req_cancel.clicked.connect(
-            lambda: self.handle_action_status("CANCELADO")
-        )
+        self.ui.btn_req_cancel.clicked.connect(self.handle_request_cancel_button)
         self.ui.btn_req_confirm.clicked.connect(
             lambda: self.handle_action_status("CONFIRMADO")
         )
@@ -129,6 +128,9 @@ class ScreenFilterWindow(QMainWindow):
 
         self.show()
 
+        self.ui.table_materials.setSelectionBehavior(QTableWidget.SelectRows)
+        self.ui.table_materials.setSelectionMode(QTableWidget.SingleSelection)
+
         # Tabela consultar: selecionar linha inteira e abrir no duplo clique
         self.ui.table_consult.setSelectionBehavior(QTableWidget.SelectRows)
         self.ui.table_consult.setSelectionMode(QTableWidget.SingleSelection)
@@ -137,6 +139,7 @@ class ScreenFilterWindow(QMainWindow):
         # Solicitar: preparar combos e eventos
         self._request_items = []
         self._custom_request_items = []
+        self._request_layout_mode = "request"
         self.setup_request_form()
 
         # Cadastro de funcionarios
@@ -215,6 +218,67 @@ class ScreenFilterWindow(QMainWindow):
                 item.setFlags(item.flags() ^ Qt.ItemIsEditable)  # sÃ³ leitura
                 table.setItem(row_index, col_index, item)
 
+    def open_material_editor(self):
+        row = self.ui.table_materials.currentRow()
+        if row < 0:
+            QMessageBox.warning(
+                self,
+                "Selecione um item",
+                "Selecione uma linha da tabela de materiais para editar ou excluir.",
+            )
+            return
+
+        item_cell = self.ui.table_materials.item(row, 0)
+        if not item_cell:
+            QMessageBox.warning(self, "Item invalido", "Nao foi possivel identificar o item selecionado.")
+            return
+
+        material_id = item_cell.text().strip()
+        material = MaterialService.get_material_by_id(material_id)
+        if not material:
+            QMessageBox.warning(self, "Item nao encontrado", "O item selecionado nao foi encontrado no banco.")
+            return
+
+        dialog = EditMaterialDialog(material, self)
+        result = dialog.exec()
+        if result == QDialog.Accepted:
+            updated = dialog.get_material_data()
+            MaterialService.update_material(
+                id_item=material_id,
+                descrption=updated["descrption"],
+                product=updated["product"],
+                category=updated["category"],
+                quantity=updated["quantity"],
+                unit_measurement=updated["unit_measurement"],
+            )
+            LogService.log_event(
+                "MATERIAL_UPDATE",
+                (
+                    f"id_item={material_id} descrption={updated['descrption']} "
+                    f"product={updated['product']} category={updated['category']} "
+                    f"quantity={updated['quantity']} unit={updated['unit_measurement']}"
+                ),
+                self.user,
+            )
+            self.apply_filters()
+            QMessageBox.information(self, "Material atualizado", "As alteracoes foram salvas.")
+        elif result == EditMaterialDialog.RESULT_DELETE:
+            confirm = QMessageBox.question(
+                self,
+                "Excluir material",
+                f"Deseja excluir o item {material_id} do banco de dados?",
+            )
+            if confirm != QMessageBox.Yes:
+                return
+            MaterialService.delete_material(material_id)
+            LogService.log_event(
+                "MATERIAL_DELETE",
+                f"id_item={material_id}",
+                self.user,
+            )
+            self.apply_filters()
+            QMessageBox.information(self, "Material excluido", "O item foi removido do banco.")
+
     # ============================================================
     #  CARREGAR / FILTRAR AÃ‡Ã•ES (CONSULTAR)
     # ============================================================
@@ -260,6 +324,7 @@ class ScreenFilterWindow(QMainWindow):
     # ============================================================
     def show_request_page(self):
         self.ui.pages_stack.setCurrentWidget(self.ui.page_solicitar)
+        self.set_request_layout_mode("request")
         self.set_request_mode("new")
         self.setup_request_form()
 
@@ -306,6 +371,7 @@ class ScreenFilterWindow(QMainWindow):
             "status": status,
         }
 
+        self.set_request_layout_mode("request")
         self.set_request_mode("consult", id_action=id_action, status=status)
 
         # Categoria
@@ -366,26 +432,37 @@ class ScreenFilterWindow(QMainWindow):
         self._request_mode = mode
 
         is_consult = mode == "consult"
+        is_register = self._request_layout_mode == "register"
 
         # Titulo
         if is_consult and id_action:
             self.ui.req_title.setText(f"TABELA - Solicitar (Acao {id_action})")
+        elif is_register:
+            self.ui.req_title.setText("FERRAMENTA\nCADASTRO - Materiais")
         else:
             self.ui.req_title.setText("TABELA - Solicitar")
 
         # Campos
         self.ui.req_combo_category.setEnabled(not is_consult)
-        self.ui.req_combo_type.setEnabled(not is_consult)
+        self.ui.req_combo_type.setEnabled(not is_consult and not is_register)
         self.ui.req_input_description.setReadOnly(is_consult)
         self.ui.req_input_requested_by.setReadOnly(is_consult)
         self.ui.req_input_obs.setReadOnly(is_consult)
         self.ui.req_combo_authorized.setEnabled(not is_consult)
+        self.ui.btn_req_settings.setEnabled(not is_consult)
 
         if is_consult:
             self.ui.table_request_items.setEditTriggers(QTableWidget.NoEditTriggers)
+            self.ui.table_request_register_items.setEditTriggers(QTableWidget.NoEditTriggers)
         else:
             self.ui.table_request_items.setEditTriggers(
                 QTableWidget.DoubleClicked | QTableWidget.SelectedClicked
+            )
+            self.ui.table_request_register_items.setEditTriggers(
+                QTableWidget.DoubleClicked
+                | QTableWidget.SelectedClicked
+                | QTableWidget.EditKeyPressed
+                | QTableWidget.AnyKeyPressed
             )
 
         # BotÃµes
@@ -412,7 +489,7 @@ class ScreenFilterWindow(QMainWindow):
         else:
             self.ui.btn_req_cancel.setText("CANCELAR")
             self.ui.btn_req_clear.setText("LIMPAR")
-            self.ui.btn_req_confirm.setText("CONFIRMAR")
+            self.ui.btn_req_confirm.setText("CADASTRAR" if is_register else "CONFIRMAR")
             self.ui.btn_req_cancel.setEnabled(True)
             self.ui.btn_req_confirm.setEnabled(True)
 
@@ -468,6 +545,14 @@ class ScreenFilterWindow(QMainWindow):
             return
         self.show_consult_page()
 
+    def handle_request_cancel_button(self):
+        if self._request_mode == "consult":
+            self.handle_action_status("CANCELADO")
+            return
+        if self._request_layout_mode == "register":
+            self.set_request_layout_mode("request")
+        self.clear_request_form()
+
     def _set_table_item(self, table, row, col, value):
         item = QTableWidgetItem(str(value))
         item.setFlags(item.flags() ^ Qt.ItemIsEditable)
@@ -505,12 +590,19 @@ class ScreenFilterWindow(QMainWindow):
         except TypeError:
             pass
         self.ui.req_combo_category.currentTextChanged.connect(self.load_request_items)
+        self.ui.req_combo_category.currentTextChanged.connect(self.refresh_register_item_numbers)
 
         try:
             self.ui.req_input_item_search.textChanged.disconnect()
         except TypeError:
             pass
         self.ui.req_input_item_search.textChanged.connect(self.load_request_items)
+
+        try:
+            self.ui.btn_req_settings.clicked.disconnect()
+        except TypeError:
+            pass
+        self.ui.btn_req_settings.clicked.connect(self.toggle_request_layout_mode)
 
         try:
             self.ui.btn_req_confirm.clicked.disconnect()
@@ -529,7 +621,10 @@ class ScreenFilterWindow(QMainWindow):
         except TypeError:
             pass
         self.ui.btn_add_material.clicked.connect(self.open_add_material_dialog)
+        self.ui.btn_add_material.hide()
 
+        self._setup_register_request_table()
+        self.set_request_layout_mode(self._request_layout_mode)
         self.load_request_items()
 
     def clear_request_form(self):
@@ -541,9 +636,112 @@ class ScreenFilterWindow(QMainWindow):
         self.ui.req_combo_authorized.setCurrentIndex(0)
         self.ui.req_input_item_search.clear()
         self._custom_request_items = []
+        self._clear_register_request_table()
         self.load_request_items()
 
+    def _setup_register_request_table(self):
+        table = self.ui.table_request_register_items
+        table.setRowCount(6)
+        table.setEditTriggers(
+            QTableWidget.DoubleClicked
+            | QTableWidget.SelectedClicked
+            | QTableWidget.EditKeyPressed
+            | QTableWidget.AnyKeyPressed
+        )
+        self._clear_register_request_table()
+
+    def _clear_register_request_table(self):
+        table = self.ui.table_request_register_items
+        row_count = max(table.rowCount(), 6)
+        table.setRowCount(row_count)
+        for row_index in range(row_count):
+            for col_index in range(table.columnCount()):
+                text = ""
+                if col_index == 0:
+                    text = ""
+                item = QTableWidgetItem(text)
+                if col_index == 0:
+                    item.setFlags(item.flags() ^ Qt.ItemIsEditable)
+                table.setItem(row_index, col_index, item)
+        self.refresh_register_item_numbers()
+
+    def toggle_request_layout_mode(self):
+        target_mode = "register" if self._request_layout_mode == "request" else "request"
+        self.set_request_layout_mode(target_mode)
+
+    def set_request_layout_mode(self, mode):
+        self._request_layout_mode = mode
+        is_register = mode == "register"
+
+        self.ui.request_items_stack.setCurrentWidget(
+            self.ui.table_request_register_items if is_register else self.ui.table_request_items
+        )
+        self.ui.req_lbl_type.setVisible(not is_register)
+        self.ui.req_combo_type.setVisible(not is_register)
+        self.ui.req_input_item_search.setVisible(not is_register)
+        self.ui.btn_add_material.hide()
+        self.ui.btn_req_settings.setEnabled(self._request_mode != "consult")
+
+        if is_register:
+            self.ui.req_title.setText("FERRAMENTA\nCADASTRO - Materiais")
+            self.ui.req_lbl_description.setText("Descricao")
+            self.ui.req_lbl_requested_by.setText("Pedido Cadastro por")
+            self.ui.req_lbl_obs.setText("Observacoes adicionais (opcional)")
+            self.ui.btn_req_confirm.setText("CADASTRAR")
+            self.ui.req_combo_type.setCurrentText("Entrada (ACE)")
+            self.refresh_register_item_numbers()
+        else:
+            self.ui.req_title.setText("TABELA - Solicitar")
+            self.ui.req_lbl_description.setText("Descricao")
+            self.ui.req_lbl_requested_by.setText("Solicitado por")
+            self.ui.req_lbl_obs.setText("Observacoes adicionais (opcional)")
+        self.set_request_mode(self._request_mode, self._current_action.get("id_action") if self._current_action else None, self._current_action.get("status") if self._current_action else None)
+
+    def refresh_register_item_numbers(self):
+        if getattr(self.ui, "table_request_register_items", None) is None:
+            return
+
+        category = self.ui.req_combo_category.currentText()
+        prefix = self._get_item_prefix_for_category(category)
+        table = self.ui.table_request_register_items
+
+        if not prefix:
+            for row_index in range(table.rowCount()):
+                item = table.item(row_index, 0) or QTableWidgetItem("")
+                item.setText("")
+                item.setFlags(item.flags() ^ Qt.ItemIsEditable)
+                table.setItem(row_index, 0, item)
+            return
+
+        next_id = MaterialService.get_next_item_id(prefix)
+        try:
+            counter = int(str(next_id)[1:])
+        except ValueError:
+            counter = 1
+
+        for row_index in range(table.rowCount()):
+            item = table.item(row_index, 0) or QTableWidgetItem("")
+            item.setText(f"{prefix}{counter + row_index:04d}")
+            item.setFlags(item.flags() ^ Qt.ItemIsEditable)
+            table.setItem(row_index, 0, item)
+
+    def _get_item_prefix_for_category(self, category):
+        return {
+            "Limpeza, Higiene e Alimentos": "L",
+            "Eletrica": "E",
+            "Hidraulica": "H",
+            "Ferramentas Gerais": "F",
+            "Automoveis": "A",
+            "Elétrica": "E",
+            "Hidráulica": "H",
+            "Automóveis": "A",
+        }.get(category, "")
+
     def load_request_items(self):
+        if self._request_layout_mode == "register":
+            self.refresh_register_item_numbers()
+            return
+
         category_text = self.ui.req_combo_category.currentText()
         search_text = self.ui.req_input_item_search.text().strip().lower()
         tag_map = {
@@ -644,6 +842,10 @@ class ScreenFilterWindow(QMainWindow):
             self.handle_action_status("CONFIRMADO")
             return
 
+        if self._request_layout_mode == "register":
+            self.submit_register_request()
+            return
+
         category = self.ui.req_combo_category.currentText()
         request_type = self.ui.req_combo_type.currentText()
         description = self.ui.req_input_description.text().strip()
@@ -709,6 +911,100 @@ class ScreenFilterWindow(QMainWindow):
         )
 
         QMessageBox.information(self, "Solicitacao", "Movimento gerado com sucesso.")
+        self.show_consult_page()
+
+    def submit_register_request(self):
+        category = self.ui.req_combo_category.currentText()
+        description = self.ui.req_input_description.text().strip()
+        requested_by = self.ui.req_input_requested_by.text().strip()
+        observation = self.ui.req_input_obs.toPlainText().strip()
+        authorized = self.ui.req_combo_authorized.currentText().strip()
+
+        if category == "Selecione":
+            QMessageBox.warning(self, "Dados invalidos", "Selecione a categoria.")
+            return
+        if not requested_by:
+            QMessageBox.warning(self, "Dados invalidos", "Informe quem fez o pedido de cadastro.")
+            return
+        if authorized == "Selecione":
+            QMessageBox.warning(self, "Dados invalidos", "Selecione quem autorizou.")
+            return
+
+        table = self.ui.table_request_register_items
+        selected_rows = []
+        for row_index in range(table.rowCount()):
+            id_item_cell = table.item(row_index, 0)
+            descr_cell = table.item(row_index, 1)
+            product_cell = table.item(row_index, 2)
+            qty_cell = table.item(row_index, 3)
+            unit_cell = table.item(row_index, 4)
+
+            descr = (descr_cell.text() if descr_cell else "").strip()
+            product = (product_cell.text() if product_cell else "").strip()
+            qty_text = (qty_cell.text() if qty_cell else "").strip()
+            unit = (unit_cell.text() if unit_cell else "").strip()
+
+            if not any([descr, product, qty_text, unit]):
+                continue
+
+            if not descr or not product or not qty_text or not unit:
+                QMessageBox.warning(
+                    self,
+                    "Dados invalidos",
+                    "Preencha descricao, produto, quantidade e unidade para cada item informado.",
+                )
+                return
+
+            qty_value = self._safe_float(qty_text)
+            if qty_value <= 0:
+                QMessageBox.warning(self, "Quantidade invalida", "Informe quantidade maior que zero.")
+                return
+
+            preview_id = (id_item_cell.text() if id_item_cell else "").strip()
+            selected_rows.append(
+                (
+                    self._build_new_item_token(
+                        {
+                            "id_item_preview": preview_id,
+                            "descr": descr,
+                            "product": product,
+                            "category": category,
+                            "qty": qty_value,
+                            "unit": unit,
+                        }
+                    ),
+                    descr,
+                    int(qty_value) if float(qty_value).is_integer() else qty_value,
+                )
+            )
+
+        if not selected_rows:
+            QMessageBox.warning(self, "Itens", "Informe ao menos um item para cadastrar.")
+            return
+
+        id_action = ActionService.get_next_action_id("ACE")
+        date_str = datetime.now().strftime("%d/%m/%Y")
+        ActionService.insert_action(
+            id_action=id_action,
+            matter=description or "Cadastro de materiais",
+            observation=observation,
+            category=category,
+            solocitated=requested_by,
+            authorized=authorized,
+            date_str=date_str,
+            id_item=";;".join(str(row[0]) for row in selected_rows),
+            descrption=";;".join(str(row[1]) for row in selected_rows),
+            quantity=";;".join(str(row[2]) for row in selected_rows),
+        )
+        LogService.log_event(
+            "ACTION_REGISTER_ACE_CREATED",
+            f"id_action={id_action} items={len(selected_rows)} category={category}",
+            self.user,
+        )
+
+        QMessageBox.information(self, "Cadastro", f"ACE {id_action} gerada com sucesso.")
+        self.set_request_layout_mode("request")
+        self.clear_request_form()
         self.show_consult_page()
 
     def open_add_material_dialog(self):
@@ -1946,6 +2242,183 @@ class EmployeeListDialog(QDialog):
     def _date_month(self, date_str):
         dt = self._parse_date(date_str)
         return dt.month if dt else None
+
+
+class EditMaterialDialog(QDialog):
+    RESULT_DELETE = 2
+
+    def __init__(self, material_row, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Ferramenta de Edicao - Materiais")
+        self.setMinimumWidth(760)
+        self.setStyleSheet("background-color: #E8E2EE;")
+
+        id_item, descrption, product, category, quantity, unit_measurement = material_row
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(12)
+
+        title = QLabel("FERRAMENTA DE EDICAO - Materiais")
+        title.setStyleSheet("font-size: 18px; font-weight: bold; color: #3A1A5E;")
+        layout.addWidget(title)
+
+        label_style = "font-size: 12px; font-weight: bold; color: #3A1A5E;"
+        line_style = """
+            QLineEdit {
+                background-color: #E8E2EE;
+                border-radius: 6px;
+                padding: 6px 10px;
+                border: 1px solid #C7B7DF;
+                color: #3A1A5E;
+            }
+        """
+        combo_style = """
+            QComboBox {
+                background-color: #E8E2EE;
+                border-radius: 6px;
+                padding: 4px 10px;
+                border: 1px solid #C7B7DF;
+                color: #3A1A5E;
+            }
+        """
+
+        grid = QGridLayout()
+        grid.setHorizontalSpacing(18)
+        grid.setVerticalSpacing(10)
+
+        self.input_desc = QLineEdit(str(descrption))
+        self.input_desc.setStyleSheet(line_style)
+        self.input_id = QLineEdit(str(id_item))
+        self.input_id.setStyleSheet(line_style)
+        self.input_id.setReadOnly(True)
+        self.input_product = QLineEdit(str(product))
+        self.input_product.setStyleSheet(line_style)
+        self.combo_category = QComboBox()
+        self.combo_category.setStyleSheet(combo_style)
+        self.combo_category.addItems([
+            "Limpeza, Higiene e Alimentos",
+            "Eletrica",
+            "Hidraulica",
+            "Ferramentas Gerais",
+            "Automoveis",
+        ])
+        self.combo_category.setCurrentText(str(category))
+        self.input_quantity = QLineEdit(str(quantity))
+        self.input_quantity.setStyleSheet(line_style)
+        self.input_unit = QLineEdit(str(unit_measurement))
+        self.input_unit.setStyleSheet(line_style)
+
+        grid.addWidget(self._make_label("Descricao", label_style), 0, 0)
+        grid.addWidget(self.input_desc, 1, 0)
+        grid.addWidget(self._make_label("Numero Item", label_style), 0, 1)
+        grid.addWidget(self.input_id, 1, 1)
+        grid.addWidget(self._make_label("Categoria", label_style), 0, 2)
+        grid.addWidget(self.combo_category, 1, 2)
+        grid.addWidget(self._make_label("Produto", label_style), 2, 0)
+        grid.addWidget(self.input_product, 3, 0)
+        grid.addWidget(self._make_label("Quantidade", label_style), 2, 1)
+        grid.addWidget(self.input_quantity, 3, 1)
+        grid.addWidget(self._make_label("Unidade Medida", label_style), 2, 2)
+        grid.addWidget(self.input_unit, 3, 2)
+        layout.addLayout(grid)
+
+        btn_row = QHBoxLayout()
+        btn_row.addStretch()
+
+        self.btn_edit = QPushButton("EDITAR")
+        self.btn_edit.setStyleSheet("""
+            QPushButton {
+                background-color: #3E0F63;
+                color: white;
+                font-size: 13px;
+                font-weight: bold;
+                border-radius: 10px;
+                padding: 8px 20px;
+            }
+            QPushButton:hover {
+                background-color: #53207E;
+            }
+        """)
+        self.btn_delete = QPushButton("EXCLUIR")
+        self.btn_delete.setStyleSheet("""
+            QPushButton {
+                background-color: #EADDF8;
+                color: #3A1A5E;
+                font-size: 13px;
+                font-weight: bold;
+                border-radius: 10px;
+                padding: 8px 20px;
+            }
+            QPushButton:hover {
+                background-color: #DDC8F0;
+            }
+        """)
+        self.btn_cancel = QPushButton("CANCELAR")
+        self.btn_cancel.setStyleSheet("""
+            QPushButton {
+                background-color: #B5B1C2;
+                color: #3A1A5E;
+                font-size: 13px;
+                font-weight: bold;
+                border-radius: 10px;
+                padding: 8px 20px;
+            }
+            QPushButton:hover {
+                background-color: #9E99AF;
+            }
+        """)
+
+        btn_row.addWidget(self.btn_edit)
+        btn_row.addWidget(self.btn_delete)
+        btn_row.addWidget(self.btn_cancel)
+        layout.addLayout(btn_row)
+
+        self.btn_edit.clicked.connect(self._accept_edit)
+        self.btn_delete.clicked.connect(self._accept_delete)
+        self.btn_cancel.clicked.connect(self.reject)
+
+    def _make_label(self, text, style):
+        label = QLabel(text)
+        label.setStyleSheet(style)
+        return label
+
+    def _accept_edit(self):
+        if not self._validate():
+            return
+        self.accept()
+
+    def _accept_delete(self):
+        self.done(self.RESULT_DELETE)
+
+    def _validate(self):
+        if not self.input_desc.text().strip():
+            QMessageBox.warning(self, "Dados invalidos", "Informe a descricao do item.")
+            return False
+        if not self.input_product.text().strip():
+            QMessageBox.warning(self, "Dados invalidos", "Informe o produto.")
+            return False
+        if not self.input_unit.text().strip():
+            QMessageBox.warning(self, "Dados invalidos", "Informe a unidade de medida.")
+            return False
+        try:
+            quantity = float(self.input_quantity.text().replace(",", "."))
+        except ValueError:
+            QMessageBox.warning(self, "Dados invalidos", "Quantidade invalida.")
+            return False
+        if quantity < 0:
+            QMessageBox.warning(self, "Dados invalidos", "Quantidade nao pode ser negativa.")
+            return False
+        return True
+
+    def get_material_data(self):
+        return {
+            "descrption": self.input_desc.text().strip(),
+            "product": self.input_product.text().strip(),
+            "category": self.combo_category.currentText().strip(),
+            "quantity": float(self.input_quantity.text().replace(",", ".")),
+            "unit_measurement": self.input_unit.text().strip(),
+        }
 
 
 class AddMaterialDialog(QDialog):

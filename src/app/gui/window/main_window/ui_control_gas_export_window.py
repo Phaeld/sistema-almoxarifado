@@ -55,7 +55,7 @@ class UI_ControlGasExportWindow(object):
 
         # Period group
         period_title = QLabel("Periodo do relatorio")
-        period_title.setStyleSheet("font-size: 14px; font-weight: bold; color: #3A1A5E;")
+        period_title.setStyleSheet("font-size: 14px; font-weight: bold; color: #390E68;")
         card_layout.addWidget(period_title)
 
         self.period_group = QButtonGroup(parent)
@@ -68,7 +68,7 @@ class UI_ControlGasExportWindow(object):
         radio_style = """
             QRadioButton {
                 font-size: 13px;
-                color: #3A1A5E;
+                color: #390E68;
             }
             QRadioButton::indicator {
                 width: 16px;
@@ -102,7 +102,7 @@ class UI_ControlGasExportWindow(object):
 
         # Format group
         format_title = QLabel("Formato de exportacao")
-        format_title.setStyleSheet("font-size: 14px; font-weight: bold; color: #3A1A5E;")
+        format_title.setStyleSheet("font-size: 14px; font-weight: bold; color: #390E68;")
         card_layout.addWidget(format_title)
 
         self.format_group = QButtonGroup(parent)
@@ -156,7 +156,7 @@ class UI_ControlGasExportWindow(object):
         return """
             QPushButton {
                 background-color: #B5B1C2;
-                color: #3A1A5E;
+                color: #390E68;
                 font-size: 14px;
                 font-weight: bold;
                 border-radius: 10px;

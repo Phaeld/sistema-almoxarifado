@@ -55,7 +55,7 @@ class UI_ControlGasReportWindow(object):
         radio_style = """
             QRadioButton {
                 font-size: 13px;
-                color: #3A1A5E;
+                color: #390E68;
             }
             QRadioButton::indicator {
                 width: 16px;
@@ -88,13 +88,17 @@ class UI_ControlGasReportWindow(object):
                 border-radius: 8px;
                 padding: 4px 10px;
                 border: 1px solid #CBB2E6;
-                color: #3A1A5E;
+                color: #390E68;
+            }
+            QComboBox QAbstractItemView {
+                color: #390E68;
+                selection-color: #390E68;
             }
         """)
         controls_layout.addSpacing(12)
         controls_layout.addWidget(self.combo_month)
 
-        label_style = "font-size: 12px; font-weight: bold; color: #3A1A5E;"
+        label_style = "font-size: 12px; font-weight: bold; color: #390E68;"
 
         lbl_from = QLabel("De")
         lbl_from.setStyleSheet(label_style)
@@ -106,7 +110,7 @@ class UI_ControlGasReportWindow(object):
                 border-radius: 8px;
                 padding: 4px 10px;
                 border: 1px solid #CBB2E6;
-                color: #3A1A5E;
+                color: #390E68;
             }
         """)
 
@@ -120,7 +124,7 @@ class UI_ControlGasReportWindow(object):
                 border-radius: 8px;
                 padding: 4px 10px;
                 border: 1px solid #CBB2E6;
-                color: #3A1A5E;
+                color: #390E68;
             }
         """)
 
@@ -134,7 +138,11 @@ class UI_ControlGasReportWindow(object):
                 border-radius: 8px;
                 padding: 4px 10px;
                 border: 1px solid #CBB2E6;
-                color: #3A1A5E;
+                color: #390E68;
+            }
+            QComboBox QAbstractItemView {
+                color: #390E68;
+                selection-color: #390E68;
             }
         """)
 
@@ -156,9 +164,9 @@ class UI_ControlGasReportWindow(object):
         # Summary row
         summary = QHBoxLayout()
         self.lbl_total = QLabel("Total gasto: R$")
-        self.lbl_total.setStyleSheet("font-size: 14px; font-weight: bold; color: #3A1A5E;")
+        self.lbl_total.setStyleSheet("font-size: 14px; font-weight: bold; color: #390E68;")
         self.lbl_top_vehicle = QLabel("Veiculo que mais abasteceu: -")
-        self.lbl_top_vehicle.setStyleSheet("font-size: 14px; font-weight: bold; color: #3A1A5E;")
+        self.lbl_top_vehicle.setStyleSheet("font-size: 14px; font-weight: bold; color: #390E68;")
         summary.addWidget(self.lbl_total)
         summary.addStretch()
         summary.addWidget(self.lbl_top_vehicle)
@@ -189,7 +197,7 @@ class UI_ControlGasReportWindow(object):
         right_layout.setSpacing(8)
 
         right_title = QLabel("Resumo por placa")
-        right_title.setStyleSheet("font-size: 14px; font-weight: bold; color: #3A1A5E;")
+        right_title.setStyleSheet("font-size: 14px; font-weight: bold; color: #390E68;")
         right_layout.addWidget(right_title)
 
         self.table_summary = QTableWidget()
@@ -203,7 +211,10 @@ class UI_ControlGasReportWindow(object):
             QTableWidget {
                 background-color: #F6F1FA;
                 gridline-color: #CBB2E6;
-                color: #3A1A5E;
+                color: #390E68;
+            }
+            QTableWidget::item {
+                color: #390E68;
             }
             QHeaderView::section {
                 background-color: #9B3D97;
@@ -255,7 +266,7 @@ class UI_ControlGasReportWindow(object):
         return """
             QPushButton {
                 background-color: #B5B1C2;
-                color: #3A1A5E;
+                color: #390E68;
                 font-size: 14px;
                 font-weight: bold;
                 border-radius: 10px;

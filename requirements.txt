@@ -12,3 +12,7 @@ matplotlib>=3.8
 reportlab>=4.0
 pycryptodomex
 
+# API (multi-maquina)
+fastapi>=0.115
+uvicorn[standard]>=0.30
+

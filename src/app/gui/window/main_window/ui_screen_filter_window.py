@@ -210,7 +210,7 @@ class UI_ScreenFilterWindow(object):
                 border-radius: 6px;
                 padding: 6px 10px;
                 border: 1px solid #C7B7DF;
-                color: #3A1A5E;
+                color: #390E68;
             }
         """
         combo_style = """
@@ -219,7 +219,11 @@ class UI_ScreenFilterWindow(object):
                 border-radius: 6px;
                 padding: 4px 10px;
                 border: 1px solid #C7B7DF;
-                color: #3A1A5E;
+                color: #390E68;
+            }
+            QComboBox QAbstractItemView {
+                color: #390E68;
+                selection-color: #390E68;
             }
         """
 
@@ -259,6 +263,21 @@ class UI_ScreenFilterWindow(object):
         self.btn_filter_materials = QPushButton("FILTRAR")
         self.btn_filter_materials.setFixedHeight(40)
         self.btn_filter_materials.setStyleSheet(self._primary_button())
+        self.btn_material_settings = QPushButton()
+        self.btn_material_settings.setCursor(Qt.PointingHandCursor)
+        self.btn_material_settings.setIcon(QIcon("assets/settings_tools.png"))
+        self.btn_material_settings.setIconSize(QSize(30, 30))
+        self.btn_material_settings.setFixedSize(54, 54)
+        self.btn_material_settings.setStyleSheet("""
+            QPushButton {
+                background-color: #3E0F63;
+                border-radius: 27px;
+                border: none;
+            }
+            QPushButton:hover {
+                background-color: #53207E;
+            }
+        """)
 
         grid.addWidget(lbl_desc, 0, 0)
         grid.addWidget(self.input_description, 1, 0)
@@ -272,7 +291,12 @@ class UI_ScreenFilterWindow(object):
         grid.addWidget(lbl_prod, 2, 0)
         grid.addWidget(self.combo_product, 3, 0)
 
-        grid.addWidget(self.btn_filter_materials, 3, 2, alignment=Qt.AlignRight)
+        actions_row = QHBoxLayout()
+        actions_row.setSpacing(10)
+        actions_row.addStretch()
+        actions_row.addWidget(self.btn_filter_materials)
+        actions_row.addWidget(self.btn_material_settings)
+        grid.addLayout(actions_row, 3, 2)
 
         card_layout.addLayout(grid)
         layout.addWidget(card)
@@ -331,7 +355,7 @@ class UI_ScreenFilterWindow(object):
                 border-radius: 6px;
                 padding: 6px 10px;
                 border: 1px solid #C7B7DF;
-                color: #3A1A5E;
+                color: #390E68;
             }
         """
         combo_style = """
@@ -340,7 +364,11 @@ class UI_ScreenFilterWindow(object):
                 border-radius: 6px;
                 padding: 4px 10px;
                 border: 1px solid #C7B7DF;
-                color: #3A1A5E;
+                color: #390E68;
+            }
+            QComboBox QAbstractItemView {
+                color: #390E68;
+                selection-color: #390E68;
             }
         """
 
@@ -471,7 +499,7 @@ class UI_ScreenFilterWindow(object):
                 border-radius: 6px;
                 padding: 6px 10px;
                 border: 1px solid #C7B7DF;
-                color: #3A1A5E;
+                color: #390E68;
             }
         """
         combo_style = """
@@ -480,7 +508,11 @@ class UI_ScreenFilterWindow(object):
                 border-radius: 6px;
                 padding: 4px 10px;
                 border: 1px solid #C7B7DF;
-                color: #3A1A5E;
+                color: #390E68;
+            }
+            QComboBox QAbstractItemView {
+                color: #390E68;
+                selection-color: #390E68;
             }
         """
 
@@ -489,32 +521,32 @@ class UI_ScreenFilterWindow(object):
         grid.setVerticalSpacing(10)
 
         # Categoria
-        lbl_cat = QLabel("Categoria")
-        lbl_cat.setStyleSheet(label_style)
+        self.req_lbl_category = QLabel("Categoria")
+        self.req_lbl_category.setStyleSheet(label_style)
         self.req_combo_category = QComboBox()
         self.req_combo_category.setStyleSheet(combo_style)
         self.req_combo_category.addItem("Selecione")
 
         # Tipo Solicitação
-        lbl_tipo = QLabel("Tipo Solicitação")
-        lbl_tipo.setStyleSheet(label_style)
+        self.req_lbl_type = QLabel("Tipo Solicitação")
+        self.req_lbl_type.setStyleSheet(label_style)
         self.req_combo_type = QComboBox()
         self.req_combo_type.setStyleSheet(combo_style)
         self.req_combo_type.addItem("Selecione")
 
         # Descrição
-        lbl_desc = QLabel("Descrição")
-        lbl_desc.setStyleSheet(label_style)
+        self.req_lbl_description = QLabel("Descrição")
+        self.req_lbl_description.setStyleSheet(label_style)
         self.req_input_description = QLineEdit()
         self.req_input_description.setStyleSheet(line_style)
 
-        grid.addWidget(lbl_cat, 0, 0)
+        grid.addWidget(self.req_lbl_category, 0, 0)
         grid.addWidget(self.req_combo_category, 1, 0)
 
-        grid.addWidget(lbl_tipo, 0, 2)
+        grid.addWidget(self.req_lbl_type, 0, 2)
         grid.addWidget(self.req_combo_type, 1, 2)
 
-        grid.addWidget(lbl_desc, 2, 0, 1, 3)
+        grid.addWidget(self.req_lbl_description, 2, 0, 1, 3)
         grid.addWidget(self.req_input_description, 3, 0, 1, 3)
 
         card_layout.addLayout(grid)
@@ -530,10 +562,29 @@ class UI_ScreenFilterWindow(object):
         self.req_input_item_search.setStyleSheet(line_style)
         self.req_input_item_search.setFixedWidth(260)
         items_header.addWidget(self.req_input_item_search)
+        self.btn_req_settings = QPushButton()
+        self.btn_req_settings.setCursor(Qt.PointingHandCursor)
+        self.btn_req_settings.setIcon(QIcon("assets/settings_tools.png"))
+        self.btn_req_settings.setIconSize(QSize(26, 26))
+        self.btn_req_settings.setFixedSize(48, 48)
+        self.btn_req_settings.setStyleSheet("""
+            QPushButton {
+                background-color: #3E0F63;
+                border-radius: 24px;
+                border: none;
+            }
+            QPushButton:hover {
+                background-color: #53207E;
+            }
+        """)
+        items_header.addWidget(self.btn_req_settings)
         self.btn_add_material = QPushButton("CADASTRAR ITEM")
         self.btn_add_material.setStyleSheet(self._secondary_button())
         items_header.addWidget(self.btn_add_material)
+        self.btn_add_material.hide()
         card_layout.addLayout(items_header)
+
+        self.request_items_stack = QStackedWidget()
 
         self.table_request_items = QTableWidget()
         self.table_request_items.setColumnCount(4)
@@ -541,45 +592,54 @@ class UI_ScreenFilterWindow(object):
             "Add", "Número Item", "Descrição Item", "Quantidade"
         ])
         self._style_table(self.table_request_items)
+        self.request_items_stack.addWidget(self.table_request_items)
 
-        card_layout.addWidget(self.table_request_items)
+        self.table_request_register_items = QTableWidget()
+        self.table_request_register_items.setColumnCount(5)
+        self.table_request_register_items.setHorizontalHeaderLabels([
+            "Nm item", "Descrição", "Produto", "Quantidade", "Un. medida"
+        ])
+        self._style_table(self.table_request_register_items)
+        self.request_items_stack.addWidget(self.table_request_register_items)
+
+        card_layout.addWidget(self.request_items_stack)
 
         # Campos inferiores
         bottom_grid = QGridLayout()
         bottom_grid.setHorizontalSpacing(30)
         bottom_grid.setVerticalSpacing(10)
 
-        lbl_solic = QLabel("Solicitado por")
-        lbl_solic.setStyleSheet(label_style)
+        self.req_lbl_requested_by = QLabel("Solicitado por")
+        self.req_lbl_requested_by.setStyleSheet(label_style)
         self.req_input_requested_by = QLineEdit()
         self.req_input_requested_by.setStyleSheet(line_style)
 
-        lbl_obs = QLabel("Observações adicionais (opcional)")
-        lbl_obs.setStyleSheet(label_style)
+        self.req_lbl_obs = QLabel("Observações adicionais (opcional)")
+        self.req_lbl_obs.setStyleSheet(label_style)
         self.req_input_obs = QTextEdit()
         self.req_input_obs.setStyleSheet("""
             QTextEdit {
                 background-color: #E8E2EE;
                 border-radius: 6px;
                 border: 1px solid #C7B7DF;
-                color: #3A1A5E;
+                color: #390E68;
                 padding: 6px 10px;
             }
         """)
 
-        lbl_aut = QLabel("Autorizado por")
-        lbl_aut.setStyleSheet(label_style)
+        self.req_lbl_authorized = QLabel("Autorizado por")
+        self.req_lbl_authorized.setStyleSheet(label_style)
         self.req_combo_authorized = QComboBox()
         self.req_combo_authorized.setStyleSheet(combo_style)
         self.req_combo_authorized.addItem("Selecione")
 
-        bottom_grid.addWidget(lbl_solic, 0, 0)
+        bottom_grid.addWidget(self.req_lbl_requested_by, 0, 0)
         bottom_grid.addWidget(self.req_input_requested_by, 1, 0)
 
-        bottom_grid.addWidget(lbl_obs, 0, 1)
+        bottom_grid.addWidget(self.req_lbl_obs, 0, 1)
         bottom_grid.addWidget(self.req_input_obs, 1, 1, 3, 1)
 
-        bottom_grid.addWidget(lbl_aut, 2, 0)
+        bottom_grid.addWidget(self.req_lbl_authorized, 2, 0)
         bottom_grid.addWidget(self.req_combo_authorized, 3, 0)
 
         card_layout.addLayout(bottom_grid)
@@ -649,7 +709,11 @@ class UI_ScreenFilterWindow(object):
                 border-radius: 6px;
                 padding: 4px 10px;
                 border: 1px solid #C7B7DF;
-                color: #3A1A5E;
+                color: #390E68;
+            }
+            QComboBox QAbstractItemView {
+                color: #390E68;
+                selection-color: #390E68;
             }
         """
 
@@ -858,7 +922,7 @@ class UI_ScreenFilterWindow(object):
                 border-radius: 6px;
                 padding: 6px 10px;
                 border: 1px solid #C7B7DF;
-                color: #3A1A5E;
+                color: #390E68;
             }
         """
         combo_style = """
@@ -867,7 +931,11 @@ class UI_ScreenFilterWindow(object):
                 border-radius: 6px;
                 padding: 4px 10px;
                 border: 1px solid #C7B7DF;
-                color: #3A1A5E;
+                color: #390E68;
+            }
+            QComboBox QAbstractItemView {
+                color: #390E68;
+                selection-color: #390E68;
             }
         """
 
@@ -982,10 +1050,11 @@ class UI_ScreenFilterWindow(object):
             QTableWidget {
                 background-color: #F8F3FF;
                 gridline-color: #CBB2E6;
-                color: #3A1A5E;
+                color: #390E68;
             }
             QTableWidget::item {
                 padding: 4px;
+                color: #390E68;
             }
             QHeaderView::section {
                 background-color: #3E0F63;

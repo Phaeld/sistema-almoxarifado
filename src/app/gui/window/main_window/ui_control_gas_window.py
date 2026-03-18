@@ -83,7 +83,7 @@ class UI_ControlGasWindow(object):
             QLabel {
                 font-size: 18px;
                 font-weight: bold;
-                color: #3A1A5E;
+                color: #390E68;
             }
         """)
         toolbox_layout.addWidget(title)
@@ -163,7 +163,7 @@ class UI_ControlGasWindow(object):
                 border-radius: 8px;
                 padding: 6px 10px;
                 border: none;
-                color: #3A1A5E;
+                color: #390E68;
             }
         """
         combo_style = """
@@ -172,7 +172,11 @@ class UI_ControlGasWindow(object):
                 border-radius: 8px;
                 padding: 4px 10px;
                 border: none;
-                color: #3A1A5E;
+                color: #390E68;
+            }
+            QComboBox QAbstractItemView {
+                color: #390E68;
+                selection-color: #390E68;
             }
         """
 
@@ -277,10 +281,11 @@ class UI_ControlGasWindow(object):
             QTableWidget {
                 background-color: #F6F1FA;
                 gridline-color: #CBB2E6;
-                color: #3A1A5E;
+                color: #390E68;
             }
             QTableWidget::item {
                 padding: 4px;
+                color: #390E68;
             }
             QHeaderView::section {
                 background-color: #9B3D97;

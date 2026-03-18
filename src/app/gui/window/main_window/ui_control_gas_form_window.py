@@ -84,7 +84,7 @@ class UI_ControlGasFormWindow(object):
             QLabel {
                 font-size: 13px;
                 font-weight: bold;
-                color: #3A1A5E;
+                color: #390E68;
             }
         """
         line_style = """
@@ -93,7 +93,7 @@ class UI_ControlGasFormWindow(object):
                 border-radius: 8px;
                 padding: 6px 10px;
                 border: none;
-                color: #3A1A5E;
+                color: #390E68;
             }
         """
         combo_style = """
@@ -102,7 +102,11 @@ class UI_ControlGasFormWindow(object):
                 border-radius: 8px;
                 padding: 4px 10px;
                 border: none;
-                color: #3A1A5E;
+                color: #390E68;
+            }
+            QComboBox QAbstractItemView {
+                color: #390E68;
+                selection-color: #390E68;
             }
         """
 

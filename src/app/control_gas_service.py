@@ -9,6 +9,10 @@
 import os
 import sqlite3
 from datetime import datetime
+try:
+    from .remote_api import call_json
+except ImportError:
+    from remote_api import call_json
 
 CURRENT_DIR = os.path.dirname(__file__)
 SRC_DIR = os.path.dirname(CURRENT_DIR)
@@ -29,6 +33,36 @@ class ControlGasService:
         fuel_type=None,
         date_str=None,
     ):
+        status, data = call_json(
+            "GET",
+            "/controls",
+            params={
+                "name_vehicle": name_vehicle,
+                "plate_number": plate_number,
+                "driver": driver,
+                "fuel_type": fuel_type,
+                "date_str": date_str,
+            },
+        )
+        if status == 200 and isinstance(data, list):
+            return [
+                (
+                    int(row.get("id_control", 0)),
+                    row.get("name_vehicle", ""),
+                    row.get("plate_numbler", ""),
+                    row.get("date", ""),
+                    row.get("driver", ""),
+                    int(row.get("odometer_type", 0)),
+                    float(row.get("odometer", 0)),
+                    row.get("odometer_difference"),
+                    row.get("liters_filled", 0),
+                    row.get("average_consumption"),
+                    row.get("fuel_type", ""),
+                    float(row.get("value", 0)),
+                )
+                for row in data
+            ]
+
         conn = ControlGasService.get_connection()
         cur = conn.cursor()
 
@@ -81,6 +115,23 @@ class ControlGasService:
 
     @staticmethod
     def get_control_by_id(control_id: int):
+        status, data = call_json("GET", f"/controls/{control_id}")
+        if status == 200 and isinstance(data, dict):
+            return (
+                int(data.get("id_control", 0)),
+                data.get("name_vehicle", ""),
+                data.get("plate_numbler", ""),
+                data.get("date", ""),
+                data.get("driver", ""),
+                int(data.get("odometer_type", 0)),
+                float(data.get("odometer", 0)),
+                data.get("odometer_difference"),
+                data.get("liters_filled", 0),
+                data.get("average_consumption"),
+                data.get("fuel_type", ""),
+                float(data.get("value", 0)),
+            )
+
         conn = ControlGasService.get_connection()
         cur = conn.cursor()
         cur.execute(
@@ -110,6 +161,27 @@ class ControlGasService:
 
     @staticmethod
     def get_last_control_by_plate(plate_number: str, exclude_id: int | None = None):
+        status, data = call_json(
+            "GET",
+            "/controls/last-by-plate",
+            params={"plate_number": plate_number, "exclude_id": exclude_id},
+        )
+        if status == 200 and isinstance(data, dict):
+            return (
+                int(data.get("id_control", 0)),
+                data.get("name_vehicle", ""),
+                data.get("plate_numbler", ""),
+                data.get("date", ""),
+                data.get("driver", ""),
+                int(data.get("odometer_type", 0)),
+                float(data.get("odometer", 0)),
+                data.get("odometer_difference"),
+                data.get("liters_filled", 0),
+                data.get("average_consumption"),
+                data.get("fuel_type", ""),
+                float(data.get("value", 0)),
+            )
+
         conn = ControlGasService.get_connection()
         cur = conn.cursor()
         params = [plate_number]
@@ -164,6 +236,26 @@ class ControlGasService:
         fuel_type,
         value,
     ):
+        status, _ = call_json(
+            "POST",
+            "/controls",
+            payload={
+                "name_vehicle": name_vehicle,
+                "plate_numbler": plate_number,
+                "date": date_str,
+                "driver": driver,
+                "odometer_type": int(odometer_type),
+                "odometer": float(odometer),
+                "odometer_difference": odometer_difference,
+                "liters_filled": liters_filled,
+                "average_consumption": avg_consumption,
+                "fuel_type": fuel_type,
+                "value": float(value),
+            },
+        )
+        if status == 201:
+            return
+
         conn = ControlGasService.get_connection()
         cur = conn.cursor()
         cur.execute(
@@ -215,6 +307,26 @@ class ControlGasService:
         fuel_type,
         value,
     ):
+        status, _ = call_json(
+            "PUT",
+            f"/controls/{control_id}",
+            payload={
+                "name_vehicle": name_vehicle,
+                "plate_numbler": plate_number,
+                "date": date_str,
+                "driver": driver,
+                "odometer_type": int(odometer_type),
+                "odometer": float(odometer),
+                "odometer_difference": odometer_difference,
+                "liters_filled": liters_filled,
+                "average_consumption": avg_consumption,
+                "fuel_type": fuel_type,
+                "value": float(value),
+            },
+        )
+        if status == 200:
+            return
+
         conn = ControlGasService.get_connection()
         cur = conn.cursor()
         cur.execute(
@@ -255,6 +367,10 @@ class ControlGasService:
 
     @staticmethod
     def delete_control(control_id: int):
+        status, _ = call_json("DELETE", f"/controls/{control_id}")
+        if status == 200:
+            return
+
         conn = ControlGasService.get_connection()
         cur = conn.cursor()
         cur.execute("DELETE FROM TABLE_CONTROL_GAS WHERE id_control = ?", (control_id,))
@@ -264,6 +380,10 @@ class ControlGasService:
 
     @staticmethod
     def get_distinct_fuel_types():
+        status, data = call_json("GET", "/controls/distinct/fuel-types")
+        if status == 200 and isinstance(data, list):
+            return [str(v) for v in data]
+
         conn = ControlGasService.get_connection()
         cur = conn.cursor()
         cur.execute("SELECT DISTINCT fuel_type FROM TABLE_CONTROL_GAS ORDER BY fuel_type")

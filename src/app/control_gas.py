@@ -12,6 +12,8 @@
 import os
 import csv
 import io
+import tempfile
+import ctypes
 from datetime import datetime, timedelta
 from qt_core import *
 from PySide6.QtPrintSupport import QPrinter, QPrintDialog
@@ -562,10 +564,34 @@ class ControlGasReportWindow(QMainWindow):
         if dialog.exec() != QDialog.Accepted:
             return
 
-        text = self.build_print_text(self._last_rows)
-        doc = QTextDocument()
-        doc.setPlainText(text)
-        doc.print_(printer)
+        try:
+            temp_dir = tempfile.mkdtemp(prefix="almox_print_")
+            pdf_path = os.path.join(temp_dir, "relatorio_abastecimento.pdf")
+            self._build_reportlab_pdf(pdf_path, self._last_rows)
+        except Exception as exc:
+            QMessageBox.warning(self, "Imprimir", f"Falha ao gerar o relatorio: {exc}")
+            return
+
+        if os.name == "nt":
+            printer_name = (printer.printerName() or "").strip()
+            if printer_name:
+                code = ctypes.windll.shell32.ShellExecuteW(
+                    None,
+                    "printto",
+                    pdf_path,
+                    f'"{printer_name}"',
+                    ".",
+                    0,
+                )
+                if code > 32:
+                    return
+
+        QDesktopServices.openUrl(QUrl.fromLocalFile(pdf_path))
+        QMessageBox.information(
+            self,
+            "Impressao",
+            "A impressao direta nao foi concluida. O PDF foi aberto para impressao manual.",
+        )
 
     def build_print_text(self, rows):
         total = 0.0
@@ -612,6 +638,185 @@ class ControlGasReportWindow(QMainWindow):
             lines.append(f"TOTAL GASTO: R$ {total:.2f}")
         return "\n".join(lines)
 
+    def _build_reportlab_pdf(self, file_path, rows):
+        try:
+            from reportlab.lib.pagesizes import A4
+            from reportlab.lib.colors import HexColor, white
+            from reportlab.pdfbase.pdfmetrics import stringWidth
+            from reportlab.pdfgen import canvas
+        except ImportError as exc:
+            raise RuntimeError("Dependencia 'reportlab' nao instalada.") from exc
+
+        page_w, page_h = A4
+        margin_x = 28
+        margin_y = 22
+        table_header_h = 26
+        row_h = 24
+        col_widths = [100, 64, 84, 58, 56, 42, 56]
+        headers = ["Veiculo", "Placa", "Motorista", "Data", "Media", "Odo", "Valor"]
+
+        header_purple = HexColor("#A433A2")
+        row_a = HexColor("#DCCBDE")
+        row_b = HexColor("#EFE7EE")
+        navy = HexColor("#18324A")
+        black = HexColor("#111111")
+
+        def classify_vehicle(name):
+            text = str(name or "").upper()
+            if "UMMES" in text:
+                return "ummes"
+            if "AGRI" in text:
+                return "agricultura"
+            return "obras"
+
+        def trim_text(text, font_name, font_size, max_width):
+            text = str(text or "")
+            if stringWidth(text, font_name, font_size) <= max_width:
+                return text
+            ellipsis = "..."
+            while text and stringWidth(text + ellipsis, font_name, font_size) > max_width:
+                text = text[:-1]
+            return text + ellipsis
+
+        def draw_page_header(c):
+            y = page_h - margin_y
+            logo_path = os.path.join("assets", "logo_secretaria.png")
+            if os.path.exists(logo_path):
+                try:
+                    c.drawImage(logo_path, margin_x, y - 72, width=72, height=72, preserveAspectRatio=True, mask="auto")
+                except Exception:
+                    pass
+
+            text_x = margin_x + 86
+            c.setFillColor(navy)
+            c.setFont("Helvetica-Bold", 11)
+            c.drawString(text_x, y - 8, "PREFEITURA MUNICIPAL DE IPAUSSU")
+            c.drawString(text_x, y - 24, "SECRETARIA DE PLANEJAMENTO URBANO")
+            c.line(text_x, y - 12, page_w - margin_x, y - 12)
+
+            c.setFont("Helvetica", 7)
+            c.drawString(text_x, y - 38, "Rua Deoclides da Silva Guidio, 23 - Centro - Telefone (014) 3344-9043")
+            c.drawString(text_x, y - 49, "CEP 18.950.059 - Ipaussu / SP - CNPJ: 44.563.583/0001-34")
+            c.drawString(text_x, y - 60, "e-mail convenios@ipaussu.sp.gov.br/engenharia@ipaussu.sp.gov.br")
+
+            c.setFillColor(HexColor("#A64FB1"))
+            c.setFont("Helvetica-Bold", 16)
+            c.drawCentredString(page_w / 2, y - 104, "RELATORIO ABASTECIMENTO")
+
+            meta_y = y - 150
+            c.setFillColor(black)
+            c.setFont("Helvetica", 10)
+            now = datetime.now()
+            c.drawString(margin_x, meta_y, f"Data emissao relatorio: {now.strftime('%d/%m/%Y')}")
+            c.drawString(margin_x, meta_y - 16, f"Horario de emissao: {now.strftime('%H:%M:%S')}")
+            c.drawString(margin_x, meta_y - 32, f"Periodo de dados do relatorio: {self.describe_period(rows)}")
+            return meta_y - 64
+
+        def draw_table_header(c, y):
+            x = margin_x
+            c.setFillColor(header_purple)
+            c.rect(margin_x, y - table_header_h, sum(col_widths), table_header_h, fill=1, stroke=0)
+            c.setFillColor(white)
+            c.setFont("Helvetica-Bold", 8)
+            for title, width in zip(headers, col_widths):
+                c.drawString(x + 4, y - 17, title)
+                x += width
+            return y - table_header_h
+
+        def build_stats():
+            total = 0.0
+            totals = {"obras": 0.0, "ummes": 0.0, "agricultura": 0.0}
+            liters_by_vehicle = {}
+            plate_by_vehicle = {}
+            day_counter = {}
+            for row in rows:
+                vehicle = str(row[1] or "")
+                liters = self._safe_float(row[8])
+                value = self._safe_float(row[11])
+                date_str = str(row[3] or "")
+                total += value
+                totals[classify_vehicle(vehicle)] += value
+                liters_by_vehicle[vehicle] = liters_by_vehicle.get(vehicle, 0.0) + liters
+                plate_by_vehicle[vehicle] = str(row[2] or "")
+                day_counter[date_str] = day_counter.get(date_str, 0) + 1
+            top_vehicle = max(liters_by_vehicle, key=liters_by_vehicle.get) if liters_by_vehicle else "-"
+            top_plate = plate_by_vehicle.get(top_vehicle, "-")
+            top_day = max(day_counter, key=day_counter.get) if day_counter else "-"
+            return total, totals, top_vehicle, top_plate, top_day
+
+        c = canvas.Canvas(file_path, pagesize=A4)
+        y = draw_page_header(c)
+        y = draw_table_header(c, y)
+
+        c.setFont("Helvetica", 8)
+        for idx, row in enumerate(rows):
+            if y - row_h < margin_y + 100:
+                c.showPage()
+                y = draw_page_header(c)
+                y = draw_table_header(c, y)
+                c.setFont("Helvetica", 8)
+
+            (
+                _id_control,
+                name_vehicle,
+                plate_number,
+                date_str,
+                driver,
+                odometer_type,
+                odometer,
+                odometer_diff,
+                _liters_filled,
+                avg_consumption,
+                _fuel_type,
+                value,
+            ) = row
+
+            odo_display = format_odometer_diff(odometer_type, odometer, odometer_diff)
+            if odo_display == "Null":
+                odo_display = format_odometer_value(odometer)
+
+            values = [
+                trim_text(name_vehicle, "Helvetica", 8, col_widths[0] - 8),
+                trim_text(plate_number, "Helvetica", 8, col_widths[1] - 8),
+                trim_text(driver, "Helvetica", 8, col_widths[2] - 8),
+                trim_text(date_str, "Helvetica", 8, col_widths[3] - 8),
+                f"{self._safe_float(avg_consumption):.2f}",
+                trim_text(odo_display, "Helvetica", 8, col_widths[5] - 8),
+                self._fmt_money(self._safe_float(value)),
+            ]
+
+            c.setFillColor(row_a if idx % 2 == 0 else row_b)
+            c.rect(margin_x, y - row_h, sum(col_widths), row_h, fill=1, stroke=0)
+
+            x = margin_x
+            c.setFillColor(black)
+            for value_text, width in zip(values, col_widths):
+                c.drawString(x + 4, y - 16, str(value_text))
+                x += width
+            y -= row_h
+
+        total, grouped_totals, top_vehicle, top_plate, top_day = build_stats()
+        if y - 90 < margin_y:
+            c.showPage()
+            y = draw_page_header(c)
+
+        c.setFillColor(black)
+        c.setFont("Helvetica", 10)
+        y -= 26
+        c.drawString(margin_x + 18, y, f"Valor R$ total: {self._fmt_money(total)}")
+        y -= 24
+        c.drawString(margin_x + 18, y, f"Valor R$ veiculos do Obras: {self._fmt_money(grouped_totals['obras'])}")
+        y -= 16
+        c.drawString(margin_x + 18, y, f"Valor R$ veiculos da UMMES: {self._fmt_money(grouped_totals['ummes'])}")
+        y -= 16
+        c.drawString(margin_x + 18, y, f"Valor R$ veiculos da AGRICULTURA: {self._fmt_money(grouped_totals['agricultura'])}")
+        y -= 34
+        c.drawString(margin_x + 18, y, f"Veiculo que mais abasteceu: {top_vehicle}")
+        c.drawString(margin_x + 300, y, f"Placa: {top_plate}")
+        y -= 18
+        c.drawString(margin_x + 18, y, f"Dia que mais abasteceu: {top_day}")
+        c.save()
+
     def describe_period(self, rows):
         start_text = self.ui.input_date_from.text().strip()
         end_text = self.ui.input_date_to.text().strip()
@@ -647,6 +852,12 @@ class ControlGasReportWindow(QMainWindow):
     def _fmt_money(self, value):
         text = f"{float(value):,.2f}"
         return text.replace(",", "X").replace(".", ",").replace("X", ".")
+
+    def _safe_float(self, value):
+        try:
+            return float(str(value).replace(",", "."))
+        except (TypeError, ValueError):
+            return 0.0
 
     def _latest_date(self, date_list):
         if not date_list:
