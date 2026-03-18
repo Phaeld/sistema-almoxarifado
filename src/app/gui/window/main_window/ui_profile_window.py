@@ -1,3 +1,14 @@
+﻿# ============================================================================
+# Author: Raphael da Silva
+# Copyright (c) 2026 Raphael da Silva. All rights reserved.
+# Proprietary and confidential software.
+# Unauthorized use, copying, modification, distribution, disclosure,
+# reverse engineering, sublicensing, or commercialization of this source code,
+# in whole or in part, is strictly prohibited without prior written permission.
+# This work is protected under Brazilian Software Law (Law No. 9,609/1998),
+# Brazilian Copyright Law (Law No. 9,610/1998), and other applicable laws.
+# ============================================================================
+
 # ui_profile_window.py
 
 from qt_core import *
@@ -11,7 +22,7 @@ class UI_ProfileWindow(object):
 
         parent.resize(1200, 720)
         parent.setMinimumSize(960, 540)
-        parent.setWindowTitle("Almoxarifado Obras - Perfil do Usuário")
+        parent.setWindowTitle("Almoxarifado Obras - Perfil do UsuÃ¡rio")
         parent.setWindowIcon(QIcon("assets/icon.jpg"))
         parent.setStyleSheet("background-color: #E8E2EE;")
 
@@ -84,7 +95,7 @@ class UI_ProfileWindow(object):
         info_layout = QVBoxLayout()
         info_layout.setSpacing(25)
 
-        title = QLabel("PERFIL DO USUÁRIO")
+        title = QLabel("PERFIL DO USUÃRIO")
         title.setStyleSheet("""
             font-size: 36px;
             font-weight: bold;
@@ -99,13 +110,13 @@ class UI_ProfileWindow(object):
         self.lbl_position = QLabel("")
         self.lbl_level = QLabel("")
 
-        info_layout.addWidget(self.info_block_widget("USUÁRIO", self.lbl_username))
+        info_layout.addWidget(self.info_block_widget("USUÃRIO", self.lbl_username))
         info_layout.addWidget(self.info_block_widget("NOME", self.lbl_name))
 
         row = QHBoxLayout()
         row.setSpacing(80)
         row.addWidget(self.info_block_widget("CARGO", self.lbl_position))
-        row.addWidget(self.info_block_widget("NÍVEL", self.lbl_level))
+        row.addWidget(self.info_block_widget("NÃVEL", self.lbl_level))
 
         info_layout.addLayout(row)
         info_layout.addStretch()
@@ -178,3 +189,5 @@ class UI_ProfileWindow(object):
                 background-color: #8E4AA0;
             }
         """
+
+# Copyright (c) 2026 Raphael da Silva. All rights reserved.

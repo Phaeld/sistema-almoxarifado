@@ -1,4 +1,4 @@
-﻿# ============================================================================
+# ============================================================================
 # Author: Raphael da Silva
 # Copyright (c) 2026 Raphael da Silva. All rights reserved.
 # Proprietary and confidential software.
@@ -9,7 +9,23 @@
 # Brazilian Copyright Law (Law No. 9,610/1998), and other applicable laws.
 # ============================================================================
 
-"""Project source package."""
+import os
+import sys
+from pathlib import Path
+
+
+def get_runtime_root() -> Path:
+    if getattr(sys, "frozen", False):
+        return Path(sys.executable).resolve().parent
+    return Path(__file__).resolve().parents[2]
+
+
+def database_path(filename: str) -> str:
+    return str(get_runtime_root() / "database" / filename)
+
+
+def asset_path(filename: str) -> str:
+    return str(get_runtime_root() / "assets" / filename)
 
 
 # Copyright (c) 2026 Raphael da Silva. All rights reserved.

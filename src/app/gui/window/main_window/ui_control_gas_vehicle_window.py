@@ -1,13 +1,14 @@
-"""
-====================================================================
-    INTERNAL WAREHOUSE MANAGEMENT SYSTEM
-    Author: Raphael da Silva
-    Creation Date: 2025
---------------------------------------------------------------------
-    Description:
-    Vehicle registration screen (Cadastro de Veículos).
-====================================================================
-"""
+﻿# ============================================================================
+# Author: Raphael da Silva
+# Copyright (c) 2026 Raphael da Silva. All rights reserved.
+# Proprietary and confidential software.
+# Unauthorized use, copying, modification, distribution, disclosure,
+# reverse engineering, sublicensing, or commercialization of this source code,
+# in whole or in part, is strictly prohibited without prior written permission.
+# This work is protected under Brazilian Software Law (Law No. 9,609/1998),
+# Brazilian Copyright Law (Law No. 9,610/1998), and other applicable laws.
+# ============================================================================
+
 
 from qt_core import *
 from gui import resources_rc
@@ -20,7 +21,7 @@ class UI_ControlGasVehicleWindow(object):
 
         parent.resize(1200, 720)
         parent.setMinimumSize(960, 540)
-        parent.setWindowTitle("Almoxarifado Obras - Cadastro de Veículos")
+        parent.setWindowTitle("Almoxarifado Obras - Cadastro de VeÃ­culos")
         parent.setWindowIcon(QIcon("assets/icon.jpg"))
         parent.setStyleSheet("background-color: #E8E2EE;")
 
@@ -70,7 +71,7 @@ class UI_ControlGasVehicleWindow(object):
         card_layout.setContentsMargins(35, 25, 35, 30)
         card_layout.setSpacing(20)
 
-        self.title = QLabel("TABELA - Cadastro de Veículos")
+        self.title = QLabel("TABELA - Cadastro de VeÃ­culos")
         self.title.setStyleSheet("""
             QLabel {
                 font-size: 20px;
@@ -121,8 +122,8 @@ class UI_ControlGasVehicleWindow(object):
         self.combo_car.setStyleSheet(combo_style)
         self.combo_car.addItem("Selecione")
 
-        # Número placa
-        lbl_plate = QLabel("Número Placa")
+        # NÃºmero placa
+        lbl_plate = QLabel("NÃºmero Placa")
         lbl_plate.setStyleSheet(label_style)
         self.input_plate = QLineEdit()
         self.input_plate.setStyleSheet(line_style)
@@ -134,8 +135,8 @@ class UI_ControlGasVehicleWindow(object):
         self.combo_odo_type.setStyleSheet(combo_style)
         self.combo_odo_type.addItem("Selecione")
 
-        # Tipo combustível
-        lbl_fuel = QLabel("Tipo Combustível")
+        # Tipo combustÃ­vel
+        lbl_fuel = QLabel("Tipo CombustÃ­vel")
         lbl_fuel.setStyleSheet(label_style)
         self.combo_fuel = QComboBox()
         self.combo_fuel.setStyleSheet(combo_style)
@@ -154,7 +155,7 @@ class UI_ControlGasVehicleWindow(object):
         card_layout.addLayout(grid)
 
         # Photo button
-        self.btn_photo = QPushButton("SELECIONAR FOTO DO\nVEÍCULO")
+        self.btn_photo = QPushButton("SELECIONAR FOTO DO\nVEÃCULO")
         self.btn_photo.setFixedHeight(58)
         self.btn_photo.setStyleSheet("""
             QPushButton {
@@ -206,13 +207,13 @@ class UI_ControlGasVehicleWindow(object):
     def set_action_mode(self, mode: str):
         mode = (mode or "register").lower()
         if mode == "delete":
-            self.title.setText("TABELA - Excluir Veículos")
+            self.title.setText("TABELA - Excluir VeÃ­culos")
             self.btn_register.setText("DELETAR")
         elif mode == "edit":
-            self.title.setText("TABELA - Editar Veículos")
+            self.title.setText("TABELA - Editar VeÃ­culos")
             self.btn_register.setText("EDITAR")
         else:
-            self.title.setText("TABELA - Cadastro de Veículos")
+            self.title.setText("TABELA - Cadastro de VeÃ­culos")
             self.btn_register.setText("CADASTRAR")
 
     def _top_button_style(self) -> str:
@@ -272,3 +273,6 @@ class UI_ControlGasVehicleWindow(object):
                 background-color: #DDC8F0;
             }
         """
+
+# Copyright (c) 2026 Raphael da Silva. All rights reserved.
+

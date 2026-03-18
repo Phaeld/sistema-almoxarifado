@@ -17,6 +17,7 @@ Write-Host "Limpando builds antigos..."
 Remove-Item -Recurse -Force "$root\build" -ErrorAction SilentlyContinue
 Remove-Item -Recurse -Force "$root\dist\Almoxarifado" -ErrorAction SilentlyContinue
 Remove-Item -Recurse -Force "$root\dist\AlmoxAPI" -ErrorAction SilentlyContinue
+Remove-Item -Recurse -Force "$root\dist\installer" -ErrorAction SilentlyContinue
 
 if (-not $SkipClient) {
     Write-Host "Gerando executavel CLIENTE..."
@@ -38,6 +39,8 @@ if (-not $SkipClient) {
     @"
 @echo off
 cd /d %~dp0
+if "%ALMOX_API_BASE_URL%"=="" set ALMOX_API_BASE_URL=http://127.0.0.1:8000
+if "%ALMOX_API_KEY%"=="" set ALMOX_API_KEY=SysObras-2026
 start "" ".\Almoxarifado.exe"
 "@ | Set-Content "$root\dist\Almoxarifado\start_client.bat" -Encoding ASCII
 }
@@ -61,6 +64,7 @@ if (-not $SkipApi) {
 cd /d %~dp0
 if "%ALMOX_API_PORT%"=="" set ALMOX_API_PORT=8000
 if "%ALMOX_API_HOST%"=="" set ALMOX_API_HOST=0.0.0.0
+if "%ALMOX_API_KEY%"=="" set ALMOX_API_KEY=SysObras-2026
 start "" ".\AlmoxAPI.exe"
 "@ | Set-Content "$root\dist\AlmoxAPI\start_api.bat" -Encoding ASCII
 }
@@ -69,4 +73,3 @@ Write-Host ""
 Write-Host "Build concluido."
 Write-Host "Cliente: $root\dist\Almoxarifado"
 Write-Host "API:     $root\dist\AlmoxAPI"
-

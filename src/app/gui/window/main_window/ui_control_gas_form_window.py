@@ -1,13 +1,14 @@
-"""
-====================================================================
-    INTERNAL WAREHOUSE MANAGEMENT SYSTEM
-    Author: Raphael da Silva
-    Creation Date: 2025
---------------------------------------------------------------------
-    Description:
-    Fuel control form screen (Cadastro de Abastecimento).
-====================================================================
-"""
+﻿# ============================================================================
+# Author: Raphael da Silva
+# Copyright (c) 2026 Raphael da Silva. All rights reserved.
+# Proprietary and confidential software.
+# Unauthorized use, copying, modification, distribution, disclosure,
+# reverse engineering, sublicensing, or commercialization of this source code,
+# in whole or in part, is strictly prohibited without prior written permission.
+# This work is protected under Brazilian Software Law (Law No. 9,609/1998),
+# Brazilian Copyright Law (Law No. 9,610/1998), and other applicable laws.
+# ============================================================================
+
 
 from qt_core import *
 from gui import resources_rc
@@ -127,8 +128,8 @@ class UI_ControlGasFormWindow(object):
         self.input_driver = QLineEdit()
         self.input_driver.setStyleSheet(line_style)
 
-        # Número placa
-        lbl_plate = QLabel("Número placa")
+        # NÃºmero placa
+        lbl_plate = QLabel("NÃºmero placa")
         lbl_plate.setStyleSheet(label_style)
         self.combo_plate = QComboBox()
         self.combo_plate.setStyleSheet(combo_style)
@@ -141,8 +142,8 @@ class UI_ControlGasFormWindow(object):
         self.combo_odo_type.setStyleSheet(combo_style)
         self.combo_odo_type.addItem("Selecione")
 
-        # Tipo combustível
-        lbl_fuel = QLabel("Tipo Combustível")
+        # Tipo combustÃ­vel
+        lbl_fuel = QLabel("Tipo CombustÃ­vel")
         lbl_fuel.setStyleSheet(label_style)
         self.combo_fuel = QComboBox()
         self.combo_fuel.setStyleSheet(combo_style)
@@ -154,8 +155,8 @@ class UI_ControlGasFormWindow(object):
         self.input_date = QLineEdit()
         self.input_date.setStyleSheet(line_style)
 
-        # Número do odômetro
-        lbl_odo = QLabel("Número do Odômetro")
+        # NÃºmero do odÃ´metro
+        lbl_odo = QLabel("NÃºmero do OdÃ´metro")
         lbl_odo.setStyleSheet(label_style)
         self.input_odo = QLineEdit()
         self.input_odo.setStyleSheet(line_style)
@@ -297,3 +298,6 @@ class UI_ControlGasFormWindow(object):
                 background-color: #DDC8F0;
             }
         """
+
+# Copyright (c) 2026 Raphael da Silva. All rights reserved.
+

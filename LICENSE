@@ -1,80 +1,169 @@
-Apache License
-Version 2.0, January 2004
-http://www.apache.org/licenses/
+PROPRIETARY SOFTWARE LICENSE AGREEMENT
 
-TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
+Copyright (c) 2026 Raphael da Silva. All rights reserved.
 
-1. Definitions.
+1. Ownership
 
-"License" shall mean the terms and conditions for use, reproduction,
-and distribution as defined by Sections 1 through 9 of this document.
+This software, including without limitation its source code, object code,
+architecture, database structures, interface design, documentation, assets,
+business rules, and related materials (collectively, the "Software"), is the
+exclusive intellectual property of Raphael da Silva, unless otherwise expressly
+identified in writing.
 
-"Licensor" shall mean the copyright owner or entity authorized by
-the copyright owner that is granting the License.
+All rights, title, and interest in and to the Software remain exclusively with
+the copyright holder. No ownership rights are transferred by possession, access,
+delivery, installation, demonstration, evaluation, or use of the Software.
 
-"Legal Entity" shall mean the union of the acting entity and all
-other entities that control, are controlled by, or are under common
-control with that entity.
 
-"You" (or "Your") shall mean an individual or Legal Entity exercising
-permissions granted by this License.
+2. Legal Protection
 
-"Source" form shall mean the preferred form for making modifications.
+The Software is protected by applicable copyright, software, trade secret,
+unfair competition, civil, and criminal laws, including, where applicable:
 
-"Object" form shall mean any form resulting from mechanical
-transformation of a Source form.
+- Brazilian Software Law (Law No. 9,609/1998);
+- Brazilian Copyright Law (Law No. 9,610/1998);
+- Brazilian Civil Code (Law No. 10,406/2002), where applicable;
+- applicable international copyright and intellectual property treaties;
+- any other national or foreign law protecting software, source code,
+  confidential information, and proprietary technology.
 
-"Work" shall mean the work of authorship made available under the License.
 
-"Derivative Works" shall mean any work based on the Work.
+3. Nature of the License
 
-2. Grant of Copyright License.
-Subject to the terms and conditions of this License, each Contributor
-grants to You a perpetual, worldwide, non-exclusive, no-charge,
-royalty-free, irrevocable copyright license.
+This Software is proprietary, confidential, and not open source.
 
-3. Grant of Patent License.
-Each Contributor grants You a perpetual, worldwide, non-exclusive,
-no-charge, royalty-free, irrevocable patent license.
+Unless the copyright holder grants prior written authorization in a separate
+signed instrument, no person or entity is granted any right to:
 
-4. Redistribution.
-You may reproduce and distribute copies of the Work provided that
-You give any other recipients a copy of this License.
+- copy the Software, in whole or in part;
+- reproduce the source code or object code;
+- modify, adapt, translate, refactor, decompile, disassemble, reverse engineer,
+  or create derivative works from the Software;
+- disclose or make the source code available to third parties;
+- distribute, sublicense, lease, lend, assign, publish, or transfer the
+  Software;
+- commercially exploit, resell, or otherwise monetize the Software;
+- remove, alter, or obscure copyright notices, authorship notices, proprietary
+  legends, or license notices;
+- use the Software beyond the scope expressly authorized by the copyright
+  holder.
 
-5. Submission of Contributions.
-Unless You explicitly state otherwise, any Contribution intentionally
-submitted shall be under the terms of this License.
+Any right not expressly granted is strictly reserved.
 
-6. Trademarks.
-This License does not grant permission to use trade names, trademarks,
-or product names of the Licensor.
 
-7. Disclaimer of Warranty.
-Unless required by applicable law, the Work is provided "AS IS".
+4. Restricted Use
 
-8. Limitation of Liability.
-In no event shall any Contributor be liable for any damages.
+Any use of the Software is restricted to the exact scope expressly authorized by
+Raphael da Silva in writing.
 
-9. Accepting Warranty or Additional Liability.
-You may offer support or warranty obligations at Your own risk.
+Access to the Software, whether for testing, demonstration, installation,
+maintenance, deployment, support, review, or execution, does not grant any
+license to copy, modify, redistribute, disclose, or commercialize the Software
+or its source code.
 
-END OF TERMS AND CONDITIONS
 
-APPENDIX: How to apply the Apache License to your work.
+5. Source Code Protection
 
-To apply the Apache License to your work, attach the following
-boilerplate notice:
+The source code of the Software is confidential and proprietary information.
 
-Copyright [yyyy] [nome do proprietário dos direitos autorais]
+Unauthorized access, copying, extraction, disclosure, sharing, publication,
+storage in external repositories, or reuse of the source code, in whole or in
+part, is strictly prohibited.
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+Any attempt to reproduce or appropriate the Software's business logic,
+architecture, workflow, database modeling, interface structure, or internal
+implementation without written permission is prohibited and may constitute a
+violation of intellectual property, copyright, and trade secret protections.
 
-    http://www.apache.org/licenses/LICENSE-2.0
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND.
-See the License for the specific language governing permissions and
-limitations under the License.
+6. No Commercialization by Third Parties
+
+No third party may sell, license, sublicense, rent, transfer, bundle, or
+commercially exploit the Software, whether in source form, object form,
+modified form, or incorporated form, without prior express written permission
+from Raphael da Silva.
+
+
+7. No Modification or Derivative Works
+
+No person or entity may modify, customize, extend, integrate, port, adapt,
+translate, localize, merge, or create derivative works based on the Software or
+its source code without prior express written authorization.
+
+
+8. Confidentiality
+
+Any person or entity with access to the Software or source code shall treat it
+as confidential information.
+
+Such confidential information shall not be disclosed, copied, published,
+transmitted, or made available to any third party without the prior express
+written authorization of Raphael da Silva.
+
+
+9. Reservation of Rights
+
+All intellectual property rights not expressly granted are reserved in full.
+
+Nothing in this License shall be interpreted as:
+
+- a waiver of copyright;
+- a waiver of trade secret protection;
+- a grant of patent rights;
+- a grant of trademark rights;
+- an authorization for public distribution;
+- an authorization for open-source or community use.
+
+
+10. Violations and Remedies
+
+Any unauthorized use, copying, disclosure, modification, reverse engineering,
+distribution, or commercialization of the Software may result in civil,
+administrative, and criminal liability under applicable law.
+
+The copyright holder expressly reserves the right to seek all available legal
+and equitable remedies, including but not limited to:
+
+- cease-and-desist measures;
+- injunctions and urgent judicial relief;
+- damages, including direct and indirect damages where applicable;
+- recovery of losses and profits;
+- seizure or suspension of unauthorized copies;
+- any additional remedy provided by law or contract.
+
+
+11. No Warranty
+
+Unless otherwise agreed in writing, the Software is provided "as is" for the
+limited scope authorized by the copyright holder, without any warranty of any
+kind, express or implied, including but not limited to merchantability, fitness
+for a particular purpose, non-infringement, uninterrupted operation, or error-
+free performance.
+
+
+12. Governing Law and Jurisdiction
+
+This License shall be governed by the laws of the Federative Republic of Brazil,
+without regard to conflict of law principles.
+
+Any dispute arising from or related to this License, the Software, or any
+unauthorized use thereof shall be subject to the jurisdiction chosen by the
+copyright holder as permitted by applicable law, unless otherwise defined in a
+specific written agreement.
+
+
+13. Contact and Permissions
+
+Any request for authorized use, licensing, commercialization, adaptation,
+distribution, maintenance, or access to the source code must be made directly to
+Raphael da Silva in writing.
+
+
+14. Final Statement
+
+This Software is proprietary and confidential.
+
+Unauthorized copying, use, modification, distribution, disclosure, or
+commercialization is strictly prohibited.
+
+Copyright (c) 2026 Raphael da Silva. All rights reserved.

@@ -1,3 +1,14 @@
+﻿# ============================================================================
+# Author: Raphael da Silva
+# Copyright (c) 2026 Raphael da Silva. All rights reserved.
+# Proprietary and confidential software.
+# Unauthorized use, copying, modification, distribution, disclosure,
+# reverse engineering, sublicensing, or commercialization of this source code,
+# in whole or in part, is strictly prohibited without prior written permission.
+# This work is protected under Brazilian Software Law (Law No. 9,609/1998),
+# Brazilian Copyright Law (Law No. 9,610/1998), and other applicable laws.
+# ============================================================================
+
 """
 ====================================================================
     MATERIAL SERVICE
@@ -11,14 +22,12 @@ import sqlite3
 
 try:
     from .remote_api import call_json
+    from .runtime_paths import database_path
 except ImportError:
     from remote_api import call_json
+    from runtime_paths import database_path
 
-
-CURRENT_DIR = os.path.dirname(__file__)
-SRC_DIR = os.path.dirname(CURRENT_DIR)
-PROJECT_ROOT = os.path.dirname(SRC_DIR)
-DB_PATH = os.path.join(PROJECT_ROOT, "database", "material.db")
+DB_PATH = database_path("material.db")
 
 
 CATEGORY_PREFIX_MAP = {
@@ -313,3 +322,5 @@ class MaterialService:
         conn.close()
         return True, "Estoque atualizado com sucesso.", new_qty
 
+
+# Copyright (c) 2026 Raphael da Silva. All rights reserved.

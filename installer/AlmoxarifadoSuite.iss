@@ -35,13 +35,13 @@ Name: "desktopicon"; Description: "Criar atalho na area de trabalho"; GroupDescr
 Name: "startmenuicon"; Description: "Criar atalhos no Menu Iniciar"; GroupDescription: "Atalhos:"; Flags: checkedonce
 
 [Icons]
-Name: "{autodesktop}\Almoxarifado Obras"; Filename: "{app}\Almoxarifado\{#MyAppExeName}"; Tasks: desktopicon
-Name: "{autodesktop}\Almoxarifado API"; Filename: "{app}\AlmoxAPI\{#MyApiExeName}"; Tasks: desktopicon
+Name: "{autodesktop}\Almoxarifado Obras"; Filename: "{app}\Almoxarifado\start_client.bat"; WorkingDir: "{app}\Almoxarifado"; Tasks: desktopicon
+Name: "{autodesktop}\Almoxarifado API"; Filename: "{app}\AlmoxAPI\start_api.bat"; WorkingDir: "{app}\AlmoxAPI"; Tasks: desktopicon
 Name: "{autodesktop}\Almoxarifado Completo (API+App)"; Filename: "{app}\start_suite.bat"; Tasks: desktopicon
-Name: "{group}\Almoxarifado Obras"; Filename: "{app}\Almoxarifado\{#MyAppExeName}"; Tasks: startmenuicon
-Name: "{group}\Almoxarifado API"; Filename: "{app}\AlmoxAPI\{#MyApiExeName}"; Tasks: startmenuicon
+Name: "{group}\Almoxarifado Obras"; Filename: "{app}\Almoxarifado\start_client.bat"; WorkingDir: "{app}\Almoxarifado"; Tasks: startmenuicon
+Name: "{group}\Almoxarifado API"; Filename: "{app}\AlmoxAPI\start_api.bat"; WorkingDir: "{app}\AlmoxAPI"; Tasks: startmenuicon
 Name: "{group}\Almoxarifado Completo (API+App)"; Filename: "{app}\start_suite.bat"; Tasks: startmenuicon
 
 [Run]
-Filename: "{app}\AlmoxAPI\{#MyApiExeName}"; Description: "Executar API agora"; Flags: postinstall skipifsilent
-Filename: "{app}\Almoxarifado\{#MyAppExeName}"; Description: "Abrir sistema agora"; Flags: postinstall skipifsilent
+Filename: "{app}\AlmoxAPI\start_api.bat"; Description: "Executar API agora"; Flags: postinstall skipifsilent
+Filename: "{app}\Almoxarifado\start_client.bat"; Description: "Abrir sistema agora"; Flags: postinstall skipifsilent

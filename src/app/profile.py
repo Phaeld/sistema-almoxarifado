@@ -1,3 +1,14 @@
+﻿# ============================================================================
+# Author: Raphael da Silva
+# Copyright (c) 2026 Raphael da Silva. All rights reserved.
+# Proprietary and confidential software.
+# Unauthorized use, copying, modification, distribution, disclosure,
+# reverse engineering, sublicensing, or commercialization of this source code,
+# in whole or in part, is strictly prohibited without prior written permission.
+# This work is protected under Brazilian Software Law (Law No. 9,609/1998),
+# Brazilian Copyright Law (Law No. 9,610/1998), and other applicable laws.
+# ============================================================================
+
 # profile.py
 
 from qt_core import *
@@ -13,12 +24,12 @@ class ProfileWindow(QMainWindow):
 
         self.on_logout = on_logout
 
-        # 🔐 Verifica sessão
+        # ðŸ” Verifica sessÃ£o
         if not Session.is_authenticated():
             self.close()
             return
 
-        # Usuário da sessão
+        # UsuÃ¡rio da sessÃ£o
         self.user = Session.get()
 
         # UI
@@ -28,7 +39,7 @@ class ProfileWindow(QMainWindow):
         # Carrega dados
         self.load_user_data()
 
-        # Conexões
+        # ConexÃµes
         self.ui.btn_home.clicked.connect(self.go_home)
         self.ui.btn_sair.clicked.connect(self.logout)
         self.ui.btn_change_photo.clicked.connect(self.change_photo)
@@ -98,7 +109,7 @@ class ProfileWindow(QMainWindow):
     def change_photo(self):
         username = self.user.get("username")
         if not username:
-            QMessageBox.warning(self, "Erro", "Usuário inválido.")
+            QMessageBox.warning(self, "Erro", "UsuÃ¡rio invÃ¡lido.")
             return
 
         file_path, _ = QFileDialog.getOpenFileName(
@@ -114,7 +125,7 @@ class ProfileWindow(QMainWindow):
             with open(file_path, "rb") as f:
                 image_bytes = f.read()
         except OSError:
-            QMessageBox.warning(self, "Erro", "Não foi possível ler a imagem.")
+            QMessageBox.warning(self, "Erro", "NÃ£o foi possÃ­vel ler a imagem.")
             return
 
         AuthService.update_user_image(username, image_bytes)
@@ -126,7 +137,7 @@ class ProfileWindow(QMainWindow):
     def remove_photo(self):
         username = self.user.get("username")
         if not username:
-            QMessageBox.warning(self, "Erro", "Usuário inválido.")
+            QMessageBox.warning(self, "Erro", "UsuÃ¡rio invÃ¡lido.")
             return
 
         AuthService.update_user_image(username, None)
@@ -134,3 +145,5 @@ class ProfileWindow(QMainWindow):
         self.load_profile_photo()
 
         QMessageBox.information(self, "Foto removida", "Foto de perfil removida.")
+
+# Copyright (c) 2026 Raphael da Silva. All rights reserved.

@@ -1,20 +1,25 @@
+﻿# ============================================================================
+# Author: Raphael da Silva
+# Copyright (c) 2026 Raphael da Silva. All rights reserved.
+# Proprietary and confidential software.
+# Unauthorized use, copying, modification, distribution, disclosure,
+# reverse engineering, sublicensing, or commercialization of this source code,
+# in whole or in part, is strictly prohibited without prior written permission.
+# This work is protected under Brazilian Software Law (Law No. 9,609/1998),
+# Brazilian Copyright Law (Law No. 9,610/1998), and other applicable laws.
+# ============================================================================
+
 import sqlite3
 import os
 import base64
 try:
     from ..remote_api import call_json
+    from ..runtime_paths import database_path
 except ImportError:
     from remote_api import call_json
+    from runtime_paths import database_path
 
-BASE_DIR = os.path.dirname(
-    os.path.dirname(
-        os.path.dirname(
-            os.path.dirname(__file__)
-        )
-    )
-)
-
-DB_PATH = os.path.join(BASE_DIR, "database", "users.db")
+DB_PATH = database_path("users.db")
 class AuthService:
 
     @staticmethod
@@ -199,3 +204,5 @@ class AuthService:
         cursor.execute("DELETE FROM TABLE_USERS WHERE id_user = ?", (user_id,))
         conn.commit()
         conn.close()
+
+# Copyright (c) 2026 Raphael da Silva. All rights reserved.

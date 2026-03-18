@@ -1,13 +1,14 @@
-"""
-====================================================================
-    INTERNAL WAREHOUSE MANAGEMENT SYSTEM
-    Author: Raphael da Silva
-    Creation Date: 2025
---------------------------------------------------------------------
-    Description:
-    Report window with charts for fuel control.
-====================================================================
-"""
+﻿# ============================================================================
+# Author: Raphael da Silva
+# Copyright (c) 2026 Raphael da Silva. All rights reserved.
+# Proprietary and confidential software.
+# Unauthorized use, copying, modification, distribution, disclosure,
+# reverse engineering, sublicensing, or commercialization of this source code,
+# in whole or in part, is strictly prohibited without prior written permission.
+# This work is protected under Brazilian Software Law (Law No. 9,609/1998),
+# Brazilian Copyright Law (Law No. 9,610/1998), and other applicable laws.
+# ============================================================================
+
 
 from qt_core import *
 from gui import resources_rc
@@ -114,7 +115,7 @@ class UI_ControlGasReportWindow(object):
             }
         """)
 
-        lbl_to = QLabel("Até")
+        lbl_to = QLabel("AtÃ©")
         lbl_to.setStyleSheet(label_style)
         self.input_date_to = QLineEdit()
         self.input_date_to.setPlaceholderText("dd/mm/aaaa")
@@ -128,10 +129,10 @@ class UI_ControlGasReportWindow(object):
             }
         """)
 
-        lbl_vehicle = QLabel("Veículo")
+        lbl_vehicle = QLabel("VeÃ­culo")
         lbl_vehicle.setStyleSheet(label_style)
         self.combo_vehicle = QComboBox()
-        self.combo_vehicle.addItem("Todos veículos")
+        self.combo_vehicle.addItem("Todos veÃ­culos")
         self.combo_vehicle.setStyleSheet("""
             QComboBox {
                 background-color: #E8E2EE;
@@ -276,3 +277,6 @@ class UI_ControlGasReportWindow(object):
                 background-color: #9E99AF;
             }
         """
+
+# Copyright (c) 2026 Raphael da Silva. All rights reserved.
+

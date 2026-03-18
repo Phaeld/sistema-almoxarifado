@@ -1,8 +1,19 @@
+﻿# ============================================================================
+# Author: Raphael da Silva
+# Copyright (c) 2026 Raphael da Silva. All rights reserved.
+# Proprietary and confidential software.
+# Unauthorized use, copying, modification, distribution, disclosure,
+# reverse engineering, sublicensing, or commercialization of this source code,
+# in whole or in part, is strictly prohibited without prior written permission.
+# This work is protected under Brazilian Software Law (Law No. 9,609/1998),
+# Brazilian Copyright Law (Law No. 9,610/1998), and other applicable laws.
+# ============================================================================
+
 """
 ====================================================================
     VEHICLE SERVICE
 --------------------------------------------------------------------
-    Funções de acesso à tabela TABLE_VEHICLES do banco vehicles.db
+    FunÃ§Ãµes de acesso Ã  tabela TABLE_VEHICLES do banco vehicles.db
 ====================================================================
 """
 
@@ -10,13 +21,12 @@ import os
 import sqlite3
 try:
     from .remote_api import call_json
+    from .runtime_paths import database_path
 except ImportError:
     from remote_api import call_json
+    from runtime_paths import database_path
 
-CURRENT_DIR = os.path.dirname(__file__)
-SRC_DIR = os.path.dirname(CURRENT_DIR)
-PROJECT_ROOT = os.path.dirname(SRC_DIR)
-DB_PATH = os.path.join(PROJECT_ROOT, "database", "vehicles.db")
+DB_PATH = database_path("vehicles.db")
 
 
 class VehicleService:
@@ -228,3 +238,5 @@ class VehicleService:
         cur.close()
         conn.close()
         return values
+
+# Copyright (c) 2026 Raphael da Silva. All rights reserved.

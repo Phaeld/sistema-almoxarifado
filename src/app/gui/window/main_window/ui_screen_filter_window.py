@@ -1,16 +1,17 @@
-"""
-====================================================================
-    INTERNAL WAREHOUSE MANAGEMENT SYSTEM
-    Author: Raphael da Silva
-    Creation Date: 2025
---------------------------------------------------------------------
-    Description:
-    Internal warehouse management system with graphical interface.
-====================================================================
-"""
+﻿# ============================================================================
+# Author: Raphael da Silva
+# Copyright (c) 2026 Raphael da Silva. All rights reserved.
+# Proprietary and confidential software.
+# Unauthorized use, copying, modification, distribution, disclosure,
+# reverse engineering, sublicensing, or commercialization of this source code,
+# in whole or in part, is strictly prohibited without prior written permission.
+# This work is protected under Brazilian Software Law (Law No. 9,609/1998),
+# Brazilian Copyright Law (Law No. 9,610/1998), and other applicable laws.
+# ============================================================================
+
 
 from qt_core import *
-from gui import resources_rc   # garante que os ícones do .qrc sejam carregados
+from gui import resources_rc   # garante que os Ã­cones do .qrc sejam carregados
 
 
 class UI_ScreenFilterWindow(object):
@@ -82,11 +83,11 @@ class UI_ScreenFilterWindow(object):
 
         self.btn_cat_limpeza = self._sidebar_button("assets/clear.png",
                                                     "Limpeza, Higiene e Alimentos")
-        self.btn_cat_eletrica = self._sidebar_button("assets/electrical.png", "Elétrica")
-        self.btn_cat_hidraulica = self._sidebar_button("assets/hydraulic_water.png", "Hidráulica")
+        self.btn_cat_eletrica = self._sidebar_button("assets/electrical.png", "ElÃ©trica")
+        self.btn_cat_hidraulica = self._sidebar_button("assets/hydraulic_water.png", "HidrÃ¡ulica")
         self.btn_cat_ferramentas = self._sidebar_button("assets/settings_tools.png",
                                                         "Ferramentas Gerais")
-        self.btn_cat_automoveis = self._sidebar_button("assets/truck.png", "Automóveis")
+        self.btn_cat_automoveis = self._sidebar_button("assets/truck.png", "AutomÃ³veis")
 
         sidebar_layout.addWidget(self.btn_cat_limpeza)
         sidebar_layout.addWidget(self.btn_cat_eletrica)
@@ -96,12 +97,12 @@ class UI_ScreenFilterWindow(object):
 
         sidebar_layout.addWidget(self._hr_line())
 
-        # AÇÕES
-        sidebar_layout.addWidget(self._section_title("AÇÕES"))
+        # AÃ‡Ã•ES
+        sidebar_layout.addWidget(self._section_title("AÃ‡Ã•ES"))
 
         self.btn_sidebar_consultar = self._sidebar_button("assets/magnifier.png", "Consultar")
         self.btn_sidebar_solicitar = self._sidebar_button("assets/request.png", "Solicitar")
-        self.btn_sidebar_relatorio = self._sidebar_button("assets/graphic.png", "Relatório")
+        self.btn_sidebar_relatorio = self._sidebar_button("assets/graphic.png", "RelatÃ³rio")
         self.btn_sidebar_imprimir = self._sidebar_button("assets/print.png", "Imprimir")
         self.btn_sidebar_exportar = self._sidebar_button("assets/export.png", "Exportar")
 
@@ -117,7 +118,7 @@ class UI_ScreenFilterWindow(object):
         sidebar_layout.addWidget(self._section_title("OUTROS"))
 
         self.btn_sidebar_cad_func = self._sidebar_button(
-            "assets/database_icon.png", "Cadastros dos Funcionários"
+            "assets/database_icon.png", "Cadastros dos FuncionÃ¡rios"
         )
         self.btn_sidebar_ajuda = self._sidebar_button(
             "assets/help_software.png", "Ajuda"
@@ -136,7 +137,7 @@ class UI_ScreenFilterWindow(object):
         content_layout.setContentsMargins(30, 25, 30, 25)
         content_layout.setSpacing(20)
 
-        # STACK DE PÁGINAS
+        # STACK DE PÃGINAS
         self.pages_stack = QStackedWidget()
         content_layout.addWidget(self.pages_stack)
 
@@ -146,7 +147,7 @@ class UI_ScreenFilterWindow(object):
         main_layout.addWidget(body)
 
         # =============================
-        #  PÁGINAS
+        #  PÃGINAS
         # =============================
         self.page_materials = self._build_page_materials()
         self.page_consultar = self._build_page_consultar()
@@ -160,11 +161,11 @@ class UI_ScreenFilterWindow(object):
         self.pages_stack.addWidget(self.page_relatorio)
         self.pages_stack.addWidget(self.page_cad_func)
 
-        # Página inicial padrão: materiais
+        # PÃ¡gina inicial padrÃ£o: materiais
         self.pages_stack.setCurrentWidget(self.page_materials)
 
     # ============================================================
-    #  PÁGINA 1 – FILTRO DE MATERIAIS
+    #  PÃGINA 1 â€“ FILTRO DE MATERIAIS
     # ============================================================
     def _build_page_materials(self) -> QWidget:
         page = QWidget()
@@ -227,18 +228,18 @@ class UI_ScreenFilterWindow(object):
             }
         """
 
-        # Descrição
-        lbl_desc = QLabel("Descrição")
+        # DescriÃ§Ã£o
+        lbl_desc = QLabel("DescriÃ§Ã£o")
         lbl_desc.setStyleSheet(label_style)
         self.input_description = QLineEdit()
-        self.input_description.setPlaceholderText("Descrição")
+        self.input_description.setPlaceholderText("DescriÃ§Ã£o")
         self.input_description.setStyleSheet(line_style)
 
-        # Número Item
-        lbl_num = QLabel("Número Item")
+        # NÃºmero Item
+        lbl_num = QLabel("NÃºmero Item")
         lbl_num.setStyleSheet(label_style)
         self.input_item_number = QLineEdit()
-        self.input_item_number.setPlaceholderText("Número Item")
+        self.input_item_number.setPlaceholderText("NÃºmero Item")
         self.input_item_number.setStyleSheet(line_style)
 
         # Categoria
@@ -247,8 +248,8 @@ class UI_ScreenFilterWindow(object):
         self.combo_category = QComboBox()
         self.combo_category.setStyleSheet(combo_style)
         self.combo_category.addItem("Selecione")
-        # TODO: preencher categorias via banco ou código
-        # self.combo_category.addItems(["ELÉTRICA", "HIDRÁULICA", ...])
+        # TODO: preencher categorias via banco ou cÃ³digo
+        # self.combo_category.addItems(["ELÃ‰TRICA", "HIDRÃULICA", ...])
 
         # Produto
         lbl_prod = QLabel("Produto")
@@ -257,9 +258,9 @@ class UI_ScreenFilterWindow(object):
         self.combo_product.setStyleSheet(combo_style)
         self.combo_product.addItem("Selecione")
         # TODO: preencher produtos via banco
-        # self.combo_product.addItems(["Disjuntor", "Relé", ...])
+        # self.combo_product.addItems(["Disjuntor", "RelÃ©", ...])
 
-        # Botão Filtrar
+        # BotÃ£o Filtrar
         self.btn_filter_materials = QPushButton("FILTRAR")
         self.btn_filter_materials.setFixedHeight(40)
         self.btn_filter_materials.setStyleSheet(self._primary_button())
@@ -305,7 +306,7 @@ class UI_ScreenFilterWindow(object):
         self.table_materials = QTableWidget()
         self.table_materials.setColumnCount(6)
         self.table_materials.setHorizontalHeaderLabels([
-            "Nm item", "Descrição", "Produto",
+            "Nm item", "DescriÃ§Ã£o", "Produto",
             "Categoria", "Quantidade", "Un. medida"
         ])
         self._style_table(self.table_materials)
@@ -314,7 +315,7 @@ class UI_ScreenFilterWindow(object):
         return page
 
     # ============================================================
-    #  PÁGINA 2 – CONSULTAR AÇÕES
+    #  PÃGINA 2 â€“ CONSULTAR AÃ‡Ã•ES
     # ============================================================
     def _build_page_consultar(self) -> QWidget:
         page = QWidget()
@@ -382,8 +383,8 @@ class UI_ScreenFilterWindow(object):
         self.cons_input_subject = QLineEdit()
         self.cons_input_subject.setStyleSheet(line_style)
 
-        # Número Ação
-        lbl_num = QLabel("Número Ação")
+        # NÃºmero AÃ§Ã£o
+        lbl_num = QLabel("NÃºmero AÃ§Ã£o")
         lbl_num.setStyleSheet(label_style)
         self.cons_input_action = QLineEdit()
         self.cons_input_action.setStyleSheet(line_style)
@@ -394,7 +395,7 @@ class UI_ScreenFilterWindow(object):
         self.cons_combo_type = QComboBox()
         self.cons_combo_type.setStyleSheet(combo_style)
         self.cons_combo_type.addItem("Selecione")
-        # TODO: preencher tipos de ação
+        # TODO: preencher tipos de aÃ§Ã£o
 
         # Produto
         lbl_prod = QLabel("Produto")
@@ -404,8 +405,8 @@ class UI_ScreenFilterWindow(object):
         self.cons_combo_product.addItem("Selecione")
         # TODO: preencher
 
-        # Observação
-        lbl_obs = QLabel("Observação")
+        # ObservaÃ§Ã£o
+        lbl_obs = QLabel("ObservaÃ§Ã£o")
         lbl_obs.setStyleSheet(label_style)
         self.cons_input_obs = QLineEdit()
         self.cons_input_obs.setStyleSheet(line_style)
@@ -417,7 +418,7 @@ class UI_ScreenFilterWindow(object):
         self.cons_input_date.setPlaceholderText("dd/mm/aaaa")
         self.cons_input_date.setStyleSheet(line_style)
 
-        # Botão
+        # BotÃ£o
         self.btn_filter_consult = QPushButton("FILTRAR")
         self.btn_filter_consult.setFixedHeight(40)
         self.btn_filter_consult.setStyleSheet(self._primary_button())
@@ -449,7 +450,7 @@ class UI_ScreenFilterWindow(object):
         self.table_consult = QTableWidget()
         self.table_consult.setColumnCount(6)
         self.table_consult.setHorizontalHeaderLabels([
-            "Nm_ação", "Assunto", "Obs",
+            "Nm_aÃ§Ã£o", "Assunto", "Obs",
             "Categoria", "Permitido por", "Data"
         ])
         self._style_table(self.table_consult)
@@ -458,7 +459,7 @@ class UI_ScreenFilterWindow(object):
         return page
 
     # ============================================================
-    #  PÁGINA 3 – SOLICITAR MATERIAIS
+    #  PÃGINA 3 â€“ SOLICITAR MATERIAIS
     # ============================================================
     def _build_page_solicitar(self) -> QWidget:
         page = QWidget()
@@ -527,15 +528,15 @@ class UI_ScreenFilterWindow(object):
         self.req_combo_category.setStyleSheet(combo_style)
         self.req_combo_category.addItem("Selecione")
 
-        # Tipo Solicitação
-        self.req_lbl_type = QLabel("Tipo Solicitação")
+        # Tipo SolicitaÃ§Ã£o
+        self.req_lbl_type = QLabel("Tipo SolicitaÃ§Ã£o")
         self.req_lbl_type.setStyleSheet(label_style)
         self.req_combo_type = QComboBox()
         self.req_combo_type.setStyleSheet(combo_style)
         self.req_combo_type.addItem("Selecione")
 
-        # Descrição
-        self.req_lbl_description = QLabel("Descrição")
+        # DescriÃ§Ã£o
+        self.req_lbl_description = QLabel("DescriÃ§Ã£o")
         self.req_lbl_description.setStyleSheet(label_style)
         self.req_input_description = QLineEdit()
         self.req_input_description.setStyleSheet(line_style)
@@ -589,7 +590,7 @@ class UI_ScreenFilterWindow(object):
         self.table_request_items = QTableWidget()
         self.table_request_items.setColumnCount(4)
         self.table_request_items.setHorizontalHeaderLabels([
-            "Add", "Número Item", "Descrição Item", "Quantidade"
+            "Add", "NÃºmero Item", "DescriÃ§Ã£o Item", "Quantidade"
         ])
         self._style_table(self.table_request_items)
         self.request_items_stack.addWidget(self.table_request_items)
@@ -597,7 +598,7 @@ class UI_ScreenFilterWindow(object):
         self.table_request_register_items = QTableWidget()
         self.table_request_register_items.setColumnCount(5)
         self.table_request_register_items.setHorizontalHeaderLabels([
-            "Nm item", "Descrição", "Produto", "Quantidade", "Un. medida"
+            "Nm item", "DescriÃ§Ã£o", "Produto", "Quantidade", "Un. medida"
         ])
         self._style_table(self.table_request_register_items)
         self.request_items_stack.addWidget(self.table_request_register_items)
@@ -614,7 +615,7 @@ class UI_ScreenFilterWindow(object):
         self.req_input_requested_by = QLineEdit()
         self.req_input_requested_by.setStyleSheet(line_style)
 
-        self.req_lbl_obs = QLabel("Observações adicionais (opcional)")
+        self.req_lbl_obs = QLabel("ObservaÃ§Ãµes adicionais (opcional)")
         self.req_lbl_obs.setStyleSheet(label_style)
         self.req_input_obs = QTextEdit()
         self.req_input_obs.setStyleSheet("""
@@ -644,7 +645,7 @@ class UI_ScreenFilterWindow(object):
 
         card_layout.addLayout(bottom_grid)
 
-        # Botões
+        # BotÃµes
         btn_row = QHBoxLayout()
         btn_row.addStretch()
 
@@ -667,7 +668,7 @@ class UI_ScreenFilterWindow(object):
         return page
 
     # ============================================================
-    #  PÁGINA 4 – RELATÓRIO (DASHBOARD)
+    #  PÃGINA 4 â€“ RELATÃ“RIO (DASHBOARD)
     # ============================================================
     def _build_page_relatorio(self) -> QWidget:
         page = QWidget()
@@ -686,7 +687,7 @@ class UI_ScreenFilterWindow(object):
         card_layout.setContentsMargins(25, 20, 25, 20)
         card_layout.setSpacing(12)
 
-        title = QLabel("DASHBOARD – Relatório")
+        title = QLabel("DASHBOARD â€“ RelatÃ³rio")
         title.setStyleSheet("""
             QLabel {
                 font-size: 20px;
@@ -816,7 +817,7 @@ class UI_ScreenFilterWindow(object):
         chart_title_row.addWidget(self.report_chart_title)
         chart_title_row.addStretch()
 
-        lbl_period = QLabel("Período")
+        lbl_period = QLabel("PerÃ­odo")
         lbl_period.setStyleSheet("font-size: 12px; font-weight: bold; color: white;")
         self.report_combo_period = QComboBox()
         self.report_combo_period.setStyleSheet(combo_style)
@@ -846,7 +847,7 @@ class UI_ScreenFilterWindow(object):
         top_layout.setContentsMargins(16, 12, 16, 12)
         top_layout.setSpacing(8)
 
-        self.report_top_title = QLabel("ITENS MAIS SÃO RETIRADOS")
+        self.report_top_title = QLabel("ITENS MAIS SÃƒO RETIRADOS")
         self.report_top_title.setStyleSheet("font-size: 12px; font-weight: bold; color: white;")
         top_layout.addWidget(self.report_top_title)
 
@@ -881,7 +882,7 @@ class UI_ScreenFilterWindow(object):
         return page
 
     # ============================================================
-    #  PÁGINA 4 – CADASTRO DE FUNCIONÁRIOS
+    #  PÃGINA 4 â€“ CADASTRO DE FUNCIONÃRIOS
     # ============================================================
     def _build_page_cad_func(self) -> QWidget:
         page = QWidget()
@@ -899,7 +900,7 @@ class UI_ScreenFilterWindow(object):
         card_layout.setContentsMargins(25, 20, 25, 20)
         card_layout.setSpacing(12)
 
-        title = QLabel("TABELA – Cadastro dos Funcionários")
+        title = QLabel("TABELA â€“ Cadastro dos FuncionÃ¡rios")
         title.setStyleSheet("""
             QLabel {
                 font-size: 20px;
@@ -943,8 +944,8 @@ class UI_ScreenFilterWindow(object):
         grid.setHorizontalSpacing(30)
         grid.setVerticalSpacing(12)
 
-        # Nome usuário
-        lbl_user = QLabel("Nome Usuário")
+        # Nome usuÃ¡rio
+        lbl_user = QLabel("Nome UsuÃ¡rio")
         lbl_user.setStyleSheet(label_style)
         self.emp_input_username = QLineEdit()
         self.emp_input_username.setStyleSheet(line_style)
@@ -955,8 +956,8 @@ class UI_ScreenFilterWindow(object):
         self.emp_input_fullname = QLineEdit()
         self.emp_input_fullname.setStyleSheet(line_style)
 
-        # Nível
-        lbl_nivel = QLabel("Nível")
+        # NÃ­vel
+        lbl_nivel = QLabel("NÃ­vel")
         lbl_nivel.setStyleSheet(label_style)
         self.emp_combo_level = QComboBox()
         self.emp_combo_level.setStyleSheet(combo_style)
@@ -969,8 +970,8 @@ class UI_ScreenFilterWindow(object):
         self.emp_combo_position.setStyleSheet(combo_style)
         self.emp_combo_position.addItem("Selecione")
 
-        # Sessão
-        lbl_sessao = QLabel("Sessão")
+        # SessÃ£o
+        lbl_sessao = QLabel("SessÃ£o")
         lbl_sessao.setStyleSheet(label_style)
         self.emp_input_session = QLineEdit()
         self.emp_input_session.setStyleSheet(line_style)
@@ -1012,7 +1013,7 @@ class UI_ScreenFilterWindow(object):
 
         card_layout.addLayout(grid)
 
-        # Botões
+        # BotÃµes
         btn_row = QHBoxLayout()
         btn_row.addStretch()
 
@@ -1162,3 +1163,6 @@ class UI_ScreenFilterWindow(object):
             }
         """)
         return btn
+
+# Copyright (c) 2026 Raphael da Silva. All rights reserved.
+

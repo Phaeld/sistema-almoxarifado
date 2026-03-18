@@ -1,13 +1,14 @@
-"""
-====================================================================
-    INTERNAL WAREHOUSE MANAGEMENT SYSTEM
-    Author: Raphael da Silva
-    Creation Date: 2025
---------------------------------------------------------------------
-    Description:
-    Screen to control fuel supply for work vehicles.
-====================================================================
-"""
+﻿# ============================================================================
+# Author: Raphael da Silva
+# Copyright (c) 2026 Raphael da Silva. All rights reserved.
+# Proprietary and confidential software.
+# Unauthorized use, copying, modification, distribution, disclosure,
+# reverse engineering, sublicensing, or commercialization of this source code,
+# in whole or in part, is strictly prohibited without prior written permission.
+# This work is protected under Brazilian Software Law (Law No. 9,609/1998),
+# Brazilian Copyright Law (Law No. 9,610/1998), and other applicable laws.
+# ============================================================================
+
 
 import os
 import csv
@@ -36,6 +37,31 @@ def format_odometer_value(value):
     return str(value)
 
 
+def get_odometer_type_label(odometer_type):
+    try:
+        value = int(odometer_type)
+    except (TypeError, ValueError):
+        return str(odometer_type or "")
+    return {
+        1: "Quilometros por Litro",
+        2: "Litros por Hora Maquina",
+        3: "Nao possui odometro",
+    }.get(value, str(value))
+
+
+def parse_odometer_type_label(text):
+    normalized = str(text or "").strip()
+    mapping = {
+        "1": 1,
+        "2": 2,
+        "3": 3,
+        "Quilometros por Litro": 1,
+        "Litros por Hora Maquina": 2,
+        "Nao possui odometro": 3,
+    }
+    return mapping.get(normalized)
+
+
 def format_odometer_diff(odometer_type, odometer_value, odometer_diff):
     if odometer_value is None or odometer_value == "":
         return "Null"
@@ -53,7 +79,7 @@ class ControlGasWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        # Sessão
+        # SessÃ£o
         if not Session.is_authenticated():
             self.close()
             return
@@ -64,7 +90,7 @@ class ControlGasWindow(QMainWindow):
         self.ui = UI_ControlGasWindow()
         self.ui.setup_ui(self)
 
-        # Conexões
+        # ConexÃµes
         self.ui.btn_home.clicked.connect(self.go_home)
         self.ui.btn_profile.clicked.connect(self.open_profile)
 
@@ -120,7 +146,7 @@ class ControlGasWindow(QMainWindow):
     def open_gas_delete(self):
         selected = self.get_selected_control()
         if not selected:
-            QMessageBox.warning(self, "Seleção", "Selecione um abastecimento na tabela.")
+            QMessageBox.warning(self, "SeleÃ§Ã£o", "Selecione um abastecimento na tabela.")
             return
         self.form = ControlGasFormWindow(action_mode="delete", control_data=selected)
         self.form.show()
@@ -129,7 +155,7 @@ class ControlGasWindow(QMainWindow):
     def open_gas_edit(self):
         selected = self.get_selected_control()
         if not selected:
-            QMessageBox.warning(self, "Seleção", "Selecione um abastecimento na tabela.")
+            QMessageBox.warning(self, "SeleÃ§Ã£o", "Selecione um abastecimento na tabela.")
             return
         self.form = ControlGasFormWindow(action_mode="edit", control_data=selected)
         self.form.show()
@@ -445,8 +471,8 @@ class ControlGasReportWindow(QMainWindow):
         except ValueError:
             QMessageBox.warning(
                 self,
-                "Datas inválidas",
-                "Use o formato dd/mm/aaaa para o período personalizado."
+                "Datas invÃ¡lidas",
+                "Use o formato dd/mm/aaaa para o perÃ­odo personalizado."
             )
             return None, None
         if start > end:
@@ -455,7 +481,7 @@ class ControlGasReportWindow(QMainWindow):
 
     def get_selected_vehicle(self):
         vehicle = self.ui.combo_vehicle.currentText().strip()
-        if not vehicle or vehicle == "Todos veículos":
+        if not vehicle or vehicle == "Todos veÃ­culos":
             return None
         return vehicle
 
@@ -463,7 +489,7 @@ class ControlGasReportWindow(QMainWindow):
         rows = ControlGasService.list_controls()
         vehicles = sorted({r[1] for r in rows if r[1]})
         self.ui.combo_vehicle.clear()
-        self.ui.combo_vehicle.addItem("Todos veículos")
+        self.ui.combo_vehicle.addItem("Todos veÃ­culos")
         for v in vehicles:
             self.ui.combo_vehicle.addItem(v)
 
@@ -956,7 +982,7 @@ class ControlGasDetailWindow(QMainWindow):
         self.ui.val_plate.setText(str(plate_numbler))
         self.ui.val_date.setText(str(date_str))
         self.ui.val_driver.setText(str(driver))
-        self.ui.val_odo_type.setText(str(odometer_type))
+        self.ui.val_odo_type.setText(get_odometer_type_label(odometer_type))
         self.ui.val_odo.setText(format_odometer_value(odometer))
         self.ui.val_diff.setText(format_odometer_diff(odometer_type, odometer, odometer_diff))
         self.ui.val_liters.setText(str(liters_filled))
@@ -965,7 +991,7 @@ class ControlGasDetailWindow(QMainWindow):
         self.ui.val_value.setText(str(value))
         self.ui.btn_close.clicked.connect(self.close)
 
-        # Foto do veículo
+        # Foto do veÃ­culo
         vehicle = VehicleService.get_vehicle_by_plate(plate_numbler)
         if vehicle:
             image_path = vehicle[5]
@@ -1038,22 +1064,33 @@ class ControlGasFormWindow(QMainWindow):
         self.ui.input_value.clear()
         self._selected_photo_path = None
 
+    def _set_odometer_combo_value(self, odometer_type):
+        target = parse_odometer_type_label(odometer_type)
+        if target is None:
+            return
+        for idx in range(self.ui.combo_odo_type.count()):
+            if self.ui.combo_odo_type.itemData(idx) == target:
+                self.ui.combo_odo_type.setCurrentIndex(idx)
+                return
+        self.ui.combo_odo_type.addItem(get_odometer_type_label(target), target)
+        self.ui.combo_odo_type.setCurrentIndex(self.ui.combo_odo_type.count() - 1)
+
     def register_form(self):
         if self.action_mode == "delete":
             if not self.control_data:
-                QMessageBox.warning(self, "Seleção", "Selecione um abastecimento para deletar.")
+                QMessageBox.warning(self, "SeleÃ§Ã£o", "Selecione um abastecimento para deletar.")
                 return
             control_id = self.control_data[0]
             confirm = QMessageBox.question(
                 self,
-                "Confirmar exclusão",
+                "Confirmar exclusÃ£o",
                 "Deseja deletar este abastecimento?",
                 QMessageBox.Yes | QMessageBox.No,
             )
             if confirm != QMessageBox.Yes:
                 return
             ControlGasService.delete_control(control_id)
-            QMessageBox.information(self, "Exclusão", "Abastecimento deletado com sucesso.")
+            QMessageBox.information(self, "ExclusÃ£o", "Abastecimento deletado com sucesso.")
             LogService.log_event(
                 "CONTROL_GAS_DELETE",
                 f"id_control={control_id} vehicle={name} plate={plate} date={date_str}",
@@ -1073,40 +1110,42 @@ class ControlGasFormWindow(QMainWindow):
         date_str = self.ui.input_date.text().strip()
 
         if not name or name == "Selecione":
-            QMessageBox.warning(self, "Dados inválidos", "Informe o veículo.")
+            QMessageBox.warning(self, "Dados invÃ¡lidos", "Informe o veÃ­culo.")
             return
         if not plate or plate == "Selecione":
-            QMessageBox.warning(self, "Dados inválidos", "Informe a placa.")
+            QMessageBox.warning(self, "Dados invÃ¡lidos", "Informe a placa.")
             return
         if not date_str:
-            QMessageBox.warning(self, "Dados inválidos", "Informe a data.")
+            QMessageBox.warning(self, "Dados invÃ¡lidos", "Informe a data.")
             return
         if not driver:
-            QMessageBox.warning(self, "Dados inválidos", "Informe o motorista.")
+            QMessageBox.warning(self, "Dados invÃ¡lidos", "Informe o motorista.")
             return
         if not fuel or fuel == "Selecione":
-            QMessageBox.warning(self, "Dados inválidos", "Selecione o tipo de combustível.")
+            QMessageBox.warning(self, "Dados invÃ¡lidos", "Selecione o tipo de combustÃ­vel.")
             return
         if not odometer_text or odometer_text == "Selecione":
-            QMessageBox.warning(self, "Dados inválidos", "Selecione o tipo de odômetro.")
+            QMessageBox.warning(self, "Dados invÃ¡lidos", "Selecione o tipo de odÃ´metro.")
             return
         if not odometer_value:
-            QMessageBox.warning(self, "Dados inválidos", "Informe o odômetro.")
+            QMessageBox.warning(self, "Dados invÃ¡lidos", "Informe o odÃ´metro.")
             return
         if not liters_value:
-            QMessageBox.warning(self, "Dados inválidos", "Informe a quantidade abastecida.")
+            QMessageBox.warning(self, "Dados invÃ¡lidos", "Informe a quantidade abastecida.")
             return
         if not value_text:
-            QMessageBox.warning(self, "Dados inválidos", "Informe o valor.")
+            QMessageBox.warning(self, "Dados invÃ¡lidos", "Informe o valor.")
             return
 
         try:
-            odometer_type = int(odometer_text)
+            odometer_type = parse_odometer_type_label(odometer_text)
             odometer = float(odometer_value.replace(",", "."))
             liters = float(liters_value.replace(",", "."))
             value = float(value_text.replace(",", "."))
+            if odometer_type is None:
+                raise ValueError
         except ValueError:
-            QMessageBox.warning(self, "Dados inválidos", "Valores numéricos inválidos.")
+            QMessageBox.warning(self, "Dados invÃ¡lidos", "Valores numÃ©ricos invÃ¡lidos.")
             return
 
         # Campos derivados
@@ -1134,7 +1173,7 @@ class ControlGasFormWindow(QMainWindow):
 
         if self.action_mode == "edit":
             if not self.control_data:
-                QMessageBox.warning(self, "Seleção", "Selecione um abastecimento para editar.")
+                QMessageBox.warning(self, "SeleÃ§Ã£o", "Selecione um abastecimento para editar.")
                 return
             control_id = self.control_data[0]
             ControlGasService.update_control(
@@ -1151,7 +1190,7 @@ class ControlGasFormWindow(QMainWindow):
                 fuel,
                 value,
             )
-            QMessageBox.information(self, "Edição", "Abastecimento atualizado com sucesso.")
+            QMessageBox.information(self, "EdiÃ§Ã£o", "Abastecimento atualizado com sucesso.")
             LogService.log_event(
                 "CONTROL_GAS_UPDATE",
                 f"id_control={control_id} vehicle={name} plate={plate} date={date_str}",
@@ -1178,14 +1217,14 @@ class ControlGasFormWindow(QMainWindow):
         self.back_to_control()
 
     def load_form_data(self):
-        # Combos de veículos
+        # Combos de veÃ­culos
         self._vehicles = VehicleService.list_vehicles()
         self.ui.combo_car.clear()
         self.ui.combo_car.addItem("Selecione")
         for v in self._vehicles:
             self.ui.combo_car.addItem(v[1])
 
-        # Combos de placa (preenchidos conforme seleção do veículo)
+        # Combos de placa (preenchidos conforme seleÃ§Ã£o do veÃ­culo)
         self.ui.combo_plate.clear()
         self.ui.combo_plate.addItem("Selecione")
 
@@ -1198,7 +1237,11 @@ class ControlGasFormWindow(QMainWindow):
         self.ui.combo_odo_type.clear()
         self.ui.combo_odo_type.addItem("Selecione")
         for value in VehicleService.get_distinct_odometer_types():
-            self.ui.combo_odo_type.addItem(str(value))
+            try:
+                numeric_value = int(value)
+            except (TypeError, ValueError):
+                continue
+            self.ui.combo_odo_type.addItem(get_odometer_type_label(numeric_value), numeric_value)
 
         if self.control_data:
             (
@@ -1228,10 +1271,7 @@ class ControlGasFormWindow(QMainWindow):
                 self.ui.combo_fuel.addItem(str(fuel_type))
             self.ui.combo_fuel.setCurrentText(str(fuel_type))
 
-            odometer_text = str(odometer_type)
-            if self.ui.combo_odo_type.findText(odometer_text) == -1:
-                self.ui.combo_odo_type.addItem(odometer_text)
-            self.ui.combo_odo_type.setCurrentText(odometer_text)
+            self._set_odometer_combo_value(odometer_type)
 
             self.ui.input_date.setText(str(date_str or ""))
             self.ui.input_driver.setText(str(driver or ""))
@@ -1268,10 +1308,7 @@ class ControlGasFormWindow(QMainWindow):
             self.ui.combo_fuel.setCurrentText(str(fuel_type))
 
         if odometer_type is not None:
-            odometer_text = str(odometer_type)
-            if self.ui.combo_odo_type.findText(odometer_text) == -1:
-                self.ui.combo_odo_type.addItem(odometer_text)
-            self.ui.combo_odo_type.setCurrentText(odometer_text)
+            self._set_odometer_combo_value(odometer_type)
 
     def set_form_read_only(self, read_only: bool):
         self.ui.combo_car.setEnabled(not read_only)
@@ -1340,6 +1377,17 @@ class ControlGasVehicleWindow(QMainWindow):
         self.ui.combo_fuel.setCurrentIndex(0)
         self.ui.input_plate.clear()
 
+    def _set_vehicle_odometer_combo_value(self, odometer_type):
+        target = parse_odometer_type_label(odometer_type)
+        if target is None:
+            return
+        for idx in range(self.ui.combo_odo_type.count()):
+            if self.ui.combo_odo_type.itemData(idx) == target:
+                self.ui.combo_odo_type.setCurrentIndex(idx)
+                return
+        self.ui.combo_odo_type.addItem(get_odometer_type_label(target), target)
+        self.ui.combo_odo_type.setCurrentIndex(self.ui.combo_odo_type.count() - 1)
+
     def register_form(self):
         name = self.ui.combo_car.currentText().strip()
         plate = self.ui.input_plate.text().strip()
@@ -1347,38 +1395,37 @@ class ControlGasVehicleWindow(QMainWindow):
         odometer_text = self.ui.combo_odo_type.currentText().strip()
 
         if not name or name == "Selecione":
-            QMessageBox.warning(self, "Dados inválidos", "Informe o nome do veículo.")
+            QMessageBox.warning(self, "Dados invÃ¡lidos", "Informe o nome do veÃ­culo.")
             return
         if not plate:
-            QMessageBox.warning(self, "Dados inválidos", "Informe a placa.")
+            QMessageBox.warning(self, "Dados invÃ¡lidos", "Informe a placa.")
             return
         if not fuel or fuel == "Selecione":
-            QMessageBox.warning(self, "Dados inválidos", "Selecione o tipo de combustível.")
+            QMessageBox.warning(self, "Dados invÃ¡lidos", "Selecione o tipo de combustÃ­vel.")
             return
         if not odometer_text or odometer_text == "Selecione":
-            QMessageBox.warning(self, "Dados inválidos", "Selecione o tipo de odômetro.")
+            QMessageBox.warning(self, "Dados invÃ¡lidos", "Selecione o tipo de odÃ´metro.")
             return
 
-        try:
-            odometer_type = int(odometer_text)
-        except ValueError:
-            QMessageBox.warning(self, "Dados inválidos", "Tipo de odômetro deve ser numérico.")
+        odometer_type = parse_odometer_type_label(odometer_text)
+        if odometer_type is None:
+            QMessageBox.warning(self, "Dados invÃ¡lidos", "Selecione um tipo de odÃ´metro vÃ¡lido.")
             return
 
         if self.action_mode == "delete":
             if not self._selected_vehicle_id:
-                QMessageBox.warning(self, "Seleção", "Selecione um veículo para deletar.")
+                QMessageBox.warning(self, "SeleÃ§Ã£o", "Selecione um veÃ­culo para deletar.")
                 return
             confirm = QMessageBox.question(
                 self,
-                "Confirmar exclusão",
-                "Deseja deletar este veículo?",
+                "Confirmar exclusÃ£o",
+                "Deseja deletar este veÃ­culo?",
                 QMessageBox.Yes | QMessageBox.No,
             )
             if confirm != QMessageBox.Yes:
                 return
             VehicleService.delete_vehicle(self._selected_vehicle_id)
-            QMessageBox.information(self, "Exclusão", "Veículo deletado com sucesso.")
+            QMessageBox.information(self, "ExclusÃ£o", "VeÃ­culo deletado com sucesso.")
             LogService.log_event(
                 "VEHICLE_DELETE",
                 f"vehicle_id={self._selected_vehicle_id} name={name} plate={plate}",
@@ -1389,7 +1436,7 @@ class ControlGasVehicleWindow(QMainWindow):
 
         if self.action_mode == "edit":
             if not self._selected_vehicle_id:
-                QMessageBox.warning(self, "Seleção", "Selecione um veículo para editar.")
+                QMessageBox.warning(self, "SeleÃ§Ã£o", "Selecione um veÃ­culo para editar.")
                 return
             VehicleService.update_vehicle(
                 self._selected_vehicle_id,
@@ -1399,7 +1446,7 @@ class ControlGasVehicleWindow(QMainWindow):
                 odometer_type,
                 self._selected_photo_path,
             )
-            QMessageBox.information(self, "Edição", "Veículo atualizado com sucesso.")
+            QMessageBox.information(self, "EdiÃ§Ã£o", "VeÃ­culo atualizado com sucesso.")
             LogService.log_event(
                 "VEHICLE_UPDATE",
                 f"vehicle_id={self._selected_vehicle_id} name={name} plate={plate}",
@@ -1415,7 +1462,7 @@ class ControlGasVehicleWindow(QMainWindow):
             odometer_type,
             self._selected_photo_path,
         )
-        QMessageBox.information(self, "Cadastro", "Veículo cadastrado com sucesso.")
+        QMessageBox.information(self, "Cadastro", "VeÃ­culo cadastrado com sucesso.")
         LogService.log_event(
             "VEHICLE_CREATE",
             f"name={name} plate={plate}",
@@ -1426,14 +1473,14 @@ class ControlGasVehicleWindow(QMainWindow):
     def select_photo(self):
         file_path, _ = QFileDialog.getOpenFileName(
             self,
-            "Selecionar foto do veículo",
+            "Selecionar foto do veÃ­culo",
             "",
             "Imagens (*.png *.jpg *.jpeg *.bmp)"
         )
         if not file_path:
             return
         self._selected_photo_path = file_path
-        QMessageBox.information(self, "Foto selecionada", "Foto do veículo atualizada.")
+        QMessageBox.information(self, "Foto selecionada", "Foto do veÃ­culo atualizada.")
 
     def load_vehicle_data(self):
         # Combos de tipos
@@ -1445,9 +1492,13 @@ class ControlGasVehicleWindow(QMainWindow):
         self.ui.combo_odo_type.clear()
         self.ui.combo_odo_type.addItem("Selecione")
         for value in VehicleService.get_distinct_odometer_types():
-            self.ui.combo_odo_type.addItem(str(value))
+            try:
+                numeric_value = int(value)
+            except (TypeError, ValueError):
+                continue
+            self.ui.combo_odo_type.addItem(get_odometer_type_label(numeric_value), numeric_value)
 
-        # Veículos
+        # VeÃ­culos
         self._vehicles = VehicleService.list_vehicles()
         self.ui.combo_car.clear()
         self.ui.combo_car.addItem("Selecione")
@@ -1487,10 +1538,7 @@ class ControlGasVehicleWindow(QMainWindow):
             self.ui.combo_fuel.setCurrentText(str(fuel))
 
         if odometer_type is not None:
-            odometer_text = str(odometer_type)
-            if self.ui.combo_odo_type.findText(odometer_text) == -1:
-                self.ui.combo_odo_type.addItem(odometer_text)
-            self.ui.combo_odo_type.setCurrentText(odometer_text)
+            self._set_vehicle_odometer_combo_value(odometer_type)
 
 
 
@@ -1498,4 +1546,7 @@ class ControlGasVehicleWindow(QMainWindow):
 
 
 
+
+
+# Copyright (c) 2026 Raphael da Silva. All rights reserved.
 

@@ -1,21 +1,14 @@
-"""
-====================================================================
-    INTERNAL WAREHOUSE MANAGEMENT SYSTEM
-    Author: Raphael da Silva
-    Creation Date: 2025
---------------------------------------------------------------------
-    Description:
-    This program was developed to manage the internal warehouse
-    operations of the company, allowing control of inventory,
-    product registrations, incoming and outgoing materials, and
-    report generation.
+﻿# ============================================================================
+# Author: Raphael da Silva
+# Copyright (c) 2026 Raphael da Silva. All rights reserved.
+# Proprietary and confidential software.
+# Unauthorized use, copying, modification, distribution, disclosure,
+# reverse engineering, sublicensing, or commercialization of this source code,
+# in whole or in part, is strictly prohibited without prior written permission.
+# This work is protected under Brazilian Software Law (Law No. 9,609/1998),
+# Brazilian Copyright Law (Law No. 9,610/1998), and other applicable laws.
+# ============================================================================
 
-    The system will be implemented in Python using a graphical
-    user interface (GUI) and database integration. The goal is to
-    provide a practical, intuitive, and efficient solution for the
-    management of internally used materials.
-====================================================================
-"""
 
 # IMPORT LIBRARIES
 import sys
@@ -37,7 +30,7 @@ class HelpWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-         # 🔐 Verifica sessão ANTES de tudo
+         # ðŸ” Verifica sessÃ£o ANTES de tudo
         if not Session.is_authenticated():
             self.close()
             return
@@ -48,7 +41,7 @@ class HelpWindow(QMainWindow):
         self.ui = UI_HelpWindow()
         self.ui.setup_ui(self)
 
-        # botão voltar
+        # botÃ£o voltar
         self.ui.btn_home.clicked.connect(self.go_home)
         self.ui.btn_profile.clicked.connect(self.open_profile)
         self.ui.btn_download.clicked.connect(self.open_manual_link)
@@ -73,3 +66,6 @@ class HelpWindow(QMainWindow):
         # Substituir pelo link real do Google Drive
         url = "https://drive.google.com/your-manual-link"
         QDesktopServices.openUrl(QUrl(url))
+
+# Copyright (c) 2026 Raphael da Silva. All rights reserved.
+

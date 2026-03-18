@@ -1,13 +1,14 @@
-"""
-====================================================================
-    INTERNAL WAREHOUSE MANAGEMENT SYSTEM
-    Author: Raphael da Silva
-    Creation Date: 2025
---------------------------------------------------------------------
-    Description:
-    Fuel control screen (Abastecimento).
-====================================================================
-"""
+﻿# ============================================================================
+# Author: Raphael da Silva
+# Copyright (c) 2026 Raphael da Silva. All rights reserved.
+# Proprietary and confidential software.
+# Unauthorized use, copying, modification, distribution, disclosure,
+# reverse engineering, sublicensing, or commercialization of this source code,
+# in whole or in part, is strictly prohibited without prior written permission.
+# This work is protected under Brazilian Software Law (Law No. 9,609/1998),
+# Brazilian Copyright Law (Law No. 9,610/1998), and other applicable laws.
+# ============================================================================
+
 
 from qt_core import *
 from gui import resources_rc
@@ -180,7 +181,7 @@ class UI_ControlGasWindow(object):
             }
         """
 
-        lbl_vehicle = QLabel("Veículo")
+        lbl_vehicle = QLabel("VeÃ­culo")
         lbl_vehicle.setStyleSheet(label_style)
         self.input_vehicle = QLineEdit()
         self.input_vehicle.setStyleSheet(line_style)
@@ -195,7 +196,7 @@ class UI_ControlGasWindow(object):
         self.input_driver = QLineEdit()
         self.input_driver.setStyleSheet(line_style)
 
-        lbl_fuel = QLabel("Tipo Combustível")
+        lbl_fuel = QLabel("Tipo CombustÃ­vel")
         lbl_fuel.setStyleSheet(label_style)
         self.combo_fuel = QComboBox()
         self.combo_fuel.setStyleSheet(combo_style)
@@ -241,10 +242,10 @@ class UI_ControlGasWindow(object):
         self.table_gas = QTableWidget()
         self.table_gas.setColumnCount(10)
         self.table_gas.setHorizontalHeaderLabels([
-            "Veículo", "Placa", "Data", "Motorista",
-            "Km/h Máq", "Diferença Km/h Máq",
-            "Qnt Combustível L", "Média Consumo",
-            "Tipo Combustível", "Preço R$"
+            "VeÃ­culo", "Placa", "Data", "Motorista",
+            "Km/h MÃ¡q", "DiferenÃ§a Km/h MÃ¡q",
+            "Qnt CombustÃ­vel L", "MÃ©dia Consumo",
+            "Tipo CombustÃ­vel", "PreÃ§o R$"
         ])
         self._style_table(self.table_gas)
         content_layout.addWidget(self.table_gas)
@@ -339,3 +340,6 @@ class UI_ControlGasWindow(object):
                 background-color: #DDC8F0;
             }
         """
+
+# Copyright (c) 2026 Raphael da Silva. All rights reserved.
+

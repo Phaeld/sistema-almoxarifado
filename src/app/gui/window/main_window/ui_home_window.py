@@ -1,21 +1,14 @@
-"""
-====================================================================
-    INTERNAL WAREHOUSE MANAGEMENT SYSTEM
-    Author: Raphael da Silva
-    Creation Date: 2025
---------------------------------------------------------------------
-    Description:
-    This program was developed to manage the internal warehouse
-    operations of the company, allowing control of inventory,
-    product registrations, incoming and outgoing materials, and
-    report generation.
+﻿# ============================================================================
+# Author: Raphael da Silva
+# Copyright (c) 2026 Raphael da Silva. All rights reserved.
+# Proprietary and confidential software.
+# Unauthorized use, copying, modification, distribution, disclosure,
+# reverse engineering, sublicensing, or commercialization of this source code,
+# in whole or in part, is strictly prohibited without prior written permission.
+# This work is protected under Brazilian Software Law (Law No. 9,609/1998),
+# Brazilian Copyright Law (Law No. 9,610/1998), and other applicable laws.
+# ============================================================================
 
-    The system will be implemented in Python using a graphical
-    user interface (GUI) and database integration. The goal is to
-    provide a practical, intuitive, and efficient solution for the
-    management of internally used materials.
-====================================================================
-"""
 
 # IMPORT QT CORE
 from qt_core import *
@@ -135,18 +128,18 @@ class UI_HomeWindow(object):
 
     cards = [
         ("assets/cleaning_tools.png", "Limpeza, Higiene &\nAlimentos", "LIM"),
-        ("assets/wiring.png", "Elétrica", "ELE"),
-        ("assets/hydraulic.png", "Hidráulica", "HID"),
+        ("assets/wiring.png", "ElÃ©trica", "ELE"),
+        ("assets/hydraulic.png", "HidrÃ¡ulica", "HID"),
         ("assets/tools.png", "Ferramentas Gerais", "FER"),
-        ("assets/box-truck.png", "Automóveis", "AUT"),
-        ("assets/gas_station.png", "Abastecimento Veículos \ndo Obras ", "ABA"),
+        ("assets/box-truck.png", "AutomÃ³veis", "AUT"),
+        ("assets/gas_station.png", "Abastecimento VeÃ­culos \ndo Obras ", "ABA"),
         ("assets/database.png", "Base de dados dos\nColaboradores", "COL"),
         ("assets/help.png", "Ajuda", "AJU"),
 ]
 
     row = col = 0
     for icon, text, tag in cards:
-        card = MenuCard(icon, text, tag)   # ✅ passa a tag no construtor
+        card = MenuCard(icon, text, tag)   # âœ… passa a tag no construtor
         self.menu_cards.append(card)
 
         grid.addWidget(card, row, col)
@@ -171,3 +164,6 @@ class UI_HomeWindow(object):
                 color: #E0C8FF;
             }
         """
+
+# Copyright (c) 2026 Raphael da Silva. All rights reserved.
+
